@@ -11,7 +11,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F9F8F6; /* Warm neutral background */
+            background-color: #F9F8F6;
             color: #334155;
         }
 
@@ -19,20 +19,19 @@
             font-family: 'Merriweather', serif;
         }
 
-        /* CRITICAL: Responsive Chart Container Styling */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 600px; /* Constrain maximum width for readability */
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
-            height: 300px; /* Base height */
+            height: 300px;
             max-height: 400px;
         }
 
         @media (min-width: 768px) {
             .chart-container {
-                height: 350px; /* Taller on desktop */
+                height: 350px;
                 max-width: 800px;
             }
         }
@@ -53,7 +52,6 @@
             border-color: #4ade80;
         }
 
-        /* Abstract CSS Flower representations (Avoiding SVG) */
         .css-flower-radial {
             width: 80px; height: 80px;
             background: radial-gradient(circle at center, #fbbf24 20%, #fef08a 21%, transparent 22%),
@@ -78,32 +76,7 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="antialiased leading-relaxed transition-opacity duration-500" id="main-body">
-
-    <!-- Hide Page Button -->
-    <button id="hide-page-btn" class="fixed top-4 right-4 z-[100] bg-white/80 hover:bg-red-50 text-gray-500 hover:text-red-600 w-10 h-10 rounded-full flex items-center justify-center shadow-md border border-gray-200 transition-all hover:scale-105 backdrop-blur-sm focus:outline-none" title="Hide Page">
-        <span class="text-2xl font-bold leading-none mb-1">&times;</span>
-    </button>
-
-    <!-- Chosen Palette: Nature's Neutral (Background: #F9F8F6, Text: Slate-700, Accents: Green-500, Green-800, Amber-400, Red-400, Purple-400) -->
-    
-    <!-- Application Structure Plan: 
-         1. Header/Nav: Sticky navigation for quick jumps.
-         2. Introduction: Sets the goal and tone.
-         3. The Big Picture (Taxonomy): Uses a Doughnut chart to show the statistical dominance of Angiosperms, framing the rest of the study.
-         4. Morphology - Leaves (Interactive Tabs): Groups shape, margin, and arrangement. Uses a dynamic Bar chart that updates based on the selected tab to show the prevalence of different traits in typical ecosystems.
-         5. Morphology - Flowers (Cards): Explains radial vs. bilateral symmetry and monocot vs. dicot differences using CSS shapes (no SVG) and hover interactions.
-         6. Ecology/Habitat (Scatter Plot): Demonstrates how moisture and shade tolerance group plant families together.
-         7. Interactive Identification Matrix: A functional tool (filtering via JS) where users apply what they've learned to "identify" a plant family based on key traits.
-         WHY: This structure moves from macro (kingdom) to micro (leaves/flowers), then contextualizes it (habitat), and finally provides a practical application tool, ensuring active learning and high usability. -->
-    
-    <!-- Visualization & Content Choices: 
-         - Plant Kingdom Distribution -> Goal: Inform/Proportions -> Viz: Doughnut Chart (Chart.js). Justification: Clearly shows the massive disparity in plant types (Angiosperms dominating).
-         - Leaf Traits Frequency -> Goal: Compare -> Viz: Dynamic Bar Chart (Chart.js) paired with interactive tabs. Justification: Prevents information overload by revealing data sequentially based on user interest.
-         - Flower Symmetry/Types -> Goal: Organize/Inform -> Viz: HTML/CSS CSS-shapes & Grid Cards. Justification: Adheres to the NO SVG rule while providing a visual, interactive way to understand abstract concepts like symmetry.
-         - Habitat Requirements -> Goal: Relationships -> Viz: Scatter Plot (Chart.js). Justification: Perfect for showing correlation/clustering of plant families based on two variables (Moisture vs. Light).
-         - ID Matrix -> Goal: Interactive Task -> Viz: HTML Selectors + JS DOM Manipulation. Justification: Transforms passive reading into active application of knowledge. 
-         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+<body class="antialiased leading-relaxed" id="main-body">
 
     <!-- Navigation -->
     <nav class="sticky top-0 z-50 bg-[#F9F8F6]/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
@@ -117,7 +90,6 @@
                     <a href="#taxonomy" class="hover:text-green-600 transition-colors">1. Taxonomy</a>
                     <a href="#leaves" class="hover:text-green-600 transition-colors">2. Leaves</a>
                     <a href="#flowers" class="hover:text-green-600 transition-colors">3. Flowers</a>
-                    <a href="#habitat" class="hover:text-green-600 transition-colors">4. Habitat</a>
                     <a href="#id-matrix" class="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors">ID Tool</a>
                 </div>
             </div>
@@ -130,73 +102,48 @@
         <section id="intro" class="text-center max-w-3xl mx-auto pt-10">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">Read the Landscape: <br><span class="text-green-700">Mastering Plant Identification</span></h1>
             <p class="text-lg text-gray-600 mb-8">
-                Identifying plants is a process of systematic deduction. By learning to observe the structural hierarchy—from broad taxonomic groups down to specific leaf margins and reproductive organs—you can decode the natural world. This interactive guide breaks down the essential botanical clues required for accurate field identification.
+                Identifying plants is a process of systematic deduction. By learning to observe the structural hierarchy—from broad taxonomic groups down to specific leaf margins and reproductive organs—you can decode the natural world.
             </p>
             <div class="flex justify-center space-x-4">
                 <a href="#taxonomy" class="bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors">Begin the Course</a>
             </div>
         </section>
 
-        <!-- Section 1: Taxonomy -->
+        <!-- Taxonomy Section -->
         <section id="taxonomy" class="scroll-mt-24">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                    <h2 class="text-3xl font-bold mb-4 text-green-900">1. The Big Picture: Plant Taxonomy</h2>
+                    <h2 class="text-3xl font-bold mb-4 text-green-900">1. Plant Taxonomy</h2>
                     <p class="text-gray-700 mb-4 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <strong class="text-gray-900">Purpose:</strong> Before analyzing individual leaves, you must understand the major divisions of the plant kingdom. This section visualizes the vast diversity of plants, showing why we focus primarily on Angiosperms (flowering plants) in field identification.
-                    </p>
-                    <p class="text-gray-600 mb-6">
-                        The plant kingdom is primarily divided into vascular and non-vascular plants, and then further into seed-bearing and spore-bearing. The chart clearly illustrates that over 80% of all known living plant species are <strong>Angiosperms</strong>. Consequently, mastering the identification of flowers and fruits is your highest-leverage skill.
+                        Over 80% of all known living plant species are <strong>Angiosperms</strong>. Mastering the identification of flowers and fruits is your highest-leverage skill.
                     </p>
                     <ul class="space-y-3">
-                        <li class="flex items-start">
-                            <span class="text-green-500 mr-2">■</span>
-                            <span><strong>Angiosperms:</strong> Flowering plants. Seeds enclosed in an ovary (fruit).</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-amber-500 mr-2">■</span>
-                            <span><strong>Gymnosperms:</strong> Conifers, cycads. "Naked seeds" often in cones.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-blue-500 mr-2">■</span>
-                            <span><strong>Pteridophytes:</strong> Ferns. Vascular, but reproduce via spores.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-gray-400 mr-2">■</span>
-                            <span><strong>Bryophytes:</strong> Mosses. Non-vascular, require moist environments.</span>
-                        </li>
+                        <li class="flex items-start"><span class="text-green-500 mr-2">■</span><span><strong>Angiosperms:</strong> Flowering plants. Seeds enclosed in an ovary.</span></li>
+                        <li class="flex items-start"><span class="text-amber-500 mr-2">■</span><span><strong>Gymnosperms:</strong> Conifers, cycads. "Naked seeds".</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 mr-2">■</span><span><strong>Pteridophytes:</strong> Ferns. Reproduce via spores.</span></li>
                     </ul>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center">
-                    <h3 class="text-center text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Global Plant Species Distribution</h3>
+                    <h3 class="text-center text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Species Distribution</h3>
                     <div class="chart-container">
                         <canvas id="taxonomyChart"></canvas>
                     </div>
-                    <p class="text-xs text-center text-gray-400 mt-4">Hover over segments to see approximate global species counts.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Section 2: Leaf Morphology -->
+        <!-- Leaf Morphology -->
         <section id="leaves" class="scroll-mt-24 bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100">
-            <h2 class="text-3xl font-bold mb-4 text-green-900 text-center">2. The Vegetative Clues: Leaf Morphology</h2>
-            <p class="text-gray-700 mb-10 max-w-4xl mx-auto text-center">
-                <strong class="text-gray-900">Purpose:</strong> Flowers are seasonal, but leaves are present for most of the year. This section breaks down the three primary vegetative identifiers: Arrangement, Shape, and Margin. Interact with the tabs below to explore how these traits are distributed across typical temperate ecosystems.
-            </p>
-
-            <!-- Interactive Tabs -->
+            <h2 class="text-3xl font-bold mb-4 text-green-900 text-center">2. Leaf Morphology</h2>
             <div class="flex flex-wrap justify-center mb-8 border-b border-gray-200">
                 <button onclick="switchLeafTab('arrangement')" id="tab-arrangement" class="px-6 py-3 text-lg font-medium tab-active transition-colors">Arrangement</button>
                 <button onclick="switchLeafTab('shape')" id="tab-shape" class="px-6 py-3 text-lg font-medium text-gray-500 hover:text-gray-800 transition-colors">Shape</button>
                 <button onclick="switchLeafTab('margin')" id="tab-margin" class="px-6 py-3 text-lg font-medium text-gray-500 hover:text-gray-800 transition-colors">Margin</button>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-12">
-                <div class="lg:col-span-2 flex flex-col justify-center" id="leaf-text-content">
-                    <!-- Content injected via JS -->
-                </div>
+                <div class="lg:col-span-2 flex flex-col justify-center" id="leaf-text-content"></div>
                 <div class="lg:col-span-3">
-                    <h3 class="text-center text-sm font-bold text-gray-500 uppercase tracking-wider mb-2" id="leaf-chart-title">Frequency of Leaf Arrangements</h3>
+                    <h3 class="text-center text-sm font-bold text-gray-500 uppercase tracking-wider mb-2" id="leaf-chart-title">Frequency (%)</h3>
                     <div class="chart-container">
                         <canvas id="leafChart"></canvas>
                     </div>
@@ -204,49 +151,39 @@
             </div>
         </section>
 
-        <!-- Section 3: Flowers -->
+        <!-- Flower Section -->
         <section id="flowers" class="scroll-mt-24">
-            <h2 class="text-3xl font-bold mb-4 text-green-900 text-center">3. The Reproductive Clues: Flower Anatomy</h2>
-            <p class="text-gray-700 mb-10 max-w-4xl mx-auto text-center">
-                <strong class="text-gray-900">Purpose:</strong> Floral structure is the definitive method for categorizing plant families. This section explains the critical concepts of floral symmetry and structural differences, guiding you on exactly what to look for when a plant is in bloom.
-            </p>
-
+            <h2 class="text-3xl font-bold mb-10 text-green-900 text-center">3. Flower Anatomy</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Symmetry Card -->
                 <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm interactive-card">
                     <h3 class="text-xl font-bold mb-6 text-gray-800 border-b pb-2">Floral Symmetry</h3>
-                    
                     <div class="grid grid-cols-2 gap-4">
                         <div class="flex flex-col items-center text-center p-4 bg-gray-50 rounded-xl">
                             <div class="css-flower-radial mb-4"></div>
-                            <h4 class="font-bold text-gray-900">Actinomorphic</h4>
-                            <p class="text-sm text-gray-600 mt-2">Radial symmetry. Can be divided into equal halves in multiple planes (e.g., Buttercup, Rose).</p>
+                            <h4 class="font-bold text-gray-900">Radial</h4>
+                            <p class="text-sm text-gray-600 mt-2">Actinomorphic (e.g., Rose, Buttercup).</p>
                         </div>
                         <div class="flex flex-col items-center text-center p-4 bg-gray-50 rounded-xl">
                             <div class="css-flower-bilateral mb-4"></div>
-                            <h4 class="font-bold text-gray-900">Zygomorphic</h4>
-                            <p class="text-sm text-gray-600 mt-2">Bilateral symmetry. Can be divided into equal halves by only one specific plane (e.g., Orchid, Pea).</p>
+                            <h4 class="font-bold text-gray-900">Bilateral</h4>
+                            <p class="text-sm text-gray-600 mt-2">Zygomorphic (e.g., Orchid, Pea).</p>
                         </div>
                     </div>
                 </div>
-
-                <!-- Monocot vs Dicot Card -->
                 <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm interactive-card">
                     <h3 class="text-xl font-bold mb-6 text-gray-800 border-b pb-2">Monocots vs. Dicots</h3>
-                    <p class="text-sm text-gray-600 mb-6">Counting petals and examining veins is a rapid way to split Angiosperms into two massive clades.</p>
-                    
                     <div class="space-y-4">
                         <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-100">
                             <div>
-                                <h4 class="font-bold text-green-900">Monocots (Monocotyledons)</h4>
-                                <p class="text-sm text-green-800">Parallel leaf veins. Flowers in multiples of 3.</p>
+                                <h4 class="font-bold text-green-900">Monocots</h4>
+                                <p class="text-sm text-green-800">Petals in multiples of 3.</p>
                             </div>
                             <div class="text-2xl font-bold text-green-600">3x</div>
                         </div>
                         <div class="flex justify-between items-center p-4 bg-amber-50 rounded-lg border border-amber-100">
                             <div>
-                                <h4 class="font-bold text-amber-900">Dicots (Eudicots)</h4>
-                                <p class="text-sm text-amber-800">Net-like leaf veins. Flowers in multiples of 4 or 5.</p>
+                                <h4 class="font-bold text-amber-900">Dicots</h4>
+                                <p class="text-sm text-amber-800">Petals in multiples of 4 or 5.</p>
                             </div>
                             <div class="text-2xl font-bold text-amber-600">4x / 5x</div>
                         </div>
@@ -255,25 +192,12 @@
             </div>
         </section>
 
-        <!-- Section 4: Habitat -->
-        <section id="habitat" class="scroll-mt-24">
-            <h2 class="text-3xl font-bold mb-4 text-green-900">4. Environmental Context</h2>
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mt-8">
-                 <p class="text-gray-700 mb-8">
-                    <strong class="text-gray-900">Purpose:</strong> A plant's location is a massive clue. Plants evolved to thrive in specific niches. This interactive scatter plot plots major plant families based on their typical tolerance for shade (Light Need) and water (Moisture Need). Use this to eliminate impossible IDs based on where you are standing.
-                </p>
-                <div class="chart-container">
-                    <canvas id="habitatChart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 5: Interactive Identification Matrix -->
+        <!-- ID Matrix -->
         <section id="id-matrix" class="scroll-mt-24 bg-gray-900 text-white rounded-3xl p-8 md:p-12 shadow-xl">
             <div class="text-center mb-10">
                 <h2 class="text-3xl font-bold mb-4 text-green-400">5. Field Identification Matrix</h2>
                 <p class="text-gray-300 max-w-2xl mx-auto">
-                    <strong class="text-white">Purpose:</strong> Apply what you've learned. Select the traits you observe in the field using the dropdowns below. The logic engine will filter out incompatible plant families, leaving you with likely candidates based on morphological combinations.
+                    Select the traits you observe in the field to filter likely plant families.
                 </p>
             </div>
 
@@ -291,8 +215,8 @@
                     <label class="block text-sm font-medium text-gray-400 mb-2">Flower Symmetry</label>
                     <select id="filter-symmetry" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-green-500 outline-none">
                         <option value="all">Any Symmetry</option>
-                        <option value="Radial">Radial (Actinomorphic)</option>
-                        <option value="Bilateral">Bilateral (Zygomorphic)</option>
+                        <option value="Radial">Radial</option>
+                        <option value="Bilateral">Bilateral</option>
                     </select>
                 </div>
                  <div>
@@ -307,329 +231,181 @@
 
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 min-h-[200px]">
                 <h3 class="text-lg font-bold text-green-400 mb-4 border-b border-gray-700 pb-2">Possible Families: <span id="result-count" class="text-white">...</span></h3>
-                <div id="id-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Results injected here -->
-                </div>
+                <div id="id-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         </section>
 
-        <!-- Read More Button -->
+        <!-- Action Button -->
         <div class="flex justify-center mt-16 mb-8">
-            <button id="read-more-btn" class="bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none flex items-center space-x-2">
-                <span>Read Full Document</span>
+            <button id="read-more-btn" class="bg-green-700 hover:bg-green-800 text-white font-semibold py-4 px-10 rounded-full shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none flex items-center justify-center space-x-2">
+                <span class="text-lg">Open Full Document</span>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
             </button>
         </div>
 
     </main>
 
-    <!-- Document Modal (Floating Iframe) -->
-    <div id="document-modal" class="fixed inset-0 z-[200] bg-gray-900/70 hidden backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
-        <div class="bg-white w-full max-w-5xl h-[85vh] rounded-2xl shadow-2xl flex flex-col relative transform scale-95 transition-transform duration-300" id="modal-content">
+    <!-- Document Modal -->
+    <div id="document-modal" class="fixed inset-0 z-[200] bg-gray-900/80 hidden backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-white w-full max-w-5xl h-[92vh] rounded-2xl shadow-2xl flex flex-col relative transform scale-95 transition-transform duration-300" id="modal-content">
             
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 rounded-t-2xl">
-                <h3 class="text-xl font-bold text-gray-800 serif">Source Document</h3>
-                <button id="close-modal-btn" class="text-gray-500 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 focus:outline-none" title="Close Document">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 rounded-t-2xl shadow-sm">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <h3 class="text-lg font-bold text-gray-800 serif truncate">Botanical Identification Guide</h3>
+                    <a href="https://docs.google.com/document/d/1Pg7EI8ekQcVqMHIordqeyjCmyJFa5OCj0gQxEg1n0vk/export?format=pdf" class="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 px-3 rounded-full flex items-center space-x-1.5 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span class="hidden sm:inline">Download PDF</span>
+                    </a>
+                </div>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             
-            <!-- Modal Body (Iframe) -->
             <div class="flex-grow p-0 overflow-hidden rounded-b-2xl bg-gray-100 relative">
-                <!-- Replace 'about:blank' with the actual URL of the document you want to iframe -->
-                <iframe src="Plant identification.docx" class="w-full h-full border-none absolute inset-0 z-10" id="doc-iframe" title="Full Document Viewer"></iframe>
-                
-                <!-- Placeholder text if no iframe source is provided -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-400 z-0">
-                    <p>Document will load here. (Replace iframe 'src' attribute in the code)</p>
+                <iframe id="doc-iframe" class="w-full h-full border-none absolute inset-0 z-10 bg-white" title="Document Viewer"></iframe>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-10 z-0">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mb-4"></div>
+                    <p class="text-gray-500">Loading Document Preview...</p>
                 </div>
             </div>
         </div>
     </div>
 
     <footer class="bg-white border-t border-gray-200 py-8 text-center text-gray-500 text-sm">
-        <p>&copy; 2026 Botanical Identification Interactive Study Guide.</p>
+        <p>&copy; Jheyrick Baliguat 2026.</p>
     </footer>
 
     <script>
-        // --- DATA STATE --- //
-        
-        // Leaf section content mapping
+        // Data State
         const leafData = {
             arrangement: {
                 title: "How Leaves Attach",
-                text: "The first step in vegetative ID is observing how leaves emerge from the stem. <br><br><strong>Alternate:</strong> One leaf per node, alternating sides. The most common arrangement globally. <br><br><strong>Opposite:</strong> Two leaves per node, directly across from each other. A powerful identifying trait (e.g., Mints, Maples). <br><br><strong>Whorled:</strong> Three or more leaves radiating from a single node.",
+                text: "Observe how leaves emerge from the stem. <br><br><strong>Alternate:</strong> One leaf per node. <br><strong>Opposite:</strong> Two leaves per node. <br><strong>Whorled:</strong> Three or more leaves.",
                 chartLabels: ['Alternate', 'Opposite', 'Whorled', 'Basal'],
                 chartData: [70, 20, 5, 5],
                 chartColors: ['#166534', '#4ade80', '#fbbf24', '#94a3b8'],
-                chartTitle: "Prevalence in Temperate Deciduous Forests (%)"
+                chartTitle: "Common Arrangements (%)"
             },
             shape: {
-                title: "The Overall Silhouette",
-                text: "Leaf shape is highly variable but provides strong secondary clues. Shapes are dictated by environmental factors; narrow leaves reduce water loss, while broad leaves maximize solar capture in deep shade.<br><br>Terms like <em>Ovate</em> (egg-shaped), <em>Lanceolate</em> (long and narrow), and <em>Cordate</em> (heart-shaped) form the basic vocabulary of leaf shape.",
+                title: "Silhouette",
+                text: "Basic vocabulary of leaf shape: Ovate (egg), Lanceolate (spear), and Cordate (heart).",
                 chartLabels: ['Ovate', 'Lanceolate', 'Elliptic', 'Cordate', 'Linear'],
                 chartData: [35, 25, 20, 10, 10],
                 chartColors: ['#22c55e', '#22c55e', '#22c55e', '#22c55e', '#22c55e'],
-                chartTitle: "Common Leaf Shapes Encountered (%)"
+                chartTitle: "Shapes (%)"
             },
             margin: {
-                title: "Examining the Edge",
-                text: "The margin (edge) of the leaf is a more stable diagnostic trait than shape. <br><br><strong>Entire:</strong> Perfectly smooth edge. <br><br><strong>Serrate/Toothed:</strong> Saw-like teeth pointing forward. <br><br><strong>Lobed:</strong> Deep indentations, but not cut all the way to the midrib (like an Oak leaf).",
-                chartLabels: ['Entire (Smooth)', 'Serrate (Toothed)', 'Lobed', 'Undulate'],
+                title: "Edge (Margin)",
+                text: "Diagnostic trait: Entire (smooth), Serrate (toothed), or Lobed.",
+                chartLabels: ['Entire', 'Serrate', 'Lobed', 'Undulate'],
                 chartData: [45, 40, 10, 5],
                 chartColors: ['#14b8a6', '#0ea5e9', '#6366f1', '#8b5cf6'],
-                chartTitle: "Distribution of Margin Types (%)"
+                chartTitle: "Margins (%)"
             }
         };
 
-        // Plant Family Database for ID Matrix
         const plantFamilies = [
             { name: "Lamiaceae (Mint)", arrangement: "Opposite", symmetry: "Bilateral", petals: "Multiples of 4 or 5", trait: "Square stems, aromatic." },
-            { name: "Rosaceae (Rose)", arrangement: "Alternate", symmetry: "Radial", petals: "Multiples of 4 or 5", trait: "Serrated leaves, often stipules present." },
-            { name: "Liliaceae (Lily)", arrangement: "Whorled", symmetry: "Radial", petals: "Multiples of 3", trait: "Parallel venation, 6 tepals." },
-            { name: "Fabaceae (Pea)", arrangement: "Alternate", symmetry: "Bilateral", petals: "Multiples of 4 or 5", trait: "Compound leaves, distinct banner/wing petals." },
-            { name: "Brassicaceae (Mustard)", arrangement: "Alternate", symmetry: "Radial", petals: "Multiples of 4 or 5", trait: "4 petals in a cross shape." },
-            { name: "Orchidaceae (Orchid)", arrangement: "Alternate", symmetry: "Bilateral", petals: "Multiples of 3", trait: "Highly modified lower petal (lip)." },
-            { name: "Rubiaceae (Madder/Coffee)", arrangement: "Opposite", symmetry: "Radial", petals: "Multiples of 4 or 5", trait: "Interpetiolar stipules." },
-            { name: "Apiaceae (Carrot)", arrangement: "Alternate", symmetry: "Radial", petals: "Multiples of 4 or 5", trait: "Compound umbel flower heads, hollow stems." }
+            { name: "Rosaceae (Rose)", arrangement: "Alternate", symmetry: "Radial", petals: "Multiples of 4 or 5", trait: "Serrated leaves, stipules." },
+            { name: "Liliaceae (Lily)", arrangement: "Whorled", symmetry: "Radial", petals: "Multiples of 3", trait: "Parallel veins, 6 tepals." },
+            { name: "Fabaceae (Pea)", arrangement: "Alternate", symmetry: "Bilateral", petals: "Multiples of 4 or 5", trait: "Compound leaves." },
+            { name: "Orchidaceae (Orchid)", arrangement: "Alternate", symmetry: "Bilateral", petals: "Multiples of 3", trait: "Modified lower lip petal." }
         ];
 
-        // --- CHART INITIALIZATIONS --- //
-
-        // 1. Taxonomy Doughnut Chart
+        // Charts
         const ctxTax = document.getElementById('taxonomyChart').getContext('2d');
-        const taxonomyChart = new Chart(ctxTax, {
+        new Chart(ctxTax, {
             type: 'doughnut',
             data: {
-                labels: ['Angiosperms', 'Gymnosperms', 'Pteridophytes', 'Bryophytes'],
-                datasets: [{
-                    data: [89, 1, 4, 6],
-                    backgroundColor: ['#22c55e', '#fbbf24', '#3b82f6', '#94a3b8'],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
+                labels: ['Angiosperms', 'Gymnosperms', 'Others'],
+                datasets: [{ data: [89, 1, 10], backgroundColor: ['#22c55e', '#fbbf24', '#94a3b8'], borderWidth: 0 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false, // CRITICAL for filling the .chart-container
-                plugins: {
-                    legend: { position: 'right', labels: { font: { family: 'Inter' } } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                if (label) { label += ': '; }
-                                label += context.parsed + '% (~' + 
-                                    (context.parsed === 89 ? '300,000' : 
-                                     context.parsed === 1 ? '1,000' : 
-                                     context.parsed === 4 ? '12,000' : '20,000') + ' species)';
-                                return label;
-                            }
-                        }
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // 2. Leaf Morphology Dynamic Bar Chart
         const ctxLeaf = document.getElementById('leafChart').getContext('2d');
         let leafChart = new Chart(ctxLeaf, {
             type: 'bar',
             data: {
                 labels: leafData.arrangement.chartLabels,
-                datasets: [{
-                    label: 'Percentage',
-                    data: leafData.arrangement.chartData,
-                    backgroundColor: leafData.arrangement.chartColors,
-                    borderRadius: 4
-                }]
+                datasets: [{ data: leafData.arrangement.chartData, backgroundColor: leafData.arrangement.chartColors, borderRadius: 4 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false, // CRITICAL
-                scales: {
-                    y: { beginAtZero: true, max: 100, ticks: { callback: function(value) { return value + "%" } } }
-                },
-                plugins: { legend: { display: false } }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } }
         });
 
-        // 3. Habitat Scatter Plot
-        const ctxHab = document.getElementById('habitatChart').getContext('2d');
-        const habitatChart = new Chart(ctxHab, {
-            type: 'scatter',
-            data: {
-                datasets: [
-                    {
-                        label: 'Cactaceae (Cactus)', data: [{x: 10, y: 90}], backgroundColor: '#fbbf24', pointRadius: 8
-                    },
-                    {
-                        label: 'Nymphaeaceae (Water Lily)', data: [{x: 95, y: 80}], backgroundColor: '#3b82f6', pointRadius: 8
-                    },
-                    {
-                        label: 'Polypodiaceae (Ferns)', data: [{x: 80, y: 20}], backgroundColor: '#166534', pointRadius: 8
-                    },
-                    {
-                        label: 'Fagaceae (Oaks/Beech)', data: [{x: 50, y: 70}], backgroundColor: '#8b5cf6', pointRadius: 8
-                    },
-                    {
-                        label: 'Ericaceae (Heath/Blueberry)', data: [{x: 60, y: 40}], backgroundColor: '#f43f5e', pointRadius: 8
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false, // CRITICAL
-                scales: {
-                    x: { title: { display: true, text: 'Moisture Requirement (0=Desert, 100=Aquatic)', font: { weight: 'bold' } }, min: 0, max: 100 },
-                    y: { title: { display: true, text: 'Light Requirement (0=Deep Shade, 100=Full Sun)', font: { weight: 'bold' } }, min: 0, max: 100 }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => context.dataset.label
-                        }
-                    }
-                }
-            }
-        });
-
-        // --- INTERACTION LOGIC --- //
-
-        // Leaf Tabs Logic
+        // Tab Switching
         function switchLeafTab(tabName) {
-            // Update Tab UI
             ['arrangement', 'shape', 'margin'].forEach(name => {
                 const el = document.getElementById(`tab-${name}`);
-                if (name === tabName) {
-                    el.classList.add('tab-active');
-                    el.classList.remove('text-gray-500', 'hover:text-gray-800');
-                } else {
-                    el.classList.remove('tab-active');
-                    el.classList.add('text-gray-500', 'hover:text-gray-800');
-                }
+                el.classList.toggle('tab-active', name === tabName);
+                el.classList.toggle('text-gray-500', name !== tabName);
             });
 
-            // Update Text Content
             const data = leafData[tabName];
             document.getElementById('leaf-text-content').innerHTML = `
                 <h3 class="text-2xl font-bold mb-4 text-gray-800">${data.title}</h3>
-                <p class="text-gray-600 leading-relaxed text-lg">${data.text}</p>
-            `;
-
-            // Update Chart
+                <p class="text-gray-600 leading-relaxed text-lg">${data.text}</p>`;
             document.getElementById('leaf-chart-title').innerText = data.chartTitle;
             leafChart.data.labels = data.chartLabels;
             leafChart.data.datasets[0].data = data.chartData;
             leafChart.data.datasets[0].backgroundColor = data.chartColors;
             leafChart.update();
         }
-
-        // Initialize first tab
         switchLeafTab('arrangement');
 
-        // ID Matrix Logic
-        const filterArrangement = document.getElementById('filter-arrangement');
-        const filterSymmetry = document.getElementById('filter-symmetry');
-        const filterPetals = document.getElementById('filter-petals');
+        // ID Matrix
         const resultsContainer = document.getElementById('id-results');
-        const resultCount = document.getElementById('result-count');
-
         function updateIDMatrix() {
-            const arrVal = filterArrangement.value;
-            const symVal = filterSymmetry.value;
-            const petVal = filterPetals.value;
+            const arrVal = document.getElementById('filter-arrangement').value;
+            const symVal = document.getElementById('filter-symmetry').value;
+            const petVal = document.getElementById('filter-petals').value;
 
-            const filtered = plantFamilies.filter(plant => {
-                const arrMatch = arrVal === 'all' || plant.arrangement === arrVal || (arrVal==='Whorled' && plant.arrangement==='Whorled'); // Simplified matching for demo
-                const symMatch = symVal === 'all' || plant.symmetry === symVal;
-                const petMatch = petVal === 'all' || plant.petals === petVal;
+            const filtered = plantFamilies.filter(p => {
+                const arrMatch = arrVal === 'all' || p.arrangement === arrVal || (arrVal === 'Whorled' && p.arrangement === 'Whorled');
+                const symMatch = symVal === 'all' || p.symmetry === symVal;
+                const petMatch = petVal === 'all' || p.petals === petVal;
                 return arrMatch && symMatch && petMatch;
             });
 
-            resultCount.innerText = `${filtered.length} matches found`;
-            
-            if (filtered.length === 0) {
-                resultsContainer.innerHTML = `<div class="col-span-full text-center py-8 text-gray-500 italic">No families match this specific combination. Try broadening your criteria.</div>`;
-                return;
-            }
-
-            resultsContainer.innerHTML = filtered.map(plant => `
-                <div class="bg-gray-700 p-4 rounded-lg border border-gray-600 hover:border-green-400 transition-colors">
-                    <h4 class="font-bold text-lg text-white mb-2">${plant.name}</h4>
-                    <p class="text-xs text-gray-300 mb-1"><span class="text-gray-500">Leaves:</span> ${plant.arrangement}</p>
-                    <p class="text-xs text-gray-300 mb-1"><span class="text-gray-500">Flower:</span> ${plant.symmetry}, ${plant.petals}</p>
-                    <div class="mt-3 pt-3 border-t border-gray-600">
-                        <p class="text-sm text-green-300"><strong>Key ID:</strong> ${plant.trait}</p>
-                    </div>
-                </div>
-            `).join('');
+            document.getElementById('result-count').innerText = `${filtered.length} matches`;
+            resultsContainer.innerHTML = filtered.length === 0 ? 
+                `<div class="col-span-full text-center py-8 text-gray-500 italic">No matches found.</div>` :
+                filtered.map(p => `
+                <div class="bg-gray-700 p-4 rounded-lg border border-gray-600 hover:border-green-400">
+                    <h4 class="font-bold text-lg text-white mb-2">${p.name}</h4>
+                    <p class="text-xs text-green-300"><strong>Key ID:</strong> ${p.trait}</p>
+                </div>`).join('');
         }
-
-        // Add event listeners to select inputs
-        filterArrangement.addEventListener('change', updateIDMatrix);
-        filterSymmetry.addEventListener('change', updateIDMatrix);
-        filterPetals.addEventListener('change', updateIDMatrix);
-
-        // Init matrix
+        ['filter-arrangement', 'filter-symmetry', 'filter-petals'].forEach(id => document.getElementById(id).addEventListener('change', updateIDMatrix));
         updateIDMatrix();
 
-        // Hide Page Logic
-        document.getElementById('hide-page-btn').addEventListener('click', () => {
-            const bodyContent = document.getElementById('main-body');
-            bodyContent.style.opacity = '0';
-            setTimeout(() => {
-                bodyContent.style.display = 'none';
-            }, 500); // Matches the duration-500 class (500ms)
-        });
-
-        // --- Document Modal / Iframe Logic --- //
+        // Modal
         const modal = document.getElementById('document-modal');
         const modalContent = document.getElementById('modal-content');
-        const readMoreBtn = document.getElementById('read-more-btn');
-        const closeModalBtn = document.getElementById('close-modal-btn');
         const docIframe = document.getElementById('doc-iframe');
 
-        function openModal() {
+        document.getElementById('read-more-btn').addEventListener('click', () => {
             modal.classList.remove('hidden');
-            
-            // Slight delay allows display:block to render before triggering CSS opacity/scale transitions
+            docIframe.src = "https://docs.google.com/document/d/1Pg7EI8ekQcVqMHIordqeyjCmyJFa5OCj0gQxEg1n0vk/preview";
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 modalContent.classList.remove('scale-95');
                 modalContent.classList.add('scale-100');
             }, 10);
-            
-            // NOTE: You can set your actual document URL here dynamically if you prefer:
-            // if (docIframe.src.includes('Plant identification.docx')) {
-            //     docIframe.src = "Plant identification.docx"; 
-            // }
-        }
-
-        function closeModal() {
-            // Reverse the animations
-            modal.classList.add('opacity-0');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-95');
-            
-            // Wait for transition to finish before hiding completely
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300); 
-        }
-
-        // Event Listeners
-        readMoreBtn.addEventListener('click', openModal);
-        closeModalBtn.addEventListener('click', closeModal);
-        
-        // Close modal if user clicks on the dark background overlay
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
         });
 
+        const closeModal = () => {
+            modal.classList.add('opacity-0');
+            modalContent.classList.replace('scale-100', 'scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                docIframe.src = "";
+            }, 300);
+        };
+
+        document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => e.target === modal && closeModal());
     </script>
 </body>
 </html>
