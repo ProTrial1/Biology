@@ -198,13 +198,13 @@ Developed by Jheyrick Baliguat
     </span>
 </button>
 
+<!-- Plant Identification -->
 <a href="IDtool.html" class="study-card bg-white rounded-2xl border border-slate-200 p-8 shadow-sm group">
     <div class="w-14 h-14 bg-sky-100 rounded-xl flex items-center justify-center text-3xl mb-6">🔍</div>
     <h3 class="text-xl font-bold text-slate-900 mb-2">Plant Identification</h3>
     <p class="text-slate-600 text-sm leading-relaxed mb-4">Identify specific classes of angiosperms and botanical structures.</p>
-    <span class="mt-auto text-sky-600 text-xs font-bold uppercase tracking-wider group-hover:underline">Open Tool →</span>
+    <span class="mt-auto text-sky-600 text-xs font-bold uppercase tracking-wider group-hover:underline inline-flex items-center gap-1">Open Tool →</span>
 </a>
-</div>
 </div>
 </main>
 
@@ -214,12 +214,25 @@ Developed by Jheyrick Baliguat
         &times;
     </button>
     <div class="w-full h-full max-w-6xl bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col relative z-10">
-        <div class="bg-slate-100 p-4 border-b border-slate-200 flex justify-between items-center">
-            <h3 class="font-bold text-slate-800 text-sm sm:text-base">Biological Principles - Additional Reading</h3>
-            <a href="https://docs.google.com/document/d/13DCPsdk--O15SftCZZITwxxtklAUaUqeqEgWIVwzmls/preview" target="_blank" class="text-emerald-600 text-xs sm:text-sm hover:underline font-medium inline-flex items-center gap-1">
-                Open in new tab 
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-            </a>
+        <div class="bg-slate-100 p-3 sm:p-4 border-b border-slate-200 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base truncate pr-4">Biological Principles</h3>
+            <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                <a href="https://docs.google.com/document/d/13DCPsdk--O15SftCZZITwxxtklAUaUqeqEgWIVwzmls/preview" target="_blank" class="text-emerald-600 text-xs sm:text-sm hover:underline font-medium items-center gap-1 hidden sm:inline-flex">
+                    Open in new tab 
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
+                
+                <!-- New Download Button -->
+                <a href="https://docs.google.com/document/d/13DCPsdk--O15SftCZZITwxxtklAUaUqeqEgWIVwzmls/export?format=pdf" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 transition-colors" title="Download as PDF">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    <span class="hidden sm:inline">Download</span>
+                </a>
+
+                <button onclick="closeIframeModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                    Return
+                </button>
+            </div>
         </div>
         <!-- Google Docs 'preview' endpoint removes the UI toolbars making it perfect for iframes -->
         <iframe src="https://docs.google.com/document/d/13DCPsdk--O15SftCZZITwxxtklAUaUqeqEgWIVwzmls/preview" class="w-full flex-grow border-none" allowfullscreen></iframe>
