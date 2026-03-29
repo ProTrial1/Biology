@@ -34,8 +34,13 @@
             <h1 class="text-xl md:text-2xl font-bold text-indigo-700 flex items-center gap-2">
                 <i class="fas fa-dna"></i> Biology Mastery Test
             </h1>
-            <div id="header-score" class="hidden text-sm font-semibold bg-indigo-100 text-indigo-800 py-1 px-3 rounded-full">
-                Score: <span id="current-score">0</span>
+            <div class="flex items-center gap-3">
+                <div id="header-timer" class="hidden text-sm font-semibold bg-rose-100 text-rose-800 py-1 px-3 rounded-full flex items-center gap-1.5 transition-colors">
+                    <i class="fas fa-stopwatch"></i> <span id="time-display">80:00</span>
+                </div>
+                <div id="header-score" class="hidden text-sm font-semibold bg-indigo-100 text-indigo-800 py-1 px-3 rounded-full">
+                    Score: <span id="current-score">0</span>
+                </div>
             </div>
         </div>
     </header>
@@ -50,7 +55,8 @@
             </div>
             <h2 class="text-3xl font-bold mb-4 text-slate-900">Comprehensive Review Test</h2>
             <p class="text-slate-600 mb-8 max-w-2xl mx-auto text-lg">
-                This practice test contains 80 rigorous multiple-choice questions covering General Ecology, Genetics, Anatomy & Physiology, Plant Growth & Development, and Microbiology.
+                This practice test contains 80 rigorous multiple-choice questions covering General Ecology, Genetics, Anatomy & Physiology, Plant Growth & Development, and Microbiology. <br><br>
+                <span class="font-semibold text-rose-600"><i class="fas fa-clock"></i> You have 80 minutes to complete the test.</span>
             </p>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-sm text-slate-500">
                 <div class="bg-slate-50 p-3 rounded-lg"><i class="fas fa-leaf text-green-500 mb-2 text-xl block"></i> Ecology</div>
@@ -110,7 +116,10 @@
             </div>
 
             <!-- Controls -->
-            <div class="flex justify-end">
+            <div class="flex justify-between items-center">
+                <button id="end-test-btn" onclick="showResults(false)" class="text-slate-500 hover:text-rose-600 font-medium py-3 px-4 transition-colors text-sm">
+                    Finish Test Early
+                </button>
                 <button id="next-btn" onclick="nextQuestion()" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 px-8 rounded-xl shadow-md transition-all flex items-center gap-2">
                     Next Question <i class="fas fa-arrow-right"></i>
                 </button>
@@ -125,10 +134,29 @@
             <h2 id="results-title" class="text-3xl font-bold mb-2 text-slate-900">Test Complete!</h2>
             <p id="results-subtitle" class="text-slate-600 mb-8 text-lg"></p>
             
-            <div class="bg-slate-50 rounded-2xl p-6 mb-8 max-w-sm mx-auto border border-slate-100">
-                <div class="text-sm text-slate-500 uppercase tracking-wider font-semibold mb-1">Final Score</div>
-                <div class="text-5xl font-black text-indigo-600 mb-2"><span id="final-score">0</span><span class="text-2xl text-slate-400 font-medium"> / 80</span></div>
-                <div id="final-percentage" class="text-xl font-medium text-slate-700">0%</div>
+            <div class="flex flex-col md:flex-row justify-center gap-4 mb-8 max-w-lg mx-auto">
+                <div class="bg-slate-50 rounded-2xl p-6 flex-1 border border-slate-100">
+                    <div class="text-sm text-slate-500 uppercase tracking-wider font-semibold mb-1">Final Score</div>
+                    <div class="text-5xl font-black text-indigo-600 mb-2"><span id="final-score">0</span><span class="text-2xl text-slate-400 font-medium"> / 80</span></div>
+                    <div id="final-percentage" class="text-xl font-medium text-slate-700">0%</div>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 flex-1 border border-slate-100">
+                    <div class="text-sm text-slate-500 uppercase tracking-wider font-semibold mb-1">Time Taken</div>
+                    <div class="text-5xl font-black text-rose-600 mb-2 flex items-center justify-center h-full pb-4" id="time-taken-display">00:00</div>
+                </div>
+            </div>
+
+            <!-- New Statistics Breakdown Section -->
+            <div class="max-w-2xl mx-auto text-left mb-8 bg-white border border-slate-100 shadow-sm rounded-2xl p-6 md:p-8">
+                <h3 class="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2"><i class="fas fa-chart-bar text-indigo-500"></i> Subject Breakdown</h3>
+                <div id="category-stats-list" class="space-y-4 mb-8">
+                    <!-- Progress bars injected via JS -->
+                </div>
+                
+                <h3 class="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2"><i class="fas fa-bullseye text-indigo-500"></i> Study Recommendations</h3>
+                <div id="study-suggestions" class="bg-slate-50 rounded-xl p-5 border border-slate-200 text-slate-800 text-sm md:text-base leading-relaxed">
+                    <!-- Suggestions injected via JS -->
+                </div>
             </div>
 
             <button onclick="restartQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all text-lg">
@@ -231,16 +259,72 @@
         let score = 0;
         let answered = false;
 
+        // Statistics Variables
+        const categories = ["Ecology", "Genetics", "Anatomy & Physiology", "Plant Biology", "Microbiology"];
+        let categoryStats = {};
+
+        // Timer Variables
+        let timerInterval;
+        let totalSeconds = 80 * 60; // 80 minutes
+        let timeRemaining = totalSeconds;
+
         const screens = {
             start: document.getElementById('start-screen'),
             quiz: document.getElementById('quiz-screen'),
             results: document.getElementById('results-screen')
         };
 
+        function startTimer() {
+            timeRemaining = totalSeconds;
+            updateTimerDisplay();
+            
+            const timerEl = document.getElementById('header-timer');
+            timerEl.className = "hidden text-sm font-semibold bg-rose-100 text-rose-800 py-1 px-3 rounded-full flex items-center gap-1.5 transition-colors";
+            timerEl.classList.remove('hidden');
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                // 5 minute warning
+                if (timeRemaining <= 300 && timeRemaining > 0) {
+                    timerEl.classList.replace('bg-rose-100', 'bg-red-600');
+                    timerEl.classList.replace('text-rose-800', 'text-white');
+                    timerEl.classList.add('animate-pulse');
+                }
+
+                // Time is up
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timeRemaining = 0;
+                    updateTimerDisplay();
+                    showResults(true); // Pass true to indicate time is up
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeRemaining / 60);
+            let s = timeRemaining % 60;
+            document.getElementById('time-display').innerText = 
+                `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
         function startQuiz() {
             screens.start.classList.add('hidden');
             screens.quiz.classList.remove('hidden');
             document.getElementById('header-score').classList.remove('hidden');
+            
+            // Initialize or reset statistics based on the 8-question block pattern
+            categories.forEach(cat => categoryStats[cat] = { total: 0, correct: 0 });
+            quizData.forEach((q, index) => {
+                const blockIndex = Math.floor(index / 8) % 5;
+                q.category = categories[blockIndex];
+                categoryStats[q.category].total++;
+            });
+
+            startTimer();
             loadQuestion();
         }
 
@@ -297,6 +381,7 @@
                     if (isCorrect) {
                         btn.classList.add('correct-ans');
                         score++;
+                        categoryStats[q.category].correct++; // Track correct category answer
                         document.getElementById('current-score').innerText = score;
                     } else {
                         btn.classList.add('incorrect-ans');
@@ -337,11 +422,13 @@
             if (currentIndex < quizData.length) {
                 loadQuestion();
             } else {
-                showResults();
+                showResults(false);
             }
         }
 
-        function showResults() {
+        function showResults(timeUp = false) {
+            clearInterval(timerInterval);
+            
             screens.quiz.classList.add('hidden');
             screens.results.classList.remove('hidden');
             
@@ -349,29 +436,119 @@
             document.getElementById('final-score').innerText = score;
             document.getElementById('final-percentage').innerText = `${pct}%`;
 
+            // Calculate time taken
+            const timeTaken = totalSeconds - Math.max(0, timeRemaining);
+            const tm = Math.floor(timeTaken / 60);
+            const ts = timeTaken % 60;
+            document.getElementById('time-taken-display').innerText = 
+                `${tm.toString().padStart(2, '0')}:${ts.toString().padStart(2, '0')}`;
+
+            // --- Generate Statistics and Suggestions ---
+            const statsList = document.getElementById('category-stats-list');
+            statsList.innerHTML = '';
+            
+            let weakSubjects = [];
+            let strongSubjects = [];
+
+            for (const [cat, data] of Object.entries(categoryStats)) {
+                const catPct = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+                
+                if (catPct >= 75) strongSubjects.push(cat);
+                else if (catPct <= 60) weakSubjects.push(cat);
+
+                let barColor = catPct >= 75 ? 'bg-green-500' : (catPct > 60 ? 'bg-blue-500' : 'bg-rose-500');
+
+                statsList.innerHTML += `
+                    <div>
+                        <div class="flex justify-between text-sm font-medium mb-1">
+                            <span class="text-slate-700 font-semibold">${cat}</span>
+                            <span class="text-slate-500">${data.correct} / ${data.total} <span class="ml-1 inline-block w-10 text-right">(${catPct}%)</span></span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5">
+                            <div class="${barColor} h-2.5 rounded-full transition-all duration-1000" style="width: ${catPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const suggestionsBox = document.getElementById('study-suggestions');
+            const studyAdvice = {
+                "Ecology": "Review Population Dynamics, Biogeochemical Cycles, and Ecosystem Interactions. Pay attention to how different species utilize resources (Niche Partitioning).",
+                "Genetics": "Brush up on Mendelian and Non-Mendelian inheritance, the Central Dogma (Transcription/Translation processes), and Molecular Genetics mutations.",
+                "Anatomy & Physiology": "Focus on specific Organ Systems (especially Endocrine, Nervous, and Cardiovascular) and understand how physiological feedback loops maintain homeostasis.",
+                "Plant Biology": "Study Plant Hormones (Auxin, Gibberellin, ABA), Meristematic Growth, and the mechanisms of Angiosperm Reproduction (double fertilization).",
+                "Microbiology": "Concentrate on Bacterial Cell Wall structures (Gram positive vs negative), Metabolic Pathways, and the detailed steps of Viral Lifecycles."
+            };
+
+            let suggestionsHTML = "";
+            if (weakSubjects.length > 0) {
+                suggestionsHTML += `<p class="font-bold mb-3 text-rose-700"><i class="fas fa-exclamation-triangle mr-1"></i> Priority Areas for Review:</p><ul class="list-disc pl-5 mb-4 space-y-2">`;
+                weakSubjects.forEach(cat => {
+                    suggestionsHTML += `<li><strong class="text-slate-900">${cat}:</strong> ${studyAdvice[cat]}</li>`;
+                });
+                suggestionsHTML += `</ul>`;
+            }
+
+            if (strongSubjects.length > 0) {
+                suggestionsHTML += `<div class="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                    <p class="font-bold text-green-800"><i class="fas fa-star text-yellow-500 mr-1"></i> Excellent Work In:</p>
+                    <p class="text-green-700 text-sm mt-1">You showed great proficiency in <strong>${strongSubjects.join(', ')}</strong>.</p>
+                </div>`;
+            }
+
+            if (weakSubjects.length === 0 && strongSubjects.length === 0) {
+                suggestionsHTML = "<p class='text-slate-700'>You have a highly balanced understanding across all subjects. Continue practicing to push your scores into the mastery level (75%+)!</p>";
+            } else if (weakSubjects.length === 0 && strongSubjects.length > 0) {
+                suggestionsHTML += "<p class='text-slate-700 mt-2'>Outstanding performance across the board! You have mastered the core concepts of this review.</p>";
+            }
+
+            suggestionsBox.innerHTML = suggestionsHTML;
+            // ------------------------------------------
+
             const icon = document.getElementById('results-icon');
             const subtitle = document.getElementById('results-subtitle');
+            const title = document.getElementById('results-title');
+
+            if (timeUp) {
+                title.innerText = "Time's Up!";
+                title.classList.add('text-red-600');
+                title.classList.remove('text-slate-900');
+                subtitle.innerText = "You ran out of time. Here is your final score based on the questions you answered.";
+            } else {
+                title.innerText = "Test Complete!";
+                title.classList.remove('text-red-600');
+                title.classList.add('text-slate-900');
+                
+                if (pct >= 90) {
+                    subtitle.innerText = "Outstanding! You have a masterful understanding of Biology.";
+                } else if (pct >= 75) {
+                    subtitle.innerText = "Great job! You have a solid grasp on most of these concepts.";
+                } else if (pct >= 60) {
+                    subtitle.innerText = "Good effort. Reviewing the rationales will help boost your score next time.";
+                } else {
+                    subtitle.innerText = "Keep studying! Use this test to identify the specific modules you need to review.";
+                }
+            }
 
             if (pct >= 90) {
                 icon.innerHTML = '<i class="fas fa-trophy"></i>';
                 icon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl bg-yellow-100 text-yellow-500";
-                subtitle.innerText = "Outstanding! You have a masterful understanding of Biology.";
             } else if (pct >= 75) {
                 icon.innerHTML = '<i class="fas fa-medal"></i>';
                 icon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl bg-blue-100 text-blue-500";
-                subtitle.innerText = "Great job! You have a solid grasp on most of these concepts.";
             } else if (pct >= 60) {
                 icon.innerHTML = '<i class="fas fa-thumbs-up"></i>';
                 icon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl bg-green-100 text-green-500";
-                subtitle.innerText = "Good effort. Reviewing the rationales will help boost your score next time.";
             } else {
                 icon.innerHTML = '<i class="fas fa-book-reader"></i>';
                 icon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl bg-slate-100 text-slate-500";
-                subtitle.innerText = "Keep studying! Use this test to identify the specific modules you need to review.";
             }
         }
 
         function restartQuiz() {
+            clearInterval(timerInterval);
+            document.getElementById('header-timer').classList.add('hidden');
+            
             currentIndex = 0;
             score = 0;
             document.getElementById('current-score').innerText = score;
