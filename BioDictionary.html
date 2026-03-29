@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Biology Vocabulary Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .term-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .term-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .detail-view {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .detail-view.active {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .hide-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-800 flex flex-col min-h-screen">
+
+    <!-- Chosen Palette: Slate and Emerald (Nature/Biology focused). Background: slate-50 (#f8fafc), Accents: emerald-600 (#059669), teal-500 (#14b8a6) -->
+    <!-- Application Structure Plan: A two-column dashboard layout (stacking on mobile) was chosen to maximize usability for a dictionary application. The left column provides an analytical overview (Chart.js doughnut chart) of the vocabulary distribution to give students context on what areas are heavily emphasized. The right column is the core interactive dictionary, featuring a sticky search bar and filter chips for immediate navigation. The vocabulary items are presented as interactive "flashcards" that expand on click, encouraging active recall and keeping the interface uncluttered. -->
+    <!-- Visualization & Content Choices: 
+        1. Overview -> Goal: Inform on term distribution -> Viz: Doughnut Chart -> Interaction: Hover for exact counts -> Justification: Gives students a quick visual breakdown of the syllabus categories. Library: Chart.js (Canvas).
+        2. Dictionary Grid -> Goal: Explore & Learn -> Viz: Interactive Cards -> Interaction: Click to expand details, search/filter to isolate terms -> Justification: Flashcard-style interaction promotes active learning and avoids overwhelming the user with massive text blocks. Method: HTML/CSS/Vanilla JS. 
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <a href="index.html" class="flex items-center justify-center bg-emerald-800/80 hover:bg-emerald-900 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-semibold shadow-inner border border-emerald-600/50" title="Return to Home">
+                    ← Back
+                </a>
+                <div class="flex items-center gap-2">
+                    <span class="text-3xl">🔬</span>
+                    <h1 class="text-2xl font-bold tracking-tight">BioVocab Explorer</h1>
+                </div>
+            </div>
+            <div class="w-full md:w-96 relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search for a biological term..." class="w-full pl-10 pr-4 py-2 rounded-full text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-inner">
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col lg:flex-row gap-8">
+        
+        <aside class="w-full lg:w-1/3 flex flex-col gap-6">
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-xl font-bold text-slate-800 mb-2 border-b border-slate-100 pb-2">Vocabulary Overview</h2>
+                <p class="text-sm text-slate-600 mb-4">
+                    This section provides a visual breakdown of the essential biology terms categorized by their core sub-disciplines. Understanding the distribution helps you focus your study efforts.
+                </p>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-xl font-bold text-slate-800 mb-2 border-b border-slate-100 pb-2">Filter by Category</h2>
+                <p class="text-sm text-slate-600 mb-4">
+                    Use these filters to isolate specific areas of biology. Click a category to view only terms related to that field.
+                </p>
+                <div id="filterContainer" class="flex flex-wrap gap-2">
+                </div>
+            </section>
+        </aside>
+
+        <section class="w-full lg:w-2/3 flex flex-col">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex-grow">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Interactive Dictionary</h2>
+                <p class="text-slate-600 mb-6 pb-4 border-b border-slate-100">
+                    Browse the core biological terms below. Click on any card to reveal its full definition, practical examples, and related contextual information. This acts as an interactive flashcard system.
+                </p>
+                
+                <div id="resultsInfo" class="text-sm text-emerald-600 font-semibold mb-4"></div>
+
+                <div id="dictionaryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 hide-scroll">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 py-6 text-center text-sm">
+        <p>Interactive Biology Vocabulary Explorer • Mightychondria 2026
+        </p>
+    </footer>
+
+    <script>
+        const vocabularyData = [
+            { term: "Allele", category: "Genetics", def: "One of two or more alternative forms of a gene that arise by mutation and are found at the same place on a chromosome.", example: "The gene for eye color has several alleles, such as those for blue or brown eyes.", icon: "🧬" },
+            { term: "Autotroph", category: "Ecology", def: "An organism that is able to form nutritional organic substances from simple inorganic substances such as carbon dioxide.", example: "Plants are autotrophs because they use photosynthesis to make their own food.", icon: "🌿" },
+            { term: "Biosphere", category: "Ecology", def: "The regions of the surface, atmosphere, and hydrosphere of the earth occupied by living organisms.", example: "The biosphere encompasses all ecosystems on Earth.", icon: "🌍" },
+            { term: "Cell", category: "Cell Biology", def: "The smallest structural and functional unit of an organism, typically microscopic.", example: "Human bodies are made up of trillions of cells.", icon: "🧫" },
+            { term: "Chromosome", category: "Genetics", def: "A threadlike structure of nucleic acids and protein found in the nucleus of most living cells, carrying genetic information in the form of genes.", example: "Humans typically have 46 chromosomes in each cell.", icon: "🧬" },
+            { term: "DNA", category: "Genetics", def: "Deoxyribonucleic acid, a self-replicating material present in nearly all living organisms as the main constituent of chromosomes.", example: "DNA carries the genetic instructions used in growth, development, and functioning.", icon: "🧬" },
+            { term: "Ecosystem", category: "Ecology", def: "A biological community of interacting organisms and their physical environment.", example: "A coral reef is a complex marine ecosystem.", icon: "🐠" },
+            { term: "Enzyme", category: "Biochemistry", def: "A substance produced by a living organism that acts as a catalyst to bring about a specific biochemical reaction.", example: "Amylase is an enzyme in saliva that helps break down starches.", icon: "⚡" },
+            { term: "Evolution", category: "Evolution", def: "The process by which different kinds of living organisms are thought to have developed and diversified from earlier forms during the history of the earth.", example: "The evolution of the peppered moth is a classic example of natural selection.", icon: "🦋" },
+            { term: "Genotype", category: "Genetics", def: "The genetic constitution of an individual organism.", example: "The genotype determines hereditary traits, even if they are not visibly expressed.", icon: "🧬" },
+            { term: "Heterotroph", category: "Ecology", def: "An organism deriving its nutritional requirements from complex organic substances.", example: "Animals and fungi are heterotrophs; they must consume other organisms for energy.", icon: "🦁" },
+            { term: "Homeostasis", category: "Physiology", def: "The tendency toward a relatively stable equilibrium between interdependent elements, especially as maintained by physiological processes.", example: "Sweating is a mechanism of homeostasis to keep body temperature stable.", icon: "⚖️" },
+            { term: "Meiosis", category: "Cell Biology", def: "A type of cell division that results in four daughter cells each with half the number of chromosomes of the parent cell.", example: "Meiosis is essential for sexual reproduction to create sperm and egg cells.", icon: "🧫" },
+            { term: "Mitochondria", category: "Cell Biology", def: "An organelle found in large numbers in most cells, in which the biochemical processes of respiration and energy production occur.", example: "Mitochondria are often referred to as the powerhouse of the cell.", icon: "🔋" },
+            { term: "Mitosis", category: "Cell Biology", def: "A type of cell division that results in two daughter cells each having the same number and kind of chromosomes as the parent nucleus.", example: "Mitosis is responsible for growth and tissue repair.", icon: "🧫" },
+            { term: "Mutation", category: "Genetics", def: "The changing of the structure of a gene, resulting in a variant form that may be transmitted to subsequent generations.", example: "Mutations can be beneficial, harmful, or have no effect on an organism.", icon: "⚠️" },
+            { term: "Natural Selection", category: "Evolution", def: "The process whereby organisms better adapted to their environment tend to survive and produce more offspring.", example: "Giraffes with longer necks surviving better in areas with tall trees is an outcome of natural selection.", icon: "🦒" },
+            { term: "Nucleus", category: "Cell Biology", def: "A dense organelle present in most eukaryotic cells, typically a single rounded structure bounded by a double membrane, containing the genetic material.", example: "The nucleus acts as the control center of the cell.", icon: "⏺️" },
+            { term: "Phenotype", category: "Genetics", def: "The set of observable characteristics of an individual resulting from the interaction of its genotype with the environment.", example: "Eye color and height are parts of an individual's phenotype.", icon: "👁️" },
+            { term: "Photosynthesis", category: "Biochemistry", def: "The process by which green plants and some other organisms use sunlight to synthesize foods from carbon dioxide and water.", example: "Photosynthesis generates oxygen as a byproduct, which is vital for most life on Earth.", icon: "☀️" },
+            { term: "Ribosome", category: "Cell Biology", def: "A minute particle consisting of RNA and associated proteins found in large numbers in the cytoplasm of living cells.", example: "Ribosomes bind messenger RNA and transfer RNA to synthesize polypeptides and proteins.", icon: "⛓️" },
+            { term: "Species", category: "Evolution", def: "A group of living organisms consisting of similar individuals capable of exchanging genes or interbreeding.", example: "Homo sapiens is the species to which all modern human beings belong.", icon: "🐒" },
+            { term: "Symbiosis", category: "Ecology", def: "Interaction between two different organisms living in close physical association, typically to the advantage of both.", example: "The relationship between bees and flowers is a mutualistic symbiosis.", icon: "🐝" }
+        ];
+
+        let currentFilter = "All";
+        let searchQuery = "";
+        let chartInstance = null;
+        let currentFilteredTerms = [];
+
+        const categoryColors = {
+            "Cell Biology": "#14b8a6",
+            "Genetics": "#8b5cf6",
+            "Molecular Biology": "#6366f1",
+            "Ecology & Evolution": "#f59e0b",
+            "Biochemistry": "#ec4899",
+            "Plant Biology": "#22c55e",
+            "Human Biology & Physiology": "#ef4444"
+        };
+
+        function addAdditionalTerms() {
+            const rawText = `
+🔬 1–100: Cell Biology
+Cell – Basic unit of life
+Organelle – Specialized cell structure
+Nucleus – Contains DNA
+Cytoplasm – Fluid inside cell
+Cell membrane – Selective barrier
+Mitochondrion – ATP producer
+Ribosome – Protein maker
+Golgi apparatus – Protein packaging
+Lysosome – Digestion organelle
+Vacuole – Storage sac
+Cytoskeleton – Structural support
+Centrosome – Microtubule organizer
+Cilia – Hair-like movement structures
+Flagellum – Tail for movement
+Endocytosis – Intake of materials
+Exocytosis – Release of materials
+Diffusion – Movement high → low concentration
+Osmosis – Water diffusion
+Active transport – Energy-required transport
+Passive transport – No energy needed
+Phagocytosis – Cell eating
+Pinocytosis – Cell drinking
+Apoptosis – Programmed cell death
+Necrosis – Uncontrolled cell death
+Cell cycle – Growth and division
+Interphase – Growth stage
+Mitosis – Cell division
+Cytokinesis – Cytoplasm division
+Chromosome – DNA structure
+Chromatin – Loose DNA form
+Centromere – Chromosome center
+Spindle fiber – Pulls chromosomes
+Prophase – Chromosomes condense
+Metaphase – Align in center
+Anaphase – Separate chromatids
+Telophase – Two nuclei form
+Stem cell – Undifferentiated cell
+Differentiation – Specialization
+Totipotent – Can form all cells
+Pluripotent – Can form many cells
+Surface area – Cell exchange area
+Volume – Cell size
+Cell signaling – Communication
+Ligand – Signaling molecule
+Receptor – Receives signal
+Signal transduction – Signal relay
+Gap junction – Cell connection
+Tight junction – Sealed connection
+Desmosome – Anchoring junction
+Extracellular matrix – Support network
+Peroxisome – Detox organelle
+Vesicle – Transport sac
+Transport protein – Moves molecules
+Channel protein – Passageway
+Carrier protein – Shape-changing transporter
+Ion pump – Active ion transport
+Membrane potential – Charge difference
+Phospholipid – Membrane molecule
+Bilayer – Double layer
+Fluid mosaic model – Membrane structure
+Glycoprotein – Protein + sugar
+Glycolipid – Lipid + sugar
+Cytolysis – Cell bursting
+Plasmolysis – Cell shrinking
+Isotonic – Equal concentration
+Hypotonic – Lower solute
+Hypertonic – Higher solute
+Turgor pressure – Plant cell pressure
+Cell wall – Rigid layer
+Prokaryotic cell – No nucleus
+Eukaryotic cell – With nucleus
+Binary fission – Prokaryote division
+Histology – Tissue study
+Tissue – Group of cells
+Epithelium – Covering tissue
+Connective tissue – Support tissue
+Muscle tissue – Movement tissue
+Nervous tissue – Signal tissue
+Homeostasis – Stability
+Autophagy – Self-digestion
+Proteasome – Protein breakdown
+Chaperone protein – Folding helper
+Cytosol – Liquid part
+Microtubule – Structural fiber
+Microfilament – Thin fiber
+Intermediate filament – Stable fiber
+Organelle biogenesis – Organelle formation
+Nuclear envelope – Nucleus membrane
+Nuclear pore – Transport channel
+Nucleolus – Ribosome production
+Endomembrane system – Internal membranes
+Rough ER – Protein synthesis
+Smooth ER – Lipid synthesis
+Lipid bilayer – Membrane structure
+Vesicular transport – Movement in vesicles
+Cell adhesion – Cell attachment
+Signal peptide – Targeting sequence
+Secretory pathway – Protein export
+Protein targeting – Destination control
+Organelle inheritance – Distribution after division
+
+🧬 101–200: Molecular Biology
+DNA – Genetic material
+RNA – Protein synthesis helper
+Gene – Hereditary unit
+Genome – Total DNA
+Replication – DNA copying
+Helicase – Unwinds DNA
+DNA polymerase – Synthesizes DNA
+Ligase – Joins fragments
+Primase – Builds primer
+Okazaki fragments – Lagging strand pieces
+Leading strand – Continuous synthesis
+Lagging strand – Discontinuous
+Transcription – DNA → RNA
+mRNA – Messenger RNA
+tRNA – Transfer RNA
+rRNA – Ribosomal RNA
+Translation – RNA → protein
+Codon – 3-base code
+Anticodon – tRNA complement
+Start codon – AUG
+Stop codon – UAA/UAG/UGA
+Mutation – DNA change
+Point mutation – Single base change
+Insertion – Added base
+Deletion – Removed base
+Frameshift – Reading shift
+Silent mutation – No effect
+Missense mutation – Amino change
+Nonsense mutation – Stop codon
+Epigenetics – Gene regulation
+Methylation – DNA modification
+Histone – DNA protein
+Chromatin remodeling – DNA structure change
+Promoter – Gene start region
+Operator – Regulatory region
+Operon – Gene cluster
+Lac operon – Lactose control
+Enhancer – Boosts transcription
+Repressor – Blocks transcription
+Activator – Increases expression
+Transcription factor – Regulator protein
+Splicing – RNA editing
+Introns – Noncoding
+Exons – Coding
+Alternative splicing – Multiple proteins
+cDNA – Complementary DNA
+Reverse transcriptase – RNA → DNA
+PCR – DNA amplification
+Gel electrophoresis – DNA separation
+DNA sequencing – Base order
+Recombinant DNA – Mixed DNA
+Plasmid – Circular DNA
+Vector – DNA carrier
+Cloning – Copying DNA
+CRISPR – Gene editing
+Cas9 – Cutting enzyme
+Guide RNA – Targeting RNA
+Transcriptome – All RNA
+Proteome – All proteins
+Ribozyme – RNA enzyme
+Genetic code – Codon system
+Degeneracy – Multiple codons
+Gene expression – Protein production
+Post-transcriptional – After RNA
+Post-translational – After protein
+UTR – Untranslated region
+Poly-A tail – RNA stability
+Cap structure – RNA protection
+RNA interference – Gene silencing
+siRNA – Small interfering RNA
+miRNA – MicroRNA
+Northern blot – RNA detection
+Southern blot – DNA detection
+Western blot – Protein detection
+Restriction enzyme – DNA cutter
+Sticky ends – Overhangs
+Blunt ends – Flat cuts
+DNA fingerprinting – Identification
+SNP – Single variation
+Haploid – One set
+Diploid – Two sets
+Karyotype – Chromosome image
+Telomere – Chromosome end
+Telomerase – Extends telomeres
+Genetic recombination – DNA exchange
+Crossing over – Meiosis exchange
+Linkage – Gene association
+Genetic map – Gene position
+Codominance – Both traits shown
+Incomplete dominance – Blended traits
+Polygenic trait – Multiple genes
+Pleiotropy – One gene, many effects
+Penetrance – Trait expression rate
+Expressivity – Trait intensity
+Allele frequency – Gene variation
+Hardy-Weinberg – Genetic equilibrium
+Genotype – Genetic makeup
+Phenotype – Observable traits
+Homozygous – Same alleles
+Heterozygous – Different alleles
+
+🌿 201–300: Plant Biology
+Photosynthesis – Light → chemical energy
+Chloroplast – Photosynthesis organelle
+Chlorophyll – Green pigment
+Thylakoid – Light reaction site
+Stroma – Calvin cycle site
+Calvin cycle – Carbon fixation
+Light reaction – ATP/NADPH production
+Stomata – Gas pores
+Guard cells – Control stomata
+Transpiration – Water loss
+Xylem – Water transport
+Phloem – Food transport
+Cohesion – Water attraction
+Adhesion – Surface attraction
+Capillary action – Water movement
+Root – Absorption organ
+Stem – Support structure
+Leaf – Photosynthesis organ
+Cuticle – Protective layer
+Meristem – Growth tissue
+Apical meristem – Tip growth
+Lateral meristem – Width growth
+Cambium – Growth layer
+Secondary growth – Thickness increase
+Primary growth – Length increase
+Phototropism – Light response
+Gravitropism – Gravity response
+Auxin – Growth hormone
+Gibberellin – Stem elongation
+Cytokinin – Cell division
+Ethylene – Fruit ripening
+Abscisic acid – Stress hormone
+Pollination – Pollen transfer
+Fertilization – Gamete fusion
+Seed – Plant embryo
+Germination – Seed growth
+Angiosperm – Flowering plant
+Gymnosperm – Non-flowering
+Monocot – One cotyledon
+Dicot – Two cotyledons
+Fruit – Mature ovary
+Ovule – Egg structure
+Pollen – Male gamete
+Double fertilization – Unique plant process
+Endosperm – Nutrient tissue
+Phytochrome – Light receptor
+Photoperiodism – Light timing
+CAM plants – Night CO₂ uptake
+C4 plants – Efficient photosynthesis
+Nitrogen fixation – N₂ → NH₃
+Root nodule – Bacteria site
+Mycorrhizae – Root fungi
+Translocation – Food movement
+Source – Sugar producer
+Sink – Sugar user
+Vascular tissue – Transport system
+Parenchyma – Storage cells
+Collenchyma – Support cells
+Sclerenchyma – Rigid cells
+Tracheid – Water cell
+Vessel element – Xylem cell
+Companion cell – Phloem support
+Sieve tube – Sugar transport
+Turgor – Cell pressure
+Wilting – Loss of turgor
+Xerophyte – Dry plant
+Hydrophyte – Water plant
+Mesophyte – Moderate plant
+Tropism – Growth response
+Nastic movement – Non-directional
+Allelopathy – Chemical inhibition
+Photoinhibition – Light damage
+Photorespiration – O₂ use
+RuBisCO – Carbon enzyme
+Carotenoids – Pigments
+Anthocyanin – Red pigment
+Plant immunity – Defense system
+Secondary metabolites – Defense chemicals
+Alkaloid – Plant toxin
+Tannin – Bitter compound
+Resin – Protective secretion
+Latex – Defense fluid
+Dormancy – Growth pause
+Vernalization – Cold requirement
+Senescence – Aging
+Abscission – Leaf drop
+Phytoplankton – Aquatic plants
+Algae – Simple plants
+Bryophyte – Non-vascular
+Pteridophyte – Ferns
+Gymnosperm – Cone plants
+Angiosperm – Flower plants
+Epiphyte – Grows on plant
+Parasite plant – Steals nutrients
+Saprophyte – Dead matter feeder
+Symbiosis – Interaction
+Mutualism – Both benefit
+Commensalism – One benefits
+Parasitism – One harmed
+Adaptation – Survival trait
+
+🧍 301–400: Human Biology & Physiology
+Homeostasis – Internal balance
+Metabolism – Chemical reactions
+Anabolism – Building molecules
+Catabolism – Breaking molecules
+Enzyme – Catalyst
+Hormone – Messenger
+Endocrine system – Hormone system
+Nervous system – Signal system
+Neuron – Nerve cell
+Synapse – Connection
+Neurotransmitter – Signal chemical
+Brain – Control center
+Spinal cord – Signal pathway
+Reflex – Automatic response
+Sensory receptor – Detects stimuli
+Effector – Response organ
+Muscle – Movement tissue
+Skeletal muscle – Voluntary
+Cardiac muscle – Heart
+Smooth muscle – Involuntary
+Circulatory system – Blood transport
+Heart – Pumps blood
+Artery – Away from heart
+Vein – Toward heart
+Capillary – Exchange vessel
+Blood – Transport fluid
+Plasma – Liquid blood
+Red blood cell – Oxygen carrier
+White blood cell – Defense
+Platelet – Clotting
+Hemoglobin – Oxygen protein
+Respiratory system – Gas exchange
+Lung – Gas organ
+Alveoli – Air sacs
+Diaphragm – Breathing muscle
+Digestive system – Food breakdown
+Mouth – Entry
+Esophagus – Food tube
+Stomach – Digestion
+Small intestine – Absorption
+Large intestine – Water absorption
+Liver – Detox organ
+Pancreas – Enzyme/hormone
+Kidney – Filter organ
+Nephron – Kidney unit
+Urine – Waste fluid
+Excretion – Waste removal
+Immune system – Defense
+Antigen – Foreign
+Antibody – Defense protein
+Vaccine – Immunity booster
+Pathogen – Disease agent
+Infection – Pathogen invasion
+Inflammation – Defense response
+Fever – Temperature rise
+Lymphatic system – Fluid balance
+Lymph node – Filter
+Spleen – Immune organ
+Skin – Protection
+Epidermis – Outer layer
+Dermis – Inner layer
+Reproductive system – Reproduction
+Gamete – Sex cell
+Sperm – Male gamete
+Egg – Female gamete
+Fertilization – Fusion
+Zygote – First cell
+Embryo – Early development
+Fetus – Later stage
+Placenta – Nutrient exchange
+Menstrual cycle – Female cycle
+Testosterone – Male hormone
+Estrogen – Female hormone
+Progesterone – Pregnancy hormone
+Puberty – Maturation
+Growth hormone – Growth regulator
+Thyroxine – Metabolism hormone
+Insulin – Glucose regulator
+Glucagon – Raises glucose
+Diabetes – Glucose disorder
+Hypertension – High BP
+Homeostasis imbalance – Disease state
+Neural pathway – Signal route
+Motor neuron – Movement neuron
+Sensory neuron – Input neuron
+Interneuron – Connector
+Action potential – Nerve signal
+Resting potential – Baseline
+Depolarization – Charge change
+Repolarization – Reset
+Muscle contraction – Shortening
+ATP hydrolysis – Energy release
+Sliding filament – Muscle theory
+Sarcomere – Muscle unit
+Tendon – Muscle-bone link
+Ligament – Bone-bone link
+Joint – Connection
+Skeleton – Support
+Bone marrow – Blood cell production
+Osteocyte – Bone cell
+
+🌎 401–500: Ecology & Evolution
+Ecology – Study of environment
+Ecosystem – Organisms + environment
+Population – Same species
+Community – Multiple species
+Habitat – Living place
+Niche – Role
+Biome – Large ecosystem
+Biosphere – Global ecosystem
+Food chain – Energy path
+Food web – Connected chains
+Producer – Makes food
+Consumer – Eats others
+Decomposer – Breaks dead matter
+Herbivore – Plant eater
+Carnivore – Meat eater
+Omnivore – Both eater
+Detritivore – Dead eater
+Trophic level – Feeding level
+Energy pyramid – Energy flow
+Biomass – Total mass
+Carrying capacity – Max population
+Limiting factor – Restriction
+Competition – Resource struggle
+Predation – Hunt relationship
+Symbiosis – Close interaction
+Mutualism – Both benefit
+Commensalism – One benefits
+Parasitism – One harmed
+Keystone species – Critical species
+Invasive species – Non-native
+Succession – Ecosystem change
+Primary succession – No life start
+Secondary succession – Recovery
+Climax community – Stable state
+Biodiversity – Variety of life
+Extinction – Species loss
+Conservation – Protection
+Evolution – Change over time
+Natural selection – Survival advantage
+Adaptation – Helpful trait
+Fitness – Reproductive success
+Speciation – New species
+Isolation – Separation
+Genetic drift – Random change
+Gene flow – Migration genes
+Founder effect – Small group
+Bottleneck – Population reduction
+Variation – Differences
+Mutation – DNA change
+Fossil – Remains
+Homologous – Same origin
+Analogous – Same function
+Vestigial – Reduced organ
+Phylogeny – Evolution history
+Cladogram – Relationship diagram
+Taxonomy – Classification
+Binomial nomenclature – Naming system
+Domain – Highest rank
+Kingdom – Major group
+Phylum – Body plan
+Class – Subdivision
+Order – Category
+Family – Related group
+Genus – Close relatives
+Species – Same organism
+Population genetics – Gene study
+Hardy-Weinberg – Equilibrium
+Selection pressure – Environmental force
+Artificial selection – Human selection
+Coevolution – Mutual evolution
+Adaptive radiation – Rapid diversification
+Convergent evolution – Similar traits
+Divergent evolution – Different traits
+Microevolution – Small change
+Macroevolution – Large change
+Behavioral ecology – Behavior study
+Ethology – Animal behavior
+Migration – Movement
+Hibernation – Dormancy
+Estivation – Summer dormancy
+Circadian rhythm – Daily cycle
+Photoperiod – Day length
+Climate change – Global shift
+Greenhouse effect – Heat trapping
+Carbon cycle – Carbon movement
+Nitrogen cycle – Nitrogen flow
+Water cycle – Water movement
+Ecosystem services – Benefits
+Sustainability – Long-term balance
+Pollution – Environmental harm
+Bioaccumulation – Toxin buildup
+Biomagnification – Toxin increase
+Ozone layer – UV protection
+Habitat loss – Destruction
+Fragmentation – Habitat division
+Restoration ecology – Repair ecosystems
+Conservation biology – Protect species
+Endangered species – At risk
+Extinct species – Gone
+Biological equilibrium – Balance
+
+🧬 Core & Inheritance
+Locus – Position of a gene on a chromosome
+Wild type – Most common phenotype
+Mutant – Altered phenotype
+Test cross – Unknown × recessive cross
+Back cross – Crossing with parent
+Monohybrid cross – One trait cross
+Dihybrid cross – Two trait cross
+Epistasis – One gene affects another
+Lethal allele – Causes death
+Multiple alleles – >2 gene forms
+
+🧬 Chromosomal & Errors
+Nondisjunction – Failure to separate chromosomes
+Aneuploidy – Abnormal chromosome number
+Trisomy – Extra chromosome (2n+1)
+Monosomy – Missing chromosome (2n−1)
+Polyploidy – Extra chromosome sets
+Deletion (chromosomal) – Loss of segment
+Duplication – Repeated segment
+Inversion – Segment reversed
+Translocation – Segment moved
+Barr body – Inactive X chromosome
+
+🌍 Population Genetics
+Gene pool – Total genes in population
+Allelic variation – Gene diversity
+Selection coefficient – Fitness reduction
+Heterozygote advantage – Better survival
+Inbreeding – Related mating
+Outbreeding – Unrelated mating
+Genetic load – Harmful alleles
+Founder population – Small origin group
+Migration – Movement of genes
+Adaptive evolution – Beneficial changes
+
+🧬 CENTRAL DOGMA
+Origin of replication – Starting point
+Replication fork – Y-shaped region
+Single-strand binding protein – Stabilizes DNA
+Topoisomerase – Relieves twisting
+Semiconservative replication – Half-old DNA
+Proofreading – Error correction
+Exonuclease – Removes nucleotides
+Primer – Starting RNA segment
+Replication bubble – Open DNA region
+Telomere shortening – End loss
+
+🧬 Transcription
+RNA polymerase – Synthesizes RNA
+Template strand – Used for RNA
+Coding strand – Matches RNA
+Transcription initiation – Start phase
+Elongation (transcription) – RNA growth
+Termination (transcription) – Stop signal
+Sigma factor – Prokaryote initiation
+TATA box – Promoter sequence
+Enhancer sequence – Boost transcription
+Silencer – Inhibits transcription
+
+🧬 RNA Processing
+5’ capping – RNA protection
+3’ polyadenylation – Poly-A tail
+Spliceosome – Removes introns
+Alternative splicing – Multiple proteins
+RNA editing – Sequence change
+snRNA – Small nuclear RNA
+RNP (ribonucleoprotein) – RNA-protein complex
+Exon junction complex – Marks splicing
+RNA stability – Lifespan of RNA
+Exportin – RNA transport
+
+🧬 Translation
+Ribosomal subunits – Large + small
+A site – Incoming tRNA
+P site – Growing chain
+E site – Exit site
+Initiation complex – Start assembly
+Elongation factor – Protein builder helper
+Release factor – Ends translation
+Polypeptide – Amino acid chain
+Chaperonin – Folding helper
+Post-translational modification – Protein change
+
+🧫 CELL DIVISION (MITOSIS & MEIOSIS)
+Somatic cell – Body cell
+Diploid (2n) – Two sets chromosomes
+Kinetochore – Attachment site
+Mitotic spindle – Chromosome mover
+Equatorial plate – Middle alignment
+Sister chromatids – Identical copies
+Cyclin – Cell cycle regulator
+CDK (Cyclin-dependent kinase) – Controls cycle
+Checkpoint – Quality control
+G1 phase – Growth phase
+S phase – DNA synthesis
+G2 phase – Preparation
+M phase – Division phase
+Mitotic index – Dividing cells %
+Contact inhibition – Stop growing when crowded
+
+🧫 Meiosis
+Germ cell – Reproductive cell
+Haploid (n) – One chromosome set
+Homologous chromosomes – Similar pairs
+Synapsis – Pairing of homologs
+Tetrad – Four chromatids
+Chiasma (pl. chiasmata) – Crossing point
+Crossing over – DNA exchange
+Recombination – Genetic mixing
+Independent assortment – Random alignment
+Reduction division – Halves chromosome number
+Meiosis I – Homologs separate
+Meiosis II – Chromatids separate
+Genetic variation – Diversity creation
+Gametogenesis – Gamete formation
+Spermatogenesis – Sperm formation
+Oogenesis – Egg formation
+Polar body – Small cell product
+Fertilization – Gamete fusion
+Zygosity – Genetic condition
+Recombination frequency – Gene distance
+
+🧫 Cell Cycle Errors & Cancer
+Oncogene – Cancer-causing gene
+Tumor suppressor gene – Stops division
+p53 protein – DNA damage control
+Apoptotic pathway – Cell death signaling
+Benign tumor – Non-spreading
+Malignant tumor – Spreading cancer
+Metastasis – Cancer spread
+Carcinogenesis – Cancer formation
+DNA repair – Fix damage
+Checkpoint failure – Uncontrolled division
+Angiogenesis – Blood vessel growth
+Cell senescence – Aging cells
+Uncontrolled proliferation – Rapid growth
+Mutation accumulation – Multiple errors
+Genome instability – High mutation rate
+
+🌍 Basic Ecology Concepts
+Biotic factors – Living components
+Abiotic factors – Nonliving components (light, water, temp)
+Microhabitat – Small specialized habitat
+Species richness – Number of species
+Species evenness – Distribution of species
+Endemism – Species restricted to area
+Ecotone – Transition between ecosystems
+Density-dependent factor – Depends on population size
+Density-independent factor – Unrelated to population size
+Population density – Individuals per area
+Dispersion – Distribution pattern
+Clumped distribution – Grouped pattern
+Uniform distribution – Even spacing
+Random distribution – No pattern
+Natality – Birth rate
+Mortality – Death rate
+Immigration – Entry into population
+Emigration – Exit from population
+Population growth rate – Change over time
+
+📈 Population Ecology
+Exponential growth – Rapid increase (J-curve)
+Logistic growth – Growth with limit (S-curve)
+Growth rate (r) – Population increase rate
+Biotic potential – Maximum reproduction
+Environmental resistance – Limits growth
+Overshoot – Exceed carrying capacity
+Dieback – Population crash
+Life expectancy – Average lifespan
+Survivorship curve – Survival pattern
+Type I curve – Late death (humans)
+Type II curve – Constant death rate
+Type III curve – Early death (many offspring)
+r-selected species – Many offspring, low care
+K-selected species – Few offspring, high care
+Age structure – Population age distribution
+Sex ratio – Male:female ratio
+Doubling time – Time to double
+Zero population growth – No change
+Demography – Population statistics
+Metapopulation – Interconnected populations
+Population regulation – Control mechanisms
+Allee effect – Low density reduces survival
+Territoriality – Defending space
+Social hierarchy – Ranked structure
+Intraspecific competition – Same species
+Interspecific competition – Different species
+Competitive exclusion – One eliminates another
+Resource partitioning – Sharing resources
+Character displacement – Trait differences evolve
+
+🐾 Species Interactions
+Predator – Hunter
+Prey – Hunted organism
+Herbivory – Eating plants
+Parasite – Lives on host
+Host – Supports parasite
+Amensalism – One harmed, other unaffected
+Endoparasite – Inside host
+Ectoparasite – Outside host
+Foundation species – Shapes habitat
+Indicator species – Shows environmental condition
+Native species – Naturally occurring
+Exotic species – Introduced species
+Trophic cascade – Effects across levels
+Biological control – Using organisms to control pests
+Mimicry – Resembling another organism
+Camouflage – Blending with environment
+Aposematism – Warning coloration
+Host specificity – Specific host range
+Facilitation – One species helps another
+Neutralism – No interaction
+Obligate mutualism – Required relationship
+Facultative mutualism – Optional relationship
+
+🔄 Ecosystems & Energy Flow
+Primary consumer – Herbivore
+Secondary consumer – Carnivore
+Tertiary consumer – Top predator
+Primary productivity – Energy production rate
+Gross primary productivity (GPP) – Total energy
+Net primary productivity (NPP) – Usable energy
+Respiration – Energy use
+Ecological efficiency – Energy transfer rate
+Biogeochemical cycles – Nutrient cycles
+Eutrophication – Nutrient overload
+Algal bloom – Rapid algae growth
+Dead zone – Low oxygen area
+
+🌿 Water potential (Ψ)
+Solute potential (Ψs) – Effect of solutes on water
+Pressure potential (Ψp) – Physical pressure on water
+Osmotic potential – Another term for Ψs
+Turgor pressure – Pressure inside plant cells
+Plasmolysis – Cell shrinks in hypertonic solution
+Flaccid cell – Low turgor pressure
+Apoplast pathway – Water through cell walls
+Symplast pathway – Water through cytoplasm
+Endodermis – Selective root layer
+Casparian strip – Blocks passive flow
+Root pressure – Pushes water upward
+Transpiration – Water loss via leaves
+Cohesion – Water molecules stick together
+Adhesion – Water sticks to surfaces
+Capillary action – Water movement in tubes
+Xylem – Water-conducting tissue
+Phloem – Sugar-conducting tissue
+Translocation – Movement of sugars
+Source – Sugar-producing region
+Sink – Sugar-using region
+Bulk flow – Movement due to pressure
+Water uptake – Absorption by roots
+Hydraulic conductivity – Ease of water flow
+Aquaporins – Water channel proteins
+Guttation – Water droplets at leaf edges
+Wilting – Loss of turgor
+Hydathodes – Water-secreting pores
+
+🌿 Photosynthesis & Metabolism
+Chlorophyll a – Main pigment
+Chlorophyll b – Accessory pigment
+Carotenoids – Protective pigments
+Thylakoid – Light reaction site
+Grana – Stacks of thylakoids
+Stroma – Calvin cycle site
+Light reactions – ATP/NADPH production
+Calvin cycle – Carbon fixation
+RuBisCO – CO₂-fixing enzyme
+Photolysis – Water splitting
+ATP synthase – ATP production
+NADPH – Electron carrier
+Carbon fixation – CO₂ → organic compound
+Photorespiration – O₂ used instead of CO₂
+C3 plants – Standard photosynthesis
+C4 plants – CO₂ concentrated
+CAM plants – Night CO₂ fixation
+Stomata – Gas exchange pores
+Guard cells – Control stomata
+Mesophyll – Photosynthetic tissue
+Light intensity – Affects rate
+Compensation point – CO₂ balance
+Saturation point – Max photosynthesis
+Limiting factor – Restricts rate
+Respiration (plant) – Energy release
+Glycolysis – Glucose breakdown
+Krebs cycle – Energy production
+Electron transport chain – ATP generation
+
+🌿 Plant Hormones & Growth
+Plant hormone – Chemical growth regulator
+Auxin – Promotes elongation
+Apical dominance – Top bud control
+Phototropism – Growth toward light
+Gravitropism – Growth to gravity
+Gibberellin – Stem elongation
+Cytokinin – Cell division
+Ethylene – Fruit ripening
+Abscisic acid (ABA) – Stress hormone
+Brassinosteroids – Growth hormones
+Signal transduction – Hormone response
+Receptor protein – Detects hormone
+Second messenger – Signal relay
+Gene activation – Turns genes on
+Cell elongation – Cell growth
+Cell division – Mitosis in plants
+Differentiation – Specialized cells
+Dedifferentiation – Reversion to unspecialized
+Totipotency – Can form whole plant
+Callus – Undifferentiated tissue
+Tissue culture – Growing plants in lab
+Somatic embryogenesis – Embryo from somatic cell
+Meristem – Growth region
+Apical meristem – Length growth
+Lateral meristem – Thickness growth
+Cambium – Secondary growth tissue
+Secondary growth – Increase girth
+Primary growth – Increase length
+Senescence – Aging process
+Programmed cell death – Controlled death
+
+🌿 Plant Development & Reproduction
+Germination – Seed sprouting
+Seed dormancy – Inactive state
+Vernalization – Cold-induced flowering
+Photoperiodism – Response to day length
+Short-day plant – Flowers in long nights
+Long-day plant – Flowers in short nights
+Day-neutral plant – No light requirement
+Flower – Reproductive structure
+Pollination – Pollen transfer
+Self-pollination – Same plant
+Cross-pollination – Different plants
+Fertilization – Gamete fusion
+Double fertilization – Unique in angiosperms
+Zygote – Fertilized cell
+Embryo – Developing plant
+Endosperm – Nutrient tissue
+Seed coat – Protective layer
+Fruit – Mature ovary
+Ovule – Becomes seed
+Pollen grain – Male gametophyte
+Pollen tube – Sperm delivery
+Embryogenesis – Embryo formation
+Morphogenesis – Shape formation
+Organogenesis – Organ formation
+Phase change – Juvenile → adult
+Floral induction – Flower initiation
+Signal integration – Multiple signals combined
+Circadian rhythm – Internal clock
+Stress physiology – Response to stress
+Acclimation – Adjustment to environment
+
+🧪 Chemical Principles in Biology
+Atom – Smallest unit of matter
+Molecule – Two or more atoms bonded
+Compound – Different elements combined
+Element – Pure substance (e.g., C, H, O)
+Valence electron – Outer shell electron
+Covalent bond – Shared electrons
+Ionic bond – Electron transfer
+Hydrogen bond – Weak attraction
+Van der Waals forces – Weak intermolecular forces
+Polar molecule – Uneven charge distribution
+Nonpolar molecule – Even charge distribution
+Electronegativity – Attraction for electrons
+Hydrophilic – Water-attracting
+Hydrophobic – Water-repelling
+Amphipathic – Both hydrophilic & hydrophobic
+pH – Measure of acidity
+Acid – Donates H⁺
+Base – Accepts H⁺
+Buffer – Resists pH change
+Solution – Homogeneous mixture
+Solvent – Dissolving medium
+Solute – Dissolved substance
+Molarity – Concentration (mol/L)
+Isotope – Same element, different mass
+Radioisotope – Unstable isotope
+Oxidation – Loss of electrons
+Reduction – Gain of electrons
+Redox reaction – Electron transfer reaction
+Energy – Capacity to do work
+Activation energy – Energy to start reaction
+
+🧪 Biomolecules
+Macromolecule – Large biological molecule
+Polymer – Repeating units
+Monomer – Single unit
+Dehydration synthesis – Bond formation (removes H₂O)
+Hydrolysis – Bond breaking (adds H₂O)
+
+🍞 Carbohydrates
+Carbohydrate – Energy molecule
+Monosaccharide – Simple sugar
+Glucose – Main energy sugar
+Fructose – Fruit sugar
+Disaccharide – Two sugars
+Sucrose – Glucose + fructose
+Polysaccharide – Many sugars
+Starch – Plant storage
+Glycogen – Animal storage
+Cellulose – Plant structure
+
+🧈 Lipids
+Lipid – Hydrophobic molecule
+Fatty acid – Lipid component
+Triglyceride – Fat storage
+Saturated fat – No double bonds
+Unsaturated fat – Has double bonds
+Phospholipid – Membrane lipid
+Steroid – Ring-structured lipid
+Cholesterol – Membrane component
+
+🧪 Proteins
+Protein – Functional macromolecule
+Amino acid – Protein building block
+Peptide bond – Links amino acids
+Primary structure – Sequence
+Secondary structure – α-helix / β-sheet
+Tertiary structure – 3D shape
+Quaternary structure – Multiple chains
+
+🧪 Enzymes & Metabolism
+Enzyme – Biological catalyst
+Substrate – Molecule acted upon
+Active site – Binding region
+Enzyme-substrate complex – Temporary binding
+Specificity – Enzyme selectivity
+Induced fit model – Shape adjustment
+Lock-and-key model – Exact fit
+Catalysis – Reaction acceleration
+Metabolism – Total reactions
+Metabolic pathway – Series of reactions
+ATP – Energy currency
+ADP – Lower energy form
+Phosphorylation – Adding phosphate
+Dephosphorylation – Removing phosphate
+Cofactor – Helper molecule
+Coenzyme – Organic cofactor
+NAD⁺ / NADH – Electron carriers
+FAD / FADH₂ – Electron carriers
+Allosteric regulation – Shape-based control
+Competitive inhibition – Competes for active site
+Noncompetitive inhibition – Binds elsewhere
+Feedback inhibition – End product stops pathway
+Km (Michaelis constant) – Affinity measure
+Vmax – Max reaction rate
+Denaturation – Loss of protein structure
+Optimal temperature – Best enzyme temp
+Optimal pH – Best enzyme pH
+
+🧪 Bioenergetics & Advanced Concepts
+Bioenergetics – Energy flow in organisms
+Exergonic reaction – Releases energy
+Endergonic reaction – Requires energy
+Free energy (G) – Available energy
+Equilibrium – No net change
+Entropy – Disorder
+Enthalpy – Heat content
+Coupled reaction – Linked reactions
+Oxidative phosphorylation – ATP via ETC
+Chemiosmosis – Proton gradient ATP
+Proton gradient – H⁺ difference
+Mitochondrial membrane – ETC site
+Fermentation – Anaerobic energy
+Lactic acid fermentation – Muscle process
+Alcohol fermentation – Yeast process
+Photosynthetic phosphorylation – Light ATP
+Anabolism – Building molecules
+Catabolism – Breaking molecules
+Reactive oxygen species (ROS) – Damaging molecules
+Antioxidant – Neutralizes ROS
+Oxidative stress – ROS imbalance
+Metabolic rate – Energy usage
+Thermodynamics – Energy laws
+First law – Energy conserved
+Second law – Entropy increases
+Isomer – Same formula, different structure
+Structural isomer – Different bonds
+Geometric isomer – Different arrangement
+Enantiomer – Mirror images
+Functional group – Reactive group (e.g., –OH, –COOH)
+
+🌿 Plant Taxonomy & Families
+Nymphaeaceae (Water lily family) – Aquatic plants with floating leaves and large, showy flowers. Example: water lily
+Magnoliaceae (Magnolia family) – Trees/shrubs with large fragrant flowers in a spiral floral arrangement. Example: magnolia
+Lauraceae (Laurel family) – Aromatic plants (essential oils) with simple leaves. Example: cinnamon, bay leaf
+Alismataceae (Water plantain) – Aquatic broad-leaved plants. Example: Sagittaria
+Poaceae (Grass family) – Wind-pollinated plants with hollow stems and parallel veins; most economically important. Examples: rice, corn, wheat
+Arecaceae (Palm family) – Unbranched trunk plants with large compound leaves. Example: coconut
+Liliaceae (Lily family) – Bulbous plants with showy 3-petal flowers. Example: lilies
+Orchidaceae (Orchid family) – One of the largest plant families, featuring bilateral flowers and highly specialized pollination
+Musaceae (Banana family) – Large herbaceous plants with broad leaves. Example: banana
+Zingiberaceae (Ginger family) – Plants with aromatic rhizomes. Example: ginger, turmeric
+Amaryllidaceae (Amaryllis family) – Bulb plants with umbel flowers. Example: onion, garlic
+Ranunculaceae (Buttercup family) – Often toxic plants with many stamens
+Fabaceae (Legume family) – Nitrogen-fixing plants with pod fruits. Example: beans
+Rosaceae (Rose family) – Plants with showy flowers and many fruit types. Example: apple, rose
+Brassicaceae (Mustard family) – Plants with 4 cross-shaped petals. Example: cabbage
+Malvaceae (Mallow family) – Plants where mucilage is present. Example: hibiscus, cotton
+Euphorbiaceae (Spurge family) – Often toxic plants with milky latex. Example: cassava
+Rutaceae (Citrus family) – Plants containing aromatic oils. Example: orange, lemon
+Sapindaceae (Soapberry family) – Plants with compound leaves. Example: lychee
+Anacardiaceae (Cashew family) – Plants with resin ducts. Example: mango, cashew
+Solanaceae (Nightshade family) – Plants containing alkaloids. Example: tomato, potato
+Asteraceae (Sunflower family) – Largest family; composite flowers (head)
+Lamiaceae (Mint family) – Aromatic plants with square stems. Example: mint
+Apiaceae (Carrot family) – Plants with umbel inflorescence. Example: carrot
+Rubiaceae (Coffee family) – Plants with opposite leaves. Example: coffee
+Apocynaceae (Dogbane family) – Plants with milky latex. Example: periwinkle
+Convolvulaceae (Morning glory) – Twining vines with funnel-shaped flowers
+Cucurbitaceae (Gourd family) – Climbing vines with pepo fruits. Example: melon, squash
+Myrtaceae (Myrtle family) – Plants with aromatic leaves. Example: guava, eucalyptus
+Moraceae (Mulberry family) – Plants with milky sap. Example: fig
+`;
+
+            let currentCategory = "Cell Biology";
+            let currentIcon = "🧫";
+            
+            // Phrases to safely ignore mathematical equations that break the layout
+            const ignoreList = ['(continuing…)', '👉', 'DNA→RNA', '6CO2', '\\rightarrow', 'pH=', 'ATP→', 'ΔG='];
+
+            const lines = rawText.split('\n');
+            lines.forEach(line => {
+                line = line.trim();
+                
+                if (!line || ignoreList.some(ignore => line.includes(ignore))) return;
+
+                // Smart Category Routing for all specific headers
+                if (line.includes('Cell Biology') || line.includes('CELL DIVISION') || line.includes('Mitosis') || line.includes('Meiosis') || line.includes('Cell Cycle Errors')) { 
+                    currentCategory = "Cell Biology"; currentIcon = "🧫"; 
+                }
+                else if (line.includes('Molecular Biology') || line.includes('CENTRAL DOGMA') || line.includes('Transcription') || line.includes('RNA Processing') || line.includes('Translation')) { 
+                    currentCategory = "Molecular Biology"; currentIcon = "🧬"; 
+                }
+                else if (line.includes('Plant Biology') || line.includes('Plant Taxonomy') || line.includes('Water potential') || line.includes('Photosynthesis') || line.includes('Plant Hormones') || line.includes('Plant Development')) { 
+                    currentCategory = "Plant Biology"; currentIcon = "🌿"; 
+                }
+                else if (line.includes('Human Biology')) { 
+                    currentCategory = "Human Biology & Physiology"; currentIcon = "🫀"; 
+                }
+                else if (line.includes('Ecology') || line.includes('Population Genetics') || line.includes('Species Interactions') || line.includes('Ecosystems')) { 
+                    currentCategory = "Ecology & Evolution"; currentIcon = "🌍"; 
+                }
+                else if (line.includes('Core & Inheritance') || line.includes('Chromosomal & Errors') || line.includes('Genetics')) { 
+                    currentCategory = "Genetics"; currentIcon = "🧬"; 
+                }
+                else if (line.includes('Chemical Principles') || line.includes('Biomolecules') || line.includes('Carbohydrates') || line.includes('Lipids') || line.includes('Proteins') || line.includes('Enzymes & Metabolism') || line.includes('Bioenergetics')) { 
+                    currentCategory = "Biochemistry"; currentIcon = "🧪"; 
+                }
+                else if (line.includes('–') || line.includes('-')) {
+                    const parts = line.split(/[-–—]/);
+                    const term = parts[0].trim();
+                    const def = parts.slice(1).join('-').trim();
+                    
+                    if (term && def && !vocabularyData.find(t => t.term.toLowerCase() === term.toLowerCase())) {
+                        vocabularyData.push({
+                            term: term,
+                            category: currentCategory,
+                            def: def,
+                            icon: currentIcon
+                        });
+                    }
+                }
+            });
+
+            // Normalize legacy categories from the hardcoded list so they group correctly
+            vocabularyData.forEach(item => {
+                if (item.category === "Ecology" || item.category === "Evolution") {
+                    item.category = "Ecology & Evolution";
+                    item.icon = "🌍";
+                }
+                if (item.category === "Physiology") {
+                    item.category = "Human Biology & Physiology";
+                    item.icon = "🫀";
+                }
+            });
+        }
+
+        function init() {
+            addAdditionalTerms();
+            renderFilters();
+            filterAndRenderData();
+            setupEventListeners();
+        }
+
+        function getCategories() {
+            const categories = new Set(vocabularyData.map(item => item.category));
+            return ["All", ...Array.from(categories).sort()];
+        }
+
+        function renderFilters() {
+            const filterContainer = document.getElementById('filterContainer');
+            const categories = getCategories();
+            
+            filterContainer.innerHTML = '';
+            categories.forEach(category => {
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-2 rounded-full text-sm font-medium transition-colors border ${currentFilter === category ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`;
+                btn.innerText = category;
+                btn.onclick = () => setFilter(category);
+                filterContainer.appendChild(btn);
+            });
+        }
+
+        function setFilter(category) {
+            currentFilter = category;
+            renderFilters();
+            filterAndRenderData();
+        }
+
+        function filterAndRenderData() {
+            // Check if both search and filter are empty/default
+            if (searchQuery.trim() === "" && currentFilter === "All") {
+                const grid = document.getElementById('dictionaryGrid');
+                const resultsInfo = document.getElementById('resultsInfo');
+                
+                resultsInfo.innerText = "Awaiting search...";
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 px-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed flex flex-col items-center justify-center gap-3">
+                        <span class="text-5xl mb-2">⌨️</span>
+                        <p class="text-xl font-bold text-slate-700">Start typing to explore!</p>
+                        <p class="text-md">Search for a specific term above, or select a category filter on the left to reveal the dictionary.</p>
+                    </div>
+                `;
+                currentFilteredTerms = []; // Clear current terms for quiz safety
+                
+                // Show overall distribution in chart
+                if (vocabularyData.length > 0) updateChart(vocabularyData);
+                return;
+            }
+
+            const filteredData = vocabularyData.filter(item => {
+                const matchesCategory = currentFilter === "All" || item.category === currentFilter;
+                const query = searchQuery.toLowerCase().trim();
+                
+                // Strictly match the sequence of letters from the start of the term, 
+                // or the start of a subsequent word in the term (e.g. typing "cy" finds "Cell cycle")
+                const matchesSearch = query === "" || 
+                                      item.term.toLowerCase().startsWith(query) || 
+                                      item.term.toLowerCase().includes(' ' + query);
+                                      
+                return matchesCategory && matchesSearch;
+            });
+
+            currentFilteredTerms = filteredData;
+
+            const resultsInfo = document.getElementById('resultsInfo');
+            resultsInfo.innerText = `Showing ${filteredData.length} term${filteredData.length !== 1 ? 's' : ''}`;
+
+            renderDictionary(filteredData);
+            
+            // Dynamically update the chart based on active filters/search
+            updateChart(filteredData);
+        }
+
+        function renderDictionary(data) {
+            const grid = document.getElementById('dictionaryGrid');
+            grid.innerHTML = '';
+
+            if (data.length === 0) {
+                grid.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">No vocabulary terms found matching your criteria.</div>`;
+                return;
+            }
+
+            data.sort((a, b) => {
+                const query = searchQuery.toLowerCase().trim();
+                if (query) {
+                    const aStarts = a.term.toLowerCase().startsWith(query);
+                    const bStarts = b.term.toLowerCase().startsWith(query);
+                    
+                    // Priority 1: Term starts exactly with the search query
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+                    
+                    // Priority 2: A word inside the term starts with the search query
+                    const aWordStarts = a.term.toLowerCase().includes(' ' + query);
+                    const bWordStarts = b.term.toLowerCase().includes(' ' + query);
+                    
+                    if (aWordStarts && !bWordStarts) return -1;
+                    if (!aWordStarts && bWordStarts) return 1;
+                }
+                // Default fallback: Alphabetical sorting
+                return a.term.localeCompare(b.term);
+            }).forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = "term-card bg-slate-50 border border-slate-200 rounded-xl p-5 cursor-pointer relative overflow-hidden";
+                card.onclick = () => toggleCardDetails(index);
+
+                const colorMark = categoryColors[item.category] || '#94a3b8';
+
+                card.innerHTML = `
+                    <div class="absolute top-0 left-0 w-1 h-full" style="background-color: ${colorMark}"></div>
+                    <div class="flex justify-between items-start pl-2">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <span>${item.icon}</span> ${item.term}
+                            </h3>
+                            <span class="inline-block mt-1 px-2 py-0.5 text-xs font-semibold rounded bg-white border" style="color: ${colorMark}; border-color: ${colorMark}40">
+                                ${item.category}
+                            </span>
+                        </div>
+                        <span class="text-slate-400 text-lg transform transition-transform duration-200" id="icon-${index}">+</span>
+                    </div>
+                    
+                    <div id="details-${index}" class="detail-view pl-2">
+                        <p class="text-sm text-slate-700 font-medium mb-3">${item.def}</p>
+                        ${item.example ? `
+                        <div class="bg-white p-3 rounded border border-slate-100 text-sm mb-3">
+                            <span class="font-bold text-slate-600 block mb-1">Example:</span>
+                            <span class="text-slate-600 italic">"${item.example}"</span>
+                        </div>
+                        ` : ''}
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="generateAIContext(${index}, '${item.term.replace(/'/g, "\\'")}', 'simplify')" class="text-xs bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded shadow-sm hover:bg-emerald-200 transition-colors font-semibold flex items-center gap-1">✨ Simplify</button>
+                            <button onclick="generateAIContext(${index}, '${item.term.replace(/'/g, "\\'")}', 'mnemonic')" class="text-xs bg-purple-100 text-purple-700 px-3 py-1.5 rounded shadow-sm hover:bg-purple-200 transition-colors font-semibold flex items-center gap-1">✨ Mnemonic</button>
+                        </div>
+                        <div id="ai-result-${index}" class="mt-3 text-sm text-slate-700 hidden bg-gradient-to-r from-emerald-50 to-teal-50 p-3 rounded border border-emerald-100 leading-relaxed shadow-inner"></div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleCardDetails(index) {
+            const detailsElement = document.getElementById(`details-${index}`);
+            const iconElement = document.getElementById(`icon-${index}`);
+            
+            if (detailsElement.classList.contains('active')) {
+                detailsElement.classList.remove('active');
+                iconElement.innerText = "+";
+                iconElement.style.transform = "rotate(0deg)";
+            } else {
+                detailsElement.classList.add('active');
+                iconElement.innerText = "−";
+                iconElement.style.transform = "rotate(180deg)";
+            }
+        }
+
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                filterAndRenderData();
+            });
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            
+            const categoryCounts = {};
+            data.forEach(item => {
+                categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+            });
+
+            const labels = Object.keys(categoryCounts).sort();
+            const counts = labels.map(label => categoryCounts[label]);
+            const bgColors = labels.map(label => categoryColors[label] || '#94a3b8');
+
+            if (chartInstance) {
+                chartInstance.data.labels = labels;
+                chartInstance.data.datasets[0].data = counts;
+                chartInstance.data.datasets[0].backgroundColor = bgColors;
+                chartInstance.update();
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: counts,
+                            backgroundColor: bgColors,
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    font: {
+                                        family: "'Segoe UI', sans-serif",
+                                        size: 11
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed !== null) {
+                                            label += context.parsed + ' terms';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+        }
+
+        // ==========================================
+        // ✨ Gemini API Integrations
+        // ==========================================
+        const apiKey = "";
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(res => setTimeout(res, delays[i]));
+                }
+            }
+        }
+
+        async function generateAIContext(index, termStr, type) {
+            const item = vocabularyData.find(t => t.term === termStr);
+            const resultDiv = document.getElementById(`ai-result-${index}`);
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = `<span class="animate-pulse">✨ Gemini is thinking...</span>`;
+
+            let prompt = "";
+            let systemInstruction = "You are a friendly, encouraging biology tutor.";
+            
+            if (type === 'simplify') {
+                prompt = `Explain the biology term "${item.term}" (Definition: ${item.def}) as if I am 5 years old. Use a fun everyday analogy. Keep it under 3 sentences.`;
+            } else if (type === 'mnemonic') {
+                prompt = `Create a short, catchy mnemonic device or wordplay to help a student easily remember the biology term "${item.term}" which means "${item.def}".`;
+            }
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            try {
+                const response = await fetchWithRetry(`${GEMINI_API_URL}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "Couldn't generate a response. Try again!";
+                resultDiv.innerHTML = `<strong>${type === 'simplify' ? 'Simplification' : 'Mnemonic'}:</strong> ${text.replace(/\n/g, '<br>')}`;
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                resultDiv.innerHTML = `<span class="text-red-500">Failed to connect to AI. Please try again later.</span>`;
+            }
+        }
+
+        async function startQuiz() {
+            if (currentFilteredTerms.length < 3) {
+                document.getElementById('quizModal').classList.remove('hidden');
+                document.getElementById('quizLoading').classList.add('hidden');
+                document.getElementById('quizContent').innerHTML = `
+                    <div class="bg-amber-50 text-amber-800 p-4 rounded-lg border border-amber-200">
+                        <p class="font-medium">Not enough terms!</p>
+                        <p class="text-sm mt-1">Please ensure at least 3 terms are visible in your current search or filter to generate a quiz.</p>
+                    </div>`;
+                return;
+            }
+
+            document.getElementById('quizModal').classList.remove('hidden');
+            document.getElementById('quizContent').innerHTML = '';
+            document.getElementById('quizLoading').classList.remove('hidden');
+
+            // Grab up to 3 random terms from currently filtered list
+            const shuffled = [...currentFilteredTerms].sort(() => 0.5 - Math.random());
+            const selectedTerms = shuffled.slice(0, 3).map(t => t.term).join(", ");
+
+            const prompt = `Create a 3-question multiple choice quiz testing the knowledge of these specific biology terms: ${selectedTerms}. Make the wrong options plausible.`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: "You are an expert biology teacher. Generate an accurate multiple choice quiz." }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            questions: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        question: { type: "STRING", description: "The quiz question" },
+                                        options: { type: "ARRAY", items: { type: "STRING" }, description: "4 possible answers" },
+                                        correctIndex: { type: "INTEGER", description: "Index of the correct option (0-3)" },
+                                        explanation: { type: "STRING", description: "Why this is correct" }
+                                    },
+                                    required: ["question", "options", "correctIndex", "explanation"]
+                                }
+                            }
+                        },
+                        required: ["questions"]
+                    }
+                }
+            };
+
+            try {
+                const response = await fetchWithRetry(`${GEMINI_API_URL}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const jsonText = response.candidates?.[0]?.content?.parts?.[0]?.text;
+                if(jsonText) {
+                    const quizData = JSON.parse(jsonText);
+                    renderQuiz(quizData.questions);
+                } else {
+                    throw new Error("Empty response");
+                }
+            } catch (error) {
+                console.error("Quiz Error:", error);
+                document.getElementById('quizLoading').classList.add('hidden');
+                document.getElementById('quizContent').innerHTML = `<p class="text-red-500 font-medium bg-red-50 p-4 rounded-lg border border-red-200">Failed to generate quiz. Please check your connection and try again.</p>`;
+            }
+        }
+
+        function renderQuiz(questions) {
+            document.getElementById('quizLoading').classList.add('hidden');
+            const contentDiv = document.getElementById('quizContent');
+            contentDiv.innerHTML = '';
+
+            questions.forEach((q, qIndex) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "bg-slate-50 border border-slate-200 p-5 rounded-lg";
+                
+                let optionsHtml = q.options.map((opt, oIndex) => `
+                    <button onclick="checkAnswer(${qIndex}, ${oIndex}, ${q.correctIndex})" id="btn-${qIndex}-${oIndex}" class="w-full text-left p-3 border border-slate-200 rounded-lg hover:bg-emerald-50 hover:border-emerald-300 transition-colors bg-white mt-3 shadow-sm">
+                        <span class="font-bold mr-2 text-slate-500">${String.fromCharCode(65 + oIndex)}.</span> ${opt}
+                    </button>
+                `).join('');
+
+                qDiv.innerHTML = `
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">${qIndex + 1}. ${q.question}</h3>
+                    <div class="space-y-2" id="options-${qIndex}">
+                        ${optionsHtml}
+                    </div>
+                    <div id="explanation-${qIndex}" class="mt-4 text-sm hidden p-4 rounded-lg shadow-inner">
+                        <strong>Explanation:</strong> ${q.explanation}
+                    </div>
+                `;
+                contentDiv.appendChild(qDiv);
+            });
+        }
+
+        function checkAnswer(qIndex, selectedIndex, correctIndex) {
+            const optionsDiv = document.getElementById(`options-${qIndex}`);
+            const buttons = optionsDiv.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true); // Disable after selection
+
+            const selectedBtn = document.getElementById(`btn-${qIndex}-${selectedIndex}`);
+            const correctBtn = document.getElementById(`btn-${qIndex}-${correctIndex}`);
+            const expDiv = document.getElementById(`explanation-${qIndex}`);
+            
+            expDiv.classList.remove('hidden');
+
+            if (selectedIndex === correctIndex) {
+                selectedBtn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+                selectedBtn.classList.remove('bg-white', 'hover:bg-emerald-50', 'hover:border-emerald-300');
+                expDiv.classList.add('bg-emerald-50', 'text-emerald-800', 'border', 'border-emerald-200');
+                expDiv.innerHTML = `<strong>✨ Correct!</strong><br> ${expDiv.innerHTML}`;
+            } else {
+                selectedBtn.classList.add('bg-red-50', 'border-red-400', 'text-red-900');
+                selectedBtn.classList.remove('bg-white', 'hover:bg-emerald-50', 'hover:border-emerald-300');
+                correctBtn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+                correctBtn.classList.remove('bg-white', 'hover:bg-emerald-50', 'hover:border-emerald-300');
+                expDiv.classList.add('bg-slate-100', 'text-slate-800', 'border', 'border-slate-300');
+                expDiv.innerHTML = `<strong>❌ Not quite.</strong><br> ${expDiv.innerHTML}`;
+            }
+        }
+
+        function closeQuiz() {
+            document.getElementById('quizModal').classList.add('hidden');
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
