@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photosynthesis: The Engine of Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Nature's Harmony (Warm neutrals, sage/emerald greens, dark slate text) -->
+    <!-- Application Structure Plan: The SPA is structured linearly but highly interactive, guiding the user from macro concepts (the equation) down to micro concepts (chloroplast anatomy, reaction stages), then expanding out to systemic factors (limiting factors charts) and evolutionary adaptations. This "zoom in, zoom out" structure matches the cognitive learning path for biological systems. A sticky navigation ensures easy movement between competencies. -->
+    <!-- Visualization & Content Choices: 
+         1. Interactive Equation (Goal: Inform/Deconstruct -> Viz: Interactive Flexbox Cards -> Justification: Breaks down complex chemistry into digestible, clickable parts -> Method: HTML/JS). 
+         2. Chloroplast Anatomy (Goal: Organize/Locate -> Viz: Pure CSS/HTML Shapes -> Justification: Meets NO SVG rule while providing spatial awareness of organelle structure -> Method: CSS rounded borders/absolute positioning). 
+         3. Reaction Stages (Goal: Compare -> Viz: Tabbed Interface -> Justification: Separates LDR and Calvin Cycle logically without overwhelming the screen -> Method: HTML/JS). 
+         4. Limiting Factors (Goal: Change/Trends -> Viz: Interactive Line Graph -> Justification: Best way to show rate plateaus and optimums -> Method: Chart.js Canvas). 
+         5. Plant Adaptations (Goal: Compare -> Viz: Grid Cards -> Justification: Clear side-by-side evolutionary comparison -> Method: Tailwind Grid). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #fcfdfc;
+            color: #1e293b;
+        }
+        
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 350px; 
+            max-height: 400px; 
+        }
+
+        .chloroplast-diagram {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            margin: 0 auto;
+            border-radius: 150px;
+            background-color: #d1fae5;
+            border: 8px solid #059669;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .granum {
+            position: absolute;
+            width: 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .granum:hover {
+            transform: scale(1.1);
+        }
+
+        .thylakoid {
+            height: 15px;
+            width: 100%;
+            background-color: #10b981;
+            border: 2px solid #047857;
+            border-radius: 10px;
+        }
+
+        .stroma-area {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            cursor: pointer;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-emerald-200 selection:text-emerald-900">
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-emerald-100 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center overflow-x-auto hide-scrollbar">
+                <div class="flex-shrink-0 flex items-center gap-3 pr-4">
+                    <button onclick="history.back()" class="flex items-center justify-center w-8 h-8 text-slate-500 hover:text-emerald-700 hover:bg-emerald-100 rounded-full transition-colors text-xl font-bold" title="Return to previous page" aria-label="Go back">
+                        &#8592;
+                    </button>
+                    <div class="font-bold text-emerald-800 text-xl tracking-tight">
+                        🍃 PhotoSynth
+                    </div>
+                </div>
+                <div class="flex space-x-1 sm:space-x-4 min-w-max">
+                    <a href="#equation" class="text-sm font-medium text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md transition-colors">The Equation</a>
+                    <a href="#anatomy" class="text-sm font-medium text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md transition-colors">Chloroplast</a>
+                    <a href="#energy" class="text-sm font-medium text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md transition-colors">Energy Flow</a>
+                    <a href="#stages" class="text-sm font-medium text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md transition-colors">Reactions</a>
+                    <a href="#calvin-deep" class="text-sm font-medium text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md transition-colors">Chemical Cycle</a>
+                    <a href="#factors" class="text-sm font-medium text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md transition-colors">Limiting Factors</a>
+                    <a href="#adaptations" class="text-sm font-medium text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md transition-colors">Adaptations</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-emerald-900 text-white py-20 px-4 text-center">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6">Photosynthesis: The Engine of Life</h1>
+            <p class="text-lg sm:text-xl text-emerald-100 max-w-2xl mx-auto leading-relaxed">
+                Discover how plants harness the power of sunlight to convert carbon dioxide and water into the energetic foundation of almost all life on Earth. 
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <section id="equation" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">The Chemical Equation</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    At its core, photosynthesis is a chemical process. It might look simple as a single equation, but it represents a massive energy transformation. Click on the elements of the equation below to understand their specific roles in this biological miracle.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 sm:p-10 shadow-sm border border-slate-100 flex flex-col items-center">
+                <div class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 text-lg sm:text-2xl font-bold font-mono text-slate-700 mb-8 w-full">
+                    <button class="eq-btn px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-emerald-500 hover:text-emerald-700 hover:shadow-md transition-all" data-target="co2">6CO₂</button>
+                    <span class="text-slate-400">+</span>
+                    <button class="eq-btn px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:text-blue-700 hover:shadow-md transition-all" data-target="h2o">6H₂O</button>
+                    <span class="text-slate-400">+</span>
+                    <button class="eq-btn px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-amber-500 hover:text-amber-600 hover:shadow-md transition-all" data-target="light">Light</button>
+                    <span class="text-emerald-500 text-3xl mx-2">➔</span>
+                    <button class="eq-btn px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-emerald-600 hover:text-emerald-800 hover:shadow-md transition-all" data-target="glucose">C₆H₁₂O₆</button>
+                    <span class="text-slate-400">+</span>
+                    <button class="eq-btn px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-cyan-500 hover:text-cyan-700 hover:shadow-md transition-all" data-target="o2">6O₂</button>
+                </div>
+
+                <div id="eq-display" class="w-full max-w-2xl min-h-[120px] bg-emerald-50 border border-emerald-100 rounded-xl p-6 flex items-center justify-center text-center fade-in">
+                    <p class="text-emerald-900 text-lg">Select any component of the equation above to reveal its role in the photosynthetic process.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="anatomy" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Inside the Chloroplast</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    Photosynthesis doesn't just happen anywhere in a plant; it occurs within highly specialized organelles called chloroplasts. Interact with the diagram below to explore the structural layout where light and chemistry meet.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="relative w-full flex justify-center p-4">
+                    <div class="chloroplast-diagram shadow-lg relative">
+                        <div class="stroma-area" data-part="stroma"></div>
+                        
+                        <div class="granum" style="top: 15%; left: 20%;" data-part="granum">
+                            <div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div>
+                        </div>
+                        <div class="granum" style="top: 40%; left: 35%;" data-part="granum">
+                            <div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div>
+                        </div>
+                        <div class="granum" style="top: 25%; left: 60%;" data-part="granum">
+                            <div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div>
+                        </div>
+                        <div class="granum" style="top: 60%; left: 55%;" data-part="granum">
+                            <div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div>
+                        </div>
+                        <div class="granum" style="top: 55%; left: 15%;" data-part="granum">
+                            <div class="thylakoid"></div><div class="thylakoid"></div>
+                        </div>
+                        <div class="granum" style="top: 30%; left: 80%;" data-part="granum">
+                            <div class="thylakoid"></div><div class="thylakoid"></div><div class="thylakoid"></div>
+                        </div>
+
+                        <div class="absolute top-0 left-0 w-full h-full pointer-events-none rounded-[150px] border-[6px] border-emerald-600/30" style="transform: scale(0.96);" data-part="membrane"></div>
+                        <div class="absolute inset-0 pointer-events-none rounded-[150px] shadow-[inset_0_0_40px_rgba(4,120,87,0.2)]"></div>
+                    </div>
+                    <div class="absolute bottom-0 right-0 lg:hidden text-sm text-slate-400 italic">Tap the diagram</div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 h-full flex flex-col justify-center">
+                    <div id="chloro-info" class="fade-in">
+                        <h3 class="text-2xl font-bold text-emerald-800 mb-3 flex items-center gap-2">
+                            <span>🔍</span> Explore the Organelle
+                        </h3>
+                        <p class="text-slate-600 text-lg leading-relaxed">
+                            Hover over or tap the different parts of the chloroplast diagram on the left. You'll uncover where the specific stages of photosynthesis take place.
+                        </p>
+                        <div class="mt-6 space-y-3">
+                            <div class="flex items-center gap-3 text-sm font-medium text-slate-500"><span class="w-4 h-4 rounded-full bg-emerald-600 inline-block"></span> Thylakoid / Granum</div>
+                            <div class="flex items-center gap-3 text-sm font-medium text-slate-500"><span class="w-4 h-4 rounded-full bg-[#d1fae5] border border-emerald-300 inline-block"></span> Stroma</div>
+                            <div class="flex items-center gap-3 text-sm font-medium text-slate-500"><span class="w-4 h-4 rounded-full bg-transparent border-4 border-[#059669] inline-block"></span> Double Membrane</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="energy" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Energy Transformation: How Light Becomes Chemistry</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    How does a sunbeam turn into a chemical bond? It happens on the thylakoid membrane through a microscopic power plant called the <strong>Electron Transport Chain</strong>. Step through the sequence below to see the exact mechanism of energy conversion.
+                </p>
+            </div>
+
+            <div class="bg-slate-900 rounded-3xl p-6 sm:p-10 shadow-lg overflow-hidden relative">
+                <!-- Abstract Thylakoid Membrane Representation -->
+                <div class="relative w-full h-64 sm:h-80 border-y-4 border-slate-700 bg-slate-800/50 mb-8 flex items-center justify-around px-2 sm:px-8">
+                    <!-- Stroma Label -->
+                    <div class="absolute top-2 left-4 text-slate-400 font-bold uppercase tracking-widest text-sm">Stroma (Low H⁺)</div>
+                    <!-- Lumen Label -->
+                    <div class="absolute bottom-2 left-4 text-slate-400 font-bold uppercase tracking-widest text-sm">Lumen (High H⁺)</div>
+
+                    <!-- Protein Complexes -->
+                    <div id="protein-1" class="energy-protein w-16 sm:w-24 h-32 sm:h-48 bg-emerald-600 rounded-full border-4 border-emerald-800 flex items-center justify-center text-white font-bold text-center transition-all duration-500 z-10 opacity-50 relative">
+                        PS II
+                        <div class="absolute -top-12 text-yellow-400 text-3xl opacity-0 transition-opacity duration-300" id="anim-light-1">⚡</div>
+                        <div class="absolute -bottom-10 text-cyan-300 text-sm font-mono opacity-0 transition-opacity duration-300" id="anim-water">H₂O → O₂</div>
+                    </div>
+
+                    <div id="protein-2" class="energy-protein w-12 sm:w-20 h-24 sm:h-32 bg-slate-500 rounded-full border-4 border-slate-700 flex items-center justify-center text-white font-bold text-center transition-all duration-500 z-10 opacity-50 relative">
+                        ETC
+                        <div class="absolute -bottom-8 text-rose-400 text-xl font-bold opacity-0 transition-opacity duration-300" id="anim-pump">↑ H⁺</div>
+                    </div>
+
+                    <div id="protein-3" class="energy-protein w-16 sm:w-24 h-32 sm:h-48 bg-emerald-500 rounded-full border-4 border-emerald-700 flex items-center justify-center text-white font-bold text-center transition-all duration-500 z-10 opacity-50 relative">
+                        PS I
+                        <div class="absolute -top-12 text-yellow-400 text-3xl opacity-0 transition-opacity duration-300" id="anim-light-2">⚡</div>
+                        <div class="absolute -top-10 -right-16 sm:-right-24 text-amber-300 text-sm font-mono font-bold opacity-0 transition-opacity duration-300" id="anim-nadph">→ NADPH</div>
+                    </div>
+
+                    <div id="protein-4" class="energy-protein w-20 sm:w-28 h-40 sm:h-56 bg-purple-600 rounded-b-none rounded-t-[50px] border-4 border-purple-800 flex items-end justify-center pb-4 text-white font-bold text-center transition-all duration-500 z-10 opacity-50 relative">
+                        ATP Synthase
+                        <div class="absolute -bottom-4 text-rose-400 text-xl font-bold opacity-0 transition-opacity duration-300" id="anim-flow">↓ H⁺</div>
+                        <div class="absolute -top-10 text-yellow-300 text-lg font-mono font-bold opacity-0 transition-opacity duration-300" id="anim-atp">ADP → ATP 🔋</div>
+                    </div>
+
+                    <!-- Electron Path Line -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 5;">
+                        <path id="electron-path" d="M 15% 50% L 35% 50% L 60% 50% L 85% 50%" stroke="#fbbf24" stroke-width="4" stroke-dasharray="10 10" fill="none" class="opacity-0 transition-opacity duration-500" />
+                    </svg>
+                </div>
+
+                <!-- Interactive Controls -->
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <div class="flex-shrink-0">
+                        <button id="btn-next-step" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-3 px-8 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                            Next Step <span class="text-xl">⏭</span>
+                        </button>
+                        <button id="btn-reset-step" class="mt-3 w-full text-slate-400 hover:text-white text-sm transition-colors underline">Reset Animation</button>
+                    </div>
+                    
+                    <div class="flex-grow bg-slate-800 border border-slate-700 rounded-xl p-5 min-h-[140px] flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span id="step-counter" class="bg-emerald-900 text-emerald-400 px-3 py-1 rounded-md text-sm font-bold border border-emerald-700">Step 0 / 4</span>
+                            <h4 id="step-title" class="text-white font-bold text-xl">The Thylakoid Membrane</h4>
+                        </div>
+                        <p id="step-desc" class="text-slate-300 leading-relaxed">
+                            Press "Next Step" to observe how light energy physically powers the creation of chemical batteries (ATP and NADPH) across the membrane of the chloroplast.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="stages" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">The Two Stages of Photosynthesis</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    Photosynthesis is not a single event, but a complex series of biochemical pathways split into two main stages. Compare them below to see how light energy is ultimately stored as chemical energy.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row border-b border-slate-200">
+                    <button class="tab-btn flex-1 py-4 px-6 text-center font-bold text-lg transition-colors bg-emerald-50 text-emerald-800 border-b-2 border-emerald-600" data-tab="light-dep">
+                        ☀️ Light-Dependent Reactions
+                    </button>
+                    <button class="tab-btn flex-1 py-4 px-6 text-center font-bold text-lg transition-colors bg-white text-slate-500 hover:bg-slate-50 border-b-2 border-transparent" data-tab="calvin">
+                        🔄 Calvin Cycle (Light-Independent)
+                    </button>
+                </div>
+
+                <div class="p-6 sm:p-10 relative min-h-[350px]">
+                    <div id="light-dep" class="tab-content fade-in absolute inset-0 p-6 sm:p-10 bg-white">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-2xl font-bold text-slate-800 mb-4">Capturing the Sun</h3>
+                                <p class="text-slate-600 mb-4">These reactions occur in the <strong>thylakoid membrane</strong>. They require direct sunlight to operate.</p>
+                                <ul class="space-y-3">
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-500 mt-1">📥</span>
+                                        <span class="text-slate-700"><strong>Inputs:</strong> Light Energy, H₂O, NADP+, ADP</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-500 mt-1">⚙️</span>
+                                        <span class="text-slate-700"><strong>Process:</strong> Chlorophyll absorbs light, exciting electrons. Water is split (photolysis) to replace electrons, releasing oxygen. Energy creates an ATP and NADPH gradient.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-500 mt-1">📤</span>
+                                        <span class="text-slate-700"><strong>Outputs:</strong> ATP, NADPH, O₂ (Byproduct)</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl p-6 border border-slate-100 flex flex-col justify-center items-center text-center">
+                                <div class="text-4xl mb-4">💧 ➔ ⚡ + 💨</div>
+                                <p class="font-medium text-slate-800">Water enters, Light powers it up, Oxygen leaves, Energy carriers (ATP/NADPH) are charged.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="calvin" class="tab-content absolute inset-0 p-6 sm:p-10 bg-white opacity-0 pointer-events-none">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-2xl font-bold text-slate-800 mb-4">Building the Sugar</h3>
+                                <p class="text-slate-600 mb-4">Occurring in the <strong>stroma</strong>, this cycle uses the energy harvested in the first stage to fix carbon. It does not strictly require light, but depends on the products of the light reactions.</p>
+                                <ul class="space-y-3">
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-500 mt-1">📥</span>
+                                        <span class="text-slate-700"><strong>Inputs:</strong> CO₂, ATP, NADPH</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-500 mt-1">⚙️</span>
+                                        <span class="text-slate-700"><strong>Process:</strong> Carbon Fixation (catalyzed by Rubisco enzyme), Reduction (using ATP/NADPH), and Regeneration of RuBP to keep the cycle turning.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-emerald-500 mt-1">📤</span>
+                                        <span class="text-slate-700"><strong>Outputs:</strong> G3P (Sugar precursor), ADP, NADP+</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl p-6 border border-slate-100 flex flex-col justify-center items-center text-center">
+                                <div class="text-4xl mb-4">☁️ + ⚡ ➔ 🍬</div>
+                                <p class="font-medium text-slate-800">Carbon Dioxide enters, stored Energy is spent, Sugar molecules are built.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="calvin-deep" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Deep Dive: The Chemical Synthesis</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    While the light reactions harvest energy, the actual "building" of the sugar happens in the <strong>Calvin Cycle</strong> (Light-Independent Reactions). This intricate chemical dance uses the ATP and NADPH generated earlier to stitch carbon atoms together. Explore the three main phases of this biochemical cycle.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                
+                <!-- Pure CSS Circular Interactive Diagram -->
+                <div class="relative w-full max-w-sm mx-auto aspect-square flex items-center justify-center">
+                    <!-- Rotating Dashed Track -->
+                    <div class="absolute inset-4 sm:inset-8 border-4 border-dashed border-emerald-200 rounded-full animate-[spin_20s_linear_infinite] pointer-events-none"></div>
+                    
+                    <!-- Center Hub -->
+                    <div class="absolute w-24 h-24 bg-emerald-50 rounded-full border-4 border-emerald-100 flex items-center justify-center flex-col shadow-inner z-0 text-center">
+                        <span class="text-xs font-bold text-slate-400">Yields</span>
+                        <span class="text-xl font-black text-emerald-600">G3P</span>
+                        <span class="text-[10px] text-slate-500">(1/2 Glucose)</span>
+                    </div>
+
+                    <!-- Phase 1 Button (Top) -->
+                    <button class="calvin-btn absolute top-0 left-1/2 -translate-x-1/2 bg-white border-2 border-emerald-500 text-emerald-800 font-bold py-2 px-4 rounded-xl shadow-md hover:scale-110 hover:bg-emerald-50 transition-all z-10 w-32 text-center" data-phase="fixation">
+                        1. Fixation
+                    </button>
+
+                    <!-- Phase 2 Button (Bottom Right) -->
+                    <button class="calvin-btn absolute bottom-8 right-0 bg-white border-2 border-slate-300 text-slate-600 font-bold py-2 px-4 rounded-xl shadow-md hover:scale-110 hover:border-emerald-500 hover:text-emerald-800 transition-all z-10 w-32 text-center" data-phase="reduction">
+                        2. Reduction
+                    </button>
+
+                    <!-- Phase 3 Button (Bottom Left) -->
+                    <button class="calvin-btn absolute bottom-8 left-0 bg-white border-2 border-slate-300 text-slate-600 font-bold py-2 px-4 rounded-xl shadow-md hover:scale-110 hover:border-emerald-500 hover:text-emerald-800 transition-all z-10 w-32 text-center" data-phase="regeneration">
+                        3. Regeneration
+                    </button>
+                    
+                    <!-- Input/Output indicators -->
+                    <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-slate-500 font-mono text-sm">↓ CO₂</div>
+                    <div class="absolute bottom-2 right-4 text-rose-500 font-mono text-sm text-right">↓ ATP<br>↓ NADPH</div>
+                    <div class="absolute bottom-2 left-4 text-rose-500 font-mono text-sm">↓ ATP</div>
+                </div>
+
+                <!-- Info Panel -->
+                <div id="calvin-info" class="bg-slate-50 rounded-2xl p-8 border border-slate-100 min-h-[300px] fade-in">
+                    <div class="inline-block bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-bold mb-4">Phase 1</div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-3">Carbon Fixation</h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed">
+                        The cycle begins when carbon dioxide (CO₂) from the air enters the stroma. An enzyme named <strong>Rubisco</strong> (the most abundant protein on Earth!) attaches a 1-carbon CO₂ molecule to a 5-carbon starting molecule called RuBP. 
+                    </p>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">The Chemistry</h4>
+                        <div class="font-mono text-slate-800 text-sm">
+                            3 CO₂ + 3 RuBP <span class="text-emerald-500 font-bold">➔</span> 6 3-PGA <br>
+                            <span class="text-xs text-slate-400 block mt-1">(The resulting 6-carbon molecule is so unstable it immediately splits into two 3-carbon molecules called 3-PGA).</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="factors" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Limiting Factors</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    The rate of photosynthesis isn't constant. It is constrained by whichever necessary factor is in shortest supply. Use the controls to visualize how Light, Carbon Dioxide, and Temperature affect the production rate.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 flex flex-col gap-3">
+                    <button class="chart-toggle-btn w-full text-left px-6 py-4 rounded-xl font-bold text-emerald-800 bg-emerald-100 border-2 border-emerald-500 transition-all" data-dataset="light">
+                        ☀️ Light Intensity
+                    </button>
+                    <button class="chart-toggle-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-600 bg-white border-2 border-slate-200 hover:border-slate-300 transition-all" data-dataset="co2">
+                        ☁️ CO₂ Concentration
+                    </button>
+                    <button class="chart-toggle-btn w-full text-left px-6 py-4 rounded-xl font-bold text-slate-600 bg-white border-2 border-slate-200 hover:border-slate-300 transition-all" data-dataset="temp">
+                        🌡️ Temperature
+                    </button>
+
+                    <div id="chart-description" class="mt-4 p-5 bg-slate-50 rounded-xl text-slate-700 border border-slate-200 text-sm leading-relaxed">
+                        <strong>Light Intensity:</strong> As light increases, the rate of photosynthesis increases linearly until a certain point. It eventually plateaus because another factor (like CO2 or temperature) becomes the new limiting factor, or chlorophyll is saturated.
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center">
+                    <div class="chart-container">
+                        <canvas id="limitingFactorsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="adaptations" class="scroll-mt-20">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Evolutionary Adaptations: C3, C4, and CAM</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    The biggest threat to a plant in a hot climate is <strong>Photorespiration</strong>—a wasteful glitch where Rubisco accidentally binds to Oxygen instead of CO₂, wasting energy and carbon. Over millions of years, plants evolved ingenious physical and chemical workarounds to survive different climates.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-12">
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    
+                    <!-- Selection Menu -->
+                    <div class="lg:col-span-4 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200 p-6 flex flex-col gap-4">
+                        <button class="adapt-btn w-full text-left p-4 rounded-xl border-2 border-emerald-500 bg-emerald-100 shadow-sm transition-all" data-type="c3">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl">🌳</span>
+                                <div>
+                                    <h4 class="font-bold text-emerald-900 text-lg">C3 Plants</h4>
+                                    <p class="text-emerald-700 text-sm">The Standard Pathway</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button class="adapt-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50 transition-all text-slate-600" data-type="c4">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl">🌽</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-lg">C4 Plants</h4>
+                                    <p class="text-slate-500 text-sm">Spatial Separation</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button class="adapt-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 hover:bg-rose-50 transition-all text-slate-600" data-type="cam">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl">🌵</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-lg">CAM Plants</h4>
+                                    <p class="text-slate-500 text-sm">Temporal Separation</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Details Panel -->
+                    <div class="lg:col-span-8 p-8 sm:p-10 relative min-h-[400px]">
+                        <div id="adapt-content" class="fade-in">
+                            <!-- Injected via JS -->
+                            <div class="flex justify-between items-start mb-6">
+                                <div>
+                                    <span class="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-lg text-sm mb-3 inline-block">~85% of all plant species</span>
+                                    <h3 class="text-3xl font-bold text-slate-800">C3 Photosynthesis</h3>
+                                </div>
+                            </div>
+                            
+                            <p class="text-slate-600 mb-6 leading-relaxed">
+                                This is the default, ancestral form of photosynthesis. It is called "C3" because the first stable carbon compound produced in the Calvin Cycle is a 3-carbon molecule (3-PGA). 
+                            </p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                                    <h4 class="font-bold text-slate-700 mb-2 flex items-center gap-2"><span>✅</span> The Mechanism</h4>
+                                    <p class="text-sm text-slate-600">CO₂ enters directly into the mesophyll cells where the Calvin cycle occurs. It relies entirely on the enzyme Rubisco to fix carbon.</p>
+                                </div>
+                                <div class="bg-rose-50 p-5 rounded-xl border border-rose-100">
+                                    <h4 class="font-bold text-rose-800 mb-2 flex items-center gap-2"><span>⚠️</span> The Flaw</h4>
+                                    <p class="text-sm text-rose-700">In hot, dry weather, stomata close to prevent water loss. O₂ builds up, CO₂ drops, and Rubisco mistakenly binds to O₂. This triggers <strong>photorespiration</strong>, draining the plant's energy.</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-slate-100 rounded-lg p-4 shadow-sm">
+                                <strong class="text-slate-800">Ideal Climate:</strong> Cool, moist, and temperate environments.<br>
+                                <strong class="text-slate-800 mt-2 block">Common Examples:</strong> Wheat, rice, soybeans, most trees, and lawn grasses.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Comparison Matrix -->
+            <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200 overflow-x-auto">
+                <h3 class="text-2xl font-bold text-slate-800 mb-6">Adaptation Comparison Matrix</h3>
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-slate-50 border-b-2 border-slate-200">
+                            <th class="p-4 font-bold text-slate-700 w-1/4 rounded-tl-xl">Feature</th>
+                            <th class="p-4 font-bold text-emerald-800 w-1/4 border-l border-slate-200">C3 Plants</th>
+                            <th class="p-4 font-bold text-amber-700 w-1/4 border-l border-slate-200">C4 Plants</th>
+                            <th class="p-4 font-bold text-rose-800 w-1/4 border-l border-slate-200 rounded-tr-xl">CAM Plants</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-slate-600 divide-y divide-slate-100">
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-700">Separation of Steps</td>
+                            <td class="p-4 border-l border-slate-100">No separation</td>
+                            <td class="p-4 border-l border-slate-100"><strong>Spatial</strong> (Different cells)</td>
+                            <td class="p-4 border-l border-slate-100"><strong>Temporal</strong> (Day vs. Night)</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-700">Initial Carbon Fixation Enzyme</td>
+                            <td class="p-4 border-l border-slate-100">Rubisco</td>
+                            <td class="p-4 border-l border-slate-100">PEP Carboxylase</td>
+                            <td class="p-4 border-l border-slate-100">PEP Carboxylase</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-700">Stomata Open</td>
+                            <td class="p-4 border-l border-slate-100">Day</td>
+                            <td class="p-4 border-l border-slate-100">Day</td>
+                            <td class="p-4 border-l border-slate-100">Night only</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-700">Water Use Efficiency</td>
+                            <td class="p-4 border-l border-slate-100">Low</td>
+                            <td class="p-4 border-l border-slate-100">Medium</td>
+                            <td class="p-4 border-l border-slate-100">Very High</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-4 font-bold text-slate-700">Energy Cost (ATP)</td>
+                            <td class="p-4 border-l border-slate-100 text-emerald-600 font-medium">Low (18 ATP)</td>
+                            <td class="p-4 border-l border-slate-100 text-amber-600 font-medium">High (30 ATP)</td>
+                            <td class="p-4 border-l border-slate-100 text-rose-600 font-medium">Highest (39 ATP)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 text-center mt-12">
+        <div class="max-w-4xl mx-auto px-4">
+            <p class="mb-4">Photosynthesis Interactive Study Guide</p>
+            <p class="text-sm">Mastering the flow of carbon and energy.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const eqData = {
+                co2: { title: "Carbon Dioxide (6CO₂)", desc: "Absorbed from the atmosphere through tiny pores called stomata on the leaf surface. It provides the essential carbon atoms needed to build the backbone of glucose molecules.", color: "text-emerald-700" },
+                h2o: { title: "Water (6H₂O)", desc: "Absorbed primarily by the roots and transported to the leaves via xylem vessels. Water molecules are split during the light-dependent reactions to provide electrons, releasing oxygen as a byproduct.", color: "text-blue-700" },
+                light: { title: "Light Energy", desc: "Captured by pigments like chlorophyll within the chloroplasts. This electromagnetic energy excites electrons, driving the creation of ATP and NADPH, which power the rest of the process.", color: "text-amber-600" },
+                glucose: { title: "Glucose (C₆H₁₂O₆)", desc: "The primary product of photosynthesis. A simple sugar that stores chemical energy. The plant uses it for immediate energy (respiration) or converts it into complex carbohydrates like starch or cellulose.", color: "text-emerald-800" },
+                o2: { title: "Oxygen (6O₂)", desc: "A waste product of the light-dependent reactions, formed when water is split. It diffuses out of the leaf through stomata and is crucial for aerobic respiration in almost all living organisms.", color: "text-cyan-700" }
+            };
+
+            const eqBtns = document.querySelectorAll('.eq-btn');
+            const eqDisplay = document.getElementById('eq-display');
+
+            eqBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-target');
+                    const info = eqData[target];
+                    
+                    eqBtns.forEach(b => {
+                        b.classList.remove('ring-4', 'ring-offset-2', 'ring-emerald-200');
+                    });
+                    btn.classList.add('ring-4', 'ring-offset-2', 'ring-emerald-200');
+
+                    eqDisplay.classList.remove('fade-in');
+                    void eqDisplay.offsetWidth; 
+                    
+                    eqDisplay.innerHTML = `
+                        <div class="text-left w-full">
+                            <h4 class="text-xl font-bold ${info.color} mb-2">${info.title}</h4>
+                            <p class="text-slate-700">${info.desc}</p>
+                        </div>
+                    `;
+                    eqDisplay.classList.add('fade-in');
+                });
+            });
+
+            const chloroData = {
+                stroma: { title: "Stroma", desc: "The aqueous fluid surrounding the thylakoids. This is where the <strong>Calvin Cycle (Light-Independent Reactions)</strong> takes place. It contains enzymes like Rubisco, DNA, and ribosomes.", color: "text-emerald-600", icon: "💧" },
+                granum: { title: "Thylakoid / Granum", desc: "Thylakoids are membrane-bound compartments; a stack of them is called a granum. They contain chlorophyll. This is the exact site of the <strong>Light-Dependent Reactions</strong>.", color: "text-emerald-800", icon: "🔋" },
+                membrane: { title: "Double Membrane", desc: "Chloroplasts have an inner and outer membrane, a trait supporting the endosymbiotic theory (they were once free-living bacteria). It regulates what enters and exits the organelle.", color: "text-slate-700", icon: "🛡️" }
+            };
+
+            const chloroParts = document.querySelectorAll('[data-part]');
+            const chloroInfo = document.getElementById('chloro-info');
+
+            chloroParts.forEach(part => {
+                const triggerEvent = (e) => {
+                    e.stopPropagation();
+                    const target = part.getAttribute('data-part');
+                    const info = chloroData[target];
+
+                    chloroInfo.classList.remove('fade-in');
+                    void chloroInfo.offsetWidth;
+
+                    chloroInfo.innerHTML = `
+                        <h3 class="text-2xl font-bold ${info.color} mb-3 flex items-center gap-2">
+                            <span>${info.icon}</span> ${info.title}
+                        </h3>
+                        <p class="text-slate-600 text-lg leading-relaxed">
+                            ${info.desc}
+                        </p>
+                        <div class="mt-4 pt-4 border-t border-slate-100 text-sm text-slate-500">
+                            Select another area to explore.
+                        </div>
+                    `;
+                    chloroInfo.classList.add('fade-in');
+                };
+
+                part.addEventListener('mouseenter', triggerEvent);
+                part.addEventListener('click', triggerEvent); 
+            });
+
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-tab');
+
+                    tabBtns.forEach(b => {
+                        b.classList.remove('bg-emerald-50', 'text-emerald-800', 'border-emerald-600');
+                        b.classList.add('bg-white', 'text-slate-500', 'border-transparent');
+                    });
+                    
+                    btn.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-600');
+                    btn.classList.remove('bg-white', 'text-slate-500', 'border-transparent');
+
+                    tabContents.forEach(content => {
+                        if (content.id === target) {
+                            content.classList.remove('opacity-0', 'pointer-events-none');
+                            content.classList.add('fade-in');
+                        } else {
+                            content.classList.add('opacity-0', 'pointer-events-none');
+                            content.classList.remove('fade-in');
+                        }
+                    });
+                });
+            });
+
+            const chartCtx = document.getElementById('limitingFactorsChart').getContext('2d');
+            
+            const chartDataConfig = {
+                light: {
+                    label: 'Rate of Photosynthesis',
+                    labels: ['0', 'Low', 'Med-Low', 'Medium', 'Med-High', 'High', 'Very High'],
+                    data: [0, 20, 50, 80, 95, 100, 100],
+                    borderColor: '#f59e0b', 
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    xAxis: 'Light Intensity'
+                },
+                co2: {
+                    label: 'Rate of Photosynthesis',
+                    labels: ['0', '0.01%', '0.04%', '0.08%', '0.12%', '0.16%', '0.20%'],
+                    data: [0, 15, 45, 85, 100, 100, 100],
+                    borderColor: '#64748b', 
+                    backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                    xAxis: 'CO₂ Concentration'
+                },
+                temp: {
+                    label: 'Rate of Photosynthesis',
+                    labels: ['0°C', '10°C', '20°C', '25°C', '30°C', '40°C', '50°C'],
+                    data: [5, 20, 60, 95, 100, 30, 0],
+                    borderColor: '#ef4444', 
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    xAxis: 'Temperature (°C)'
+                }
+            };
+
+            const descriptions = {
+                light: "<strong>Light Intensity:</strong> As light increases, the rate of photosynthesis increases linearly until a certain point. It eventually plateaus because another factor (like CO2 or temperature) becomes the new limiting factor, or chlorophyll is saturated.",
+                co2: "<strong>CO₂ Concentration:</strong> Similar to light, increasing CO2 boosts the rate up to a point. Once it plateaus, the plant is limited by light intensity or temperature. Standard atmospheric CO2 is around 0.04%.",
+                temp: "<strong>Temperature:</strong> Photosynthesis relies on enzymes. As temperature rises, rate increases due to higher kinetic energy. However, past an optimal point (usually 25-35°C), enzymes denature (lose their shape), causing the rate to crash rapidly."
+            };
+
+            let currentChart = new Chart(chartCtx, {
+                type: 'line',
+                data: {
+                    labels: chartDataConfig.light.labels,
+                    datasets: [{
+                        label: chartDataConfig.light.label,
+                        data: chartDataConfig.light.data,
+                        borderColor: chartDataConfig.light.borderColor,
+                        backgroundColor: chartDataConfig.light.backgroundColor,
+                        borderWidth: 3,
+                        pointBackgroundColor: chartDataConfig.light.borderColor,
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.4 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Rate: ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 110,
+                            title: { display: true, text: 'Rate of Photosynthesis', font: {weight: 'bold'} },
+                            ticks: { display: false } 
+                        },
+                        x: {
+                            title: { display: true, text: chartDataConfig.light.xAxis, font: {weight: 'bold'} }
+                        }
+                    }
+                }
+            });
+
+            const chartBtns = document.querySelectorAll('.chart-toggle-btn');
+            const descContainer = document.getElementById('chart-description');
+
+            chartBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const datasetKey = btn.getAttribute('data-dataset');
+                    const config = chartDataConfig[datasetKey];
+
+                    chartBtns.forEach(b => {
+                        b.classList.remove('bg-emerald-100', 'border-emerald-500', 'text-emerald-800');
+                        b.classList.add('bg-white', 'border-slate-200', 'text-slate-600');
+                    });
+                    
+                    btn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-800');
+                    btn.classList.remove('bg-white', 'border-slate-200', 'text-slate-600');
+
+                    descContainer.innerHTML = descriptions[datasetKey];
+
+                    currentChart.data.labels = config.labels;
+                    currentChart.data.datasets[0].data = config.data;
+                    currentChart.data.datasets[0].borderColor = config.borderColor;
+                    currentChart.data.datasets[0].backgroundColor = config.backgroundColor;
+                    currentChart.data.datasets[0].pointBackgroundColor = config.borderColor;
+                    currentChart.options.scales.x.title.text = config.xAxis;
+                    currentChart.update();
+                });
+            });
+
+            // --- Calvin Cycle Logic ---
+            const calvinData = {
+                fixation: {
+                    phaseLabel: "Phase 1",
+                    title: "Carbon Fixation",
+                    desc: "The cycle begins when carbon dioxide (CO₂) from the air enters the stroma. An enzyme named <strong>Rubisco</strong> (the most abundant protein on Earth!) attaches a 1-carbon CO₂ molecule to a 5-carbon starting molecule called RuBP.",
+                    chemFormula: "3 CO₂ + 3 RuBP <span class='text-emerald-500 font-bold'>➔</span> 6 3-PGA",
+                    chemNote: "(The resulting 6-carbon molecule is so unstable it immediately splits into two 3-carbon molecules called 3-PGA)."
+                },
+                reduction: {
+                    phaseLabel: "Phase 2",
+                    title: "Reduction Phase",
+                    desc: "Now it's time to spend the energy collected during the light reactions! The 3-PGA molecules receive a phosphate group from <strong>ATP</strong> and electrons from <strong>NADPH</strong>. This 'reduces' them, turning them into a much higher-energy sugar called G3P.",
+                    chemFormula: "6 3-PGA + 6 ATP + 6 NADPH <span class='text-emerald-500 font-bold'>➔</span> 6 G3P",
+                    chemNote: "(One of these 6 G3P molecules exits the cycle right now to go become half of a glucose molecule. The other 5 stay behind)."
+                },
+                regeneration: {
+                    phaseLabel: "Phase 3",
+                    title: "Regeneration of RuBP",
+                    desc: "For the cycle to continue, we must recreate the starting 5-carbon molecule (RuBP). The 5 remaining G3P molecules undergo a complex series of chemical shuffling, powered by a final burst of <strong>ATP</strong>, to reshape themselves back into 3 RuBP molecules.",
+                    chemFormula: "5 G3P + 3 ATP <span class='text-emerald-500 font-bold'>➔</span> 3 RuBP",
+                    chemNote: "(With RuBP regenerated, the cycle is ready to accept 3 more CO₂ molecules and spin again!)"
+                }
+            };
+
+            const calvinBtns = document.querySelectorAll('.calvin-btn');
+            const calvinInfo = document.getElementById('calvin-info');
+
+            calvinBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const phase = btn.getAttribute('data-phase');
+                    const data = calvinData[phase];
+
+                    // Style buttons
+                    calvinBtns.forEach(b => {
+                        b.classList.remove('border-emerald-500', 'text-emerald-800');
+                        b.classList.add('border-slate-300', 'text-slate-600');
+                    });
+                    btn.classList.add('border-emerald-500', 'text-emerald-800');
+                    btn.classList.remove('border-slate-300', 'text-slate-600');
+
+                    // Update Info Panel
+                    calvinInfo.classList.remove('fade-in');
+                    void calvinInfo.offsetWidth; // trigger reflow
+                    
+                    calvinInfo.innerHTML = `
+                        <div class="inline-block bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-bold mb-4">${data.phaseLabel}</div>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-3">${data.title}</h3>
+                        <p class="text-slate-600 mb-6 leading-relaxed">${data.desc}</p>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">The Chemistry</h4>
+                            <div class="font-mono text-slate-800 text-sm">
+                                ${data.chemFormula} <br>
+                                <span class="text-xs text-slate-400 block mt-1">${data.chemNote}</span>
+                            </div>
+                        </div>
+                    `;
+                    calvinInfo.classList.add('fade-in');
+                });
+            });
+
+            // --- Adaptations Logic ---
+            const adaptationsData = {
+                c3: {
+                    theme: "emerald",
+                    badge: "~85% of all plant species",
+                    title: "C3 Photosynthesis",
+                    desc: "This is the default, ancestral form of photosynthesis. It is called 'C3' because the first stable carbon compound produced in the Calvin Cycle is a 3-carbon molecule (3-PGA).",
+                    mechTitle: "The Mechanism",
+                    mechDesc: "CO₂ enters directly into the mesophyll cells where the Calvin cycle occurs. It relies entirely on the enzyme Rubisco to fix carbon.",
+                    flawTitle: "The Flaw",
+                    flawDesc: "In hot, dry weather, stomata close to prevent water loss. O₂ builds up, CO₂ drops, and Rubisco mistakenly binds to O₂. This triggers <strong>photorespiration</strong>, draining the plant's energy.",
+                    climate: "Cool, moist, and temperate environments.",
+                    examples: "Wheat, rice, soybeans, most trees, and lawn grasses."
+                },
+                c4: {
+                    theme: "amber",
+                    badge: "Kranz Anatomy",
+                    title: "C4 Photosynthesis (Spatial Separation)",
+                    desc: "C4 plants solve the photorespiration problem by physically separating the light reactions and the Calvin cycle into two completely different types of cells.",
+                    mechTitle: "The Mechanism",
+                    mechDesc: "CO₂ is first captured in <strong>Mesophyll cells</strong> by an enzyme called <em>PEP Carboxylase</em> (which ignores O₂). It forms a 4-carbon acid. This acid is pumped deep into <strong>Bundle Sheath cells</strong>, where it releases the CO₂ directly to Rubisco in a high-concentration, oxygen-free zone.",
+                    flawTitle: "The Trade-off",
+                    flawDesc: "Pumping the 4-carbon acids between cells requires extra ATP. It's an energy-expensive process, so it only outcompetes C3 plants when the sun is blazing and temperatures are very high.",
+                    climate: "Hot, sunny, tropical, and sub-tropical climates.",
+                    examples: "Corn (maize), sugarcane, sorghum, and many tropical grasses."
+                },
+                cam: {
+                    theme: "rose",
+                    badge: "Crassulacean Acid Metabolism",
+                    title: "CAM Photosynthesis (Temporal Separation)",
+                    desc: "CAM plants live in such extreme, dry heat that opening their stomata during the day would cause them to dry out and die. Their solution is to separate the processes by <em>time</em> (Day vs. Night).",
+                    mechTitle: "The Mechanism",
+                    mechDesc: "<strong>Night:</strong> Stomata open. CO₂ is captured by PEP Carboxylase and stored in large cell vacuoles as Malic Acid.<br><strong>Day:</strong> Stomata close tightly. The stored acid is broken down to release CO₂ for the Calvin cycle while the sun powers the light reactions.",
+                    flawTitle: "The Trade-off",
+                    flawDesc: "Because they can only store a limited amount of acid in their vacuoles overnight, CAM plants grow incredibly slowly compared to C3 and C4 plants. Their energy cost is also the highest.",
+                    climate: "Extremely arid, desert environments with extreme heat.",
+                    examples: "Cacti, succulents (like Aloe), orchids, and pineapples."
+                }
+            };
+
+            const adaptBtns = document.querySelectorAll('.adapt-btn');
+            const adaptContent = document.getElementById('adapt-content');
+
+            adaptBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.getAttribute('data-type');
+                    const data = adaptationsData[type];
+
+                    // Reset all button styles
+                    adaptBtns.forEach(b => {
+                        b.classList.remove('border-emerald-500', 'bg-emerald-100', 'border-amber-400', 'bg-amber-100', 'border-rose-400', 'bg-rose-100');
+                        b.classList.add('border-slate-200', 'bg-white', 'text-slate-600');
+                        b.querySelector('h4').classList.remove('text-emerald-900', 'text-amber-900', 'text-rose-900');
+                        b.querySelector('h4').classList.add('text-slate-800');
+                        b.querySelector('p').classList.remove('text-emerald-700', 'text-amber-700', 'text-rose-700');
+                        b.querySelector('p').classList.add('text-slate-500');
+                    });
+
+                    // Apply active styles based on theme
+                    btn.classList.remove('border-slate-200', 'bg-white');
+                    btn.classList.add(`border-${data.theme}-500`, `bg-${data.theme}-100`);
+                    btn.querySelector('h4').classList.remove('text-slate-800');
+                    btn.querySelector('h4').classList.add(`text-${data.theme}-900`);
+                    btn.querySelector('p').classList.remove('text-slate-500');
+                    btn.querySelector('p').classList.add(`text-${data.theme}-700`);
+
+                    // Update Content Panel
+                    adaptContent.classList.remove('fade-in');
+                    void adaptContent.offsetWidth; // trigger reflow
+                    
+                    adaptContent.innerHTML = `
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <span class="px-3 py-1 bg-${data.theme}-100 text-${data.theme}-800 font-bold rounded-lg text-sm mb-3 inline-block">${data.badge}</span>
+                                <h3 class="text-3xl font-bold text-slate-800">${data.title}</h3>
+                            </div>
+                        </div>
+                        
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            ${data.desc}
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-inner">
+                                <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><span>✅</span> ${data.mechTitle}</h4>
+                                <p class="text-sm text-slate-600">${data.mechDesc}</p>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-inner">
+                                <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><span>⚠️</span> ${data.flawTitle}</h4>
+                                <p class="text-sm text-slate-600">${data.flawDesc}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-slate-100 rounded-lg p-5 shadow-sm">
+                            <div class="mb-3">
+                                <strong class="text-slate-800 text-sm uppercase tracking-wider">Ideal Climate:</strong> 
+                                <span class="text-slate-600 ml-2">${data.climate}</span>
+                            </div>
+                            <div>
+                                <strong class="text-slate-800 text-sm uppercase tracking-wider">Common Examples:</strong> 
+                                <span class="text-slate-600 ml-2">${data.examples}</span>
+                            </div>
+                        </div>
+                    `;
+                    adaptContent.classList.add('fade-in');
+                });
+            });
+
+            // --- Energy Flow Animation Logic ---
+            const energySteps = [
+                {
+                    title: "The Thylakoid Membrane",
+                    desc: "Press 'Next Step' to observe how light energy physically powers the creation of chemical batteries (ATP and NADPH) across the membrane of the chloroplast.",
+                    activeProteins: [],
+                    animations: []
+                },
+                {
+                    title: "1. Light Absorption & Water Splitting",
+                    desc: "A photon strikes <strong>Photosystem II (PS II)</strong>, exciting an electron. To replace this lost electron, an enzyme splits a water molecule (H₂O), releasing oxygen (O₂) as a waste product and adding protons (H⁺) to the inner space (lumen).",
+                    activeProteins: ['protein-1'],
+                    animations: ['anim-light-1', 'anim-water']
+                },
+                {
+                    title: "2. The Electron Transport Chain",
+                    desc: "The energized electron travels through the <strong>Cytochrome complex (ETC)</strong>. Its energy is used to pump even more protons (H⁺) from the stroma into the lumen. This creates a highly pressurized, acidic concentration gradient.",
+                    activeProteins: ['protein-1', 'protein-2'],
+                    animations: ['anim-pump', 'electron-path']
+                },
+                {
+                    title: "3. Re-excitation & NADPH Formation",
+                    desc: "The tired electron reaches <strong>Photosystem I (PS I)</strong>, where another photon re-excites it. This high-energy electron is finally handed off to NADP⁺, binding it with a proton to form the chemical carrier <strong>NADPH</strong>.",
+                    activeProteins: ['protein-2', 'protein-3'],
+                    animations: ['anim-light-2', 'anim-nadph', 'electron-path']
+                },
+                {
+                    title: "4. Chemiosmosis (The ATP Turbine)",
+                    desc: "The massive build-up of protons (H⁺) in the lumen desperately wants to escape. They flow back out through an enzyme called <strong>ATP Synthase</strong>. This flow literally spins the enzyme like a microscopic water wheel, jamming ADP and phosphate together to make <strong>ATP</strong>.",
+                    activeProteins: ['protein-4'],
+                    animations: ['anim-flow', 'anim-atp']
+                }
+            ];
+
+            let currentEnergyStep = 0;
+            const btnNext = document.getElementById('btn-next-step');
+            const btnReset = document.getElementById('btn-reset-step');
+            const stepTitle = document.getElementById('step-title');
+            const stepDesc = document.getElementById('step-desc');
+            const stepCounter = document.getElementById('step-counter');
+            
+            function updateEnergyVisualizer(stepIndex) {
+                const stepData = energySteps[stepIndex];
+                
+                // Update text
+                stepTitle.innerHTML = stepData.title;
+                stepDesc.innerHTML = stepData.desc;
+                stepCounter.innerText = `Step ${stepIndex} / 4`;
+
+                // Reset all proteins and animations
+                document.querySelectorAll('.energy-protein').forEach(el => {
+                    el.classList.remove('opacity-100', 'shadow-[0_0_20px_rgba(255,255,255,0.4)]', 'scale-105');
+                    el.classList.add('opacity-50');
+                });
+                
+                const animIds = ['anim-light-1', 'anim-water', 'anim-pump', 'anim-light-2', 'anim-nadph', 'anim-flow', 'anim-atp', 'electron-path'];
+                animIds.forEach(id => {
+                    document.getElementById(id).classList.remove('opacity-100');
+                    document.getElementById(id).classList.add('opacity-0');
+                });
+
+                // Apply active states
+                if(stepIndex > 0) {
+                    stepData.activeProteins.forEach(id => {
+                        const el = document.getElementById(id);
+                        el.classList.remove('opacity-50');
+                        el.classList.add('opacity-100', 'shadow-[0_0_20px_rgba(255,255,255,0.4)]', 'scale-105');
+                    });
+
+                    stepData.animations.forEach(id => {
+                        document.getElementById(id).classList.remove('opacity-0');
+                        document.getElementById(id).classList.add('opacity-100');
+                    });
+                }
+
+                // Button state
+                if (stepIndex === 4) {
+                    btnNext.innerHTML = 'Complete! <span class="text-xl">✅</span>';
+                    btnNext.classList.add('bg-slate-400', 'cursor-default');
+                    btnNext.classList.remove('bg-emerald-500', 'hover:bg-emerald-400');
+                } else {
+                    btnNext.innerHTML = 'Next Step <span class="text-xl">⏭</span>';
+                    btnNext.classList.remove('bg-slate-400', 'cursor-default');
+                    btnNext.classList.add('bg-emerald-500', 'hover:bg-emerald-400');
+                }
+            }
+
+            btnNext.addEventListener('click', () => {
+                if (currentEnergyStep < 4) {
+                    currentEnergyStep++;
+                    updateEnergyVisualizer(currentEnergyStep);
+                }
+            });
+
+            btnReset.addEventListener('click', () => {
+                currentEnergyStep = 0;
+                updateEnergyVisualizer(currentEnergyStep);
+            });
+
+        });
+    </script>
+</body>
+</html>

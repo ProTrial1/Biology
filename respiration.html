@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cellular Respiration in Higher Biology</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+        .pathway-node {
+            transition: all 0.3s ease;
+        }
+        .pathway-node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .active-node {
+            border-color: #059669;
+            background-color: #ecfdf5;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Krebs Cycle Graphical Presentation Styles */
+        .krebs-circle {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 4px dashed #e7e5e4; /* stone-200 */
+            margin: 2rem auto;
+            z-index: 1;
+        }
+        .krebs-center-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 0;
+        }
+        .krebs-node-wrapper {
+            position: absolute;
+            width: 0;
+            height: 0;
+        }
+        /* Trigonometrically calculated positions for an 8-node circle with radius 140px */
+        .krebs-pos-1 { top: calc(50% - 140px); left: 50%; }
+        .krebs-pos-2 { top: calc(50% - 99px); left: calc(50% + 99px); }
+        .krebs-pos-3 { top: 50%; left: calc(50% + 140px); }
+        .krebs-pos-4 { top: calc(50% + 99px); left: calc(50% + 99px); }
+        .krebs-pos-5 { top: calc(50% + 140px); left: 50%; }
+        .krebs-pos-6 { top: calc(50% + 99px); left: calc(50% - 99px); }
+        .krebs-pos-7 { top: 50%; left: calc(50% - 140px); }
+        .krebs-pos-8 { top: calc(50% - 99px); left: calc(50% - 99px); }
+        
+        .krebs-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #d6d3d1; /* stone-300 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            color: #78716c; /* stone-500 */
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .krebs-node:hover {
+            border-color: #059669;
+            color: #059669;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        .krebs-node.active-krebs {
+            background: #10b981; /* emerald-500 */
+            border-color: #047857; /* emerald-700 */
+            color: white;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+        
+        /* Glycolysis Timeline Styles */
+        .glyco-timeline {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        .glyco-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e7e5e4; /* stone-200 */
+            z-index: 0;
+        }
+        .glyco-node {
+            position: relative;
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            z-index: 1;
+        }
+        .glyco-node:hover {
+            background: #f5f5f4; /* stone-100 */
+        }
+        .glyco-node.active-glyco {
+            background: white;
+            border-color: #059669; /* emerald-600 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .glyco-node::before {
+            content: '';
+            position: absolute;
+            left: -1.625rem;
+            top: 1.25rem;
+            transform: translateY(-50%);
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #a8a29e; /* stone-400 */
+            transition: all 0.2s;
+            z-index: 2;
+        }
+        .glyco-node.active-glyco::before {
+            border-color: #059669;
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+        
+        /* ETC Membrane Diagram Styles */
+        .membrane-bg {
+            background: linear-gradient(to bottom, #fef2f2 0%, #fef2f2 35%, #e7e5e4 35%, #e7e5e4 65%, #fffbeb 65%, #fffbeb 100%);
+        }
+        .protein-complex {
+            transition: all 0.3s ease;
+            box-shadow: inset 0 -4px 6px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .protein-highlight {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px 5px rgba(14, 165, 233, 0.4); /* sky-500 glow */
+            border-color: #0284c7; /* sky-600 */
+        }
+        .atp-highlight {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.4); /* emerald-500 glow */
+            border-color: #059669; /* emerald-600 */
+        }
+        .particle {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .particle-active {
+            opacity: 1;
+            animation: pulse-particle 1.5s infinite;
+        }
+        @keyframes pulse-particle {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-[#fcfbf9] text-stone-800 antialiased selection:bg-emerald-200 selection:text-emerald-900">
+
+<!-- Chosen Palette: Warm Neutrals with Biological Accents (Stone, Emerald Green, Sky Blue, Rose) -->
+<!-- Application Structure Plan: The SPA is structured into three primary interactive zones: 1. A High-Level Overview with a dynamic chart to understand the net energy yield (the "why"). 2. An Interactive Pathway explorer that acts as the core learning tool, breaking down the complex sequence of respiration into clickable, digestible nodes that reveal localized data (Inputs/Outputs/Location). 3. A Comparative section for Aerobic vs. Anaerobic processes. This structure was chosen to move the user from macro-understanding to micro-details logically, preventing cognitive overload inherent in biochemical pathways. -->
+<!-- Visualization & Content Choices: 
+    1. Overall Yield -> Goal: Inform -> Viz: Chart.js Bar Chart -> Interaction: Hover tooltips -> Justification: Clearly contrasts the immense efficiency of the ETC vs earlier stages -> Method: Canvas/Chart.js.
+    2. Metabolic Pathway -> Goal: Organize & Inform -> Viz: Interactive Block Diagram -> Interaction: Click nodes to update detail panel -> Justification: Spatial layout mimics biological pathways without complex SVG; progressive disclosure aids memory -> Method: HTML/Tailwind CSS Grid/Flex.
+    3. Aerobic/Anaerobic -> Goal: Compare -> Viz: Toggle View -> Interaction: Button switch -> Justification: Directly juxtaposes the outcomes and pathways based on oxygen presence -> Method: Vanilla JS DOM manipulation. 
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<nav class="sticky top-0 z-50 bg-[#fcfbf9]/90 backdrop-blur-md border-b border-stone-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+            <div class="font-bold text-xl tracking-tight text-emerald-800 flex items-center gap-2">
+                <span class="text-2xl">&#129516;</span> BioExplorer
+            </div>
+            <div class="hidden md:flex space-x-8 text-sm font-semibold text-stone-600">
+                <a href="#overview" class="hover:text-emerald-600 transition-colors">The Big Picture</a>
+                <a href="#pathway" class="hover:text-emerald-600 transition-colors">Metabolic Pathway</a>
+                <a href="#glycolysis-deep-dive" class="hover:text-emerald-600 transition-colors">Glycolysis</a>
+                <a href="#link-deep-dive" class="hover:text-emerald-600 transition-colors">Link Reaction</a>
+                <a href="#krebs-deep-dive" class="hover:text-emerald-600 transition-colors">Krebs Cycle</a>
+                <a href="#etc-deep-dive" class="hover:text-emerald-600 transition-colors">ETC</a>
+                <a href="#fermentation" class="hover:text-emerald-600 transition-colors">Anaerobic Paths</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<header class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+    <span class="text-emerald-600 font-semibold tracking-wider uppercase text-sm">Higher Biology Masterclass</span>
+    <h1 class="mt-2 text-4xl md:text-5xl font-extrabold text-stone-900 tracking-tight leading-tight">
+        Cellular Respiration
+    </h1>
+    <p class="mt-4 max-w-2xl mx-auto text-lg text-stone-600">
+        The elegant biochemical process of unlocking energy. Explore how cells break down glucose to generate ATP, the universal energy currency, through a meticulously orchestrated series of metabolic pathways.
+    </p>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-24">
+
+    <section id="overview" class="scroll-mt-24">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-stone-800">The Big Picture: Energy Yield</h2>
+            <p class="mt-2 text-stone-600 max-w-3xl">
+                This section illustrates the ultimate goal of aerobic cellular respiration: ATP production. While the entire process is continuous, the majority of the energetic payoff occurs at the very end. The chart below visualizes the net ATP yielded by one molecule of glucose across the major stages.
+            </p>
+        </div>
+
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-stone-100 flex flex-col items-center">
+            <div class="w-full text-center mb-6">
+                <h3 class="text-lg font-semibold text-stone-800">Net ATP Production per Glucose Molecule</h3>
+                <p class="text-sm text-stone-500">Theoretical maximum yield under optimal conditions</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="atpChart"></canvas>
+            </div>
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-center">
+                <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
+                    <div class="text-3xl font-bold text-emerald-600 mb-1">C<sub>6</sub>H<sub>12</sub>O<sub>6</sub></div>
+                    <div class="text-sm font-medium text-stone-500 uppercase tracking-wide">Primary Input</div>
+                </div>
+                <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
+                    <div class="text-3xl font-bold text-sky-600 mb-1">6 O<sub>2</sub></div>
+                    <div class="text-sm font-medium text-stone-500 uppercase tracking-wide">Terminal Acceptor</div>
+                </div>
+                <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <div class="text-3xl font-bold text-emerald-700 mb-1">~38 ATP</div>
+                    <div class="text-sm font-medium text-emerald-600 uppercase tracking-wide">Total Net Energy</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pathway" class="scroll-mt-24">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-stone-800">The Metabolic Pathway</h2>
+            <p class="mt-2 text-stone-600 max-w-3xl">
+                Cellular respiration is not a single explosion of energy, but a controlled, step-wise extraction. Interact with the stages below to understand the localized biochemistry. Click on any stage in the flow to reveal its specific location, inputs, outputs, and mechanistic details.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <div class="lg:col-span-5 flex flex-col items-center space-y-2 relative">
+                <div class="absolute inset-0 border-l-2 border-dashed border-stone-300 left-1/2 -translate-x-1/2 z-0" style="height: calc(100% - 40px); top: 20px;"></div>
+                
+                <div class="z-10 bg-stone-100 px-6 py-2 rounded-full text-sm font-bold text-stone-500 mb-4 border border-stone-200">
+                    START: Glucose (6C)
+                </div>
+
+                <button onclick="updateStageDetails('glycolysis')" id="btn-glycolysis" class="pathway-node active-node z-10 w-full max-w-sm bg-white border-2 rounded-xl p-4 text-center cursor-pointer">
+                    <h4 class="text-lg font-bold text-stone-800">1. Glycolysis</h4>
+                    <span class="text-xs font-semibold text-emerald-600 uppercase tracking-wide bg-emerald-50 px-2 py-1 rounded mt-2 inline-block">Cytoplasm</span>
+                </button>
+
+                <div class="z-10 text-stone-400 text-xl py-1">&#8595;</div>
+
+                <button onclick="updateStageDetails('link')" id="btn-link" class="pathway-node border-stone-200 z-10 w-full max-w-sm bg-white border-2 rounded-xl p-4 text-center cursor-pointer">
+                    <h4 class="text-lg font-bold text-stone-800">2. Link Reaction</h4>
+                    <span class="text-xs font-semibold text-rose-600 uppercase tracking-wide bg-rose-50 px-2 py-1 rounded mt-2 inline-block">Mitochondrial Matrix</span>
+                </button>
+
+                <div class="z-10 text-stone-400 text-xl py-1">&#8595;</div>
+
+                <button onclick="updateStageDetails('krebs')" id="btn-krebs" class="pathway-node border-stone-200 z-10 w-full max-w-sm bg-white border-2 rounded-xl p-4 text-center cursor-pointer">
+                    <h4 class="text-lg font-bold text-stone-800">3. Krebs Cycle</h4>
+                    <span class="text-xs font-semibold text-rose-600 uppercase tracking-wide bg-rose-50 px-2 py-1 rounded mt-2 inline-block">Mitochondrial Matrix</span>
+                </button>
+
+                <div class="z-10 text-stone-400 text-xl py-1">&#8595;</div>
+
+                <button onclick="updateStageDetails('etc')" id="btn-etc" class="pathway-node border-stone-200 z-10 w-full max-w-sm bg-white border-2 rounded-xl p-4 text-center cursor-pointer">
+                    <h4 class="text-lg font-bold text-stone-800">4. Electron Transport Chain</h4>
+                    <span class="text-xs font-semibold text-sky-600 uppercase tracking-wide bg-sky-50 px-2 py-1 rounded mt-2 inline-block">Inner Membrane (Cristae)</span>
+                </button>
+            </div>
+
+            <div class="lg:col-span-7 bg-white rounded-2xl shadow-lg border border-stone-100 overflow-hidden sticky top-24">
+                <div class="bg-stone-50 border-b border-stone-100 p-6">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span id="detail-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">Stage 1</span>
+                        <h3 id="detail-title" class="text-2xl font-bold text-stone-900">Glycolysis</h3>
+                    </div>
+                    <p id="detail-desc" class="text-stone-600 text-sm">The initial, anaerobic splitting of a 6-carbon glucose molecule into two 3-carbon pyruvate molecules.</p>
+                </div>
+                
+                <div class="p-6 space-y-6 fade-in" id="detail-content">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-stone-50 p-4 rounded-xl border border-stone-100">
+                            <h5 class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Key Inputs</h5>
+                            <ul id="detail-inputs" class="text-sm text-stone-700 space-y-1 list-disc list-inside">
+                                <li>1x Glucose (6C)</li>
+                                <li>2x ATP (Activation energy)</li>
+                                <li>2x NAD+</li>
+                            </ul>
+                        </div>
+                        <div class="bg-stone-50 p-4 rounded-xl border border-stone-100">
+                            <h5 class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Key Outputs</h5>
+                            <ul id="detail-outputs" class="text-sm text-stone-700 space-y-1 list-disc list-inside font-medium">
+                                <li>2x Pyruvate (3C)</li>
+                                <li class="text-emerald-600">4x ATP (Net yield: 2 ATP)</li>
+                                <li class="text-sky-600">2x NADH</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="text-sm font-bold text-stone-800 border-b border-stone-200 pb-2 mb-3">Biological Significance</h5>
+                        <p id="detail-significance" class="text-sm text-stone-600 leading-relaxed">
+                            Glycolysis occurs universally in almost all living cells. Because it does not require oxygen, it is the fundamental energy-yielding pathway in anaerobic environments and the necessary precursor for aerobic respiration. It involves an initial energy investment phase followed by an energy payoff phase.
+                        </p>
+                    </div>
+
+                    <div class="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex gap-3 items-start">
+                        <div class="text-blue-500 mt-0.5">&#8505;</div>
+                        <div>
+                            <h6 class="text-xs font-bold text-blue-800 uppercase tracking-wide mb-1">Higher Biology Focus</h6>
+                            <p id="detail-higher" class="text-xs text-blue-700 leading-relaxed">
+                                Note that glycolysis occurs in the cytoplasm, not the mitochondria. Dehydrogenase enzymes are critical here, removing hydrogen ions and electrons to reduce NAD+ to NADH, an essential carrier for the final stage.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="glycolysis-deep-dive" class="scroll-mt-24">
+        <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div class="max-w-3xl">
+                <h2 class="text-3xl font-bold text-stone-800">Deep Dive: Glycolysis Phases</h2>
+                <p class="mt-2 text-stone-600">
+                    Glycolysis, the universal first step of cellular respiration, is divided into an <strong>Energy-Requiring (Investment) phase</strong> and an <strong>Energy-Releasing (Payoff) phase</strong>. Explore the 10 enzyme-catalyzed steps that split one glucose molecule into two pyruvates.
+                </p>
+            </div>
+            
+            <!-- Net Summary Box -->
+            <div class="bg-stone-800 text-stone-100 p-5 rounded-xl shadow-md min-w-[280px] border border-stone-700">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 border-b border-stone-600 pb-2 mb-3">Net Summary of Glycolysis</h4>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-stone-400">Input:</span> <span class="font-semibold">1 Glucose, 2 ATP, 2 NAD+</span></div>
+                    <div class="flex justify-between"><span class="text-stone-400">Output:</span> <span class="font-semibold">2 Pyruvate, 4 ATP, 2 NADH</span></div>
+                    <div class="flex justify-between border-t border-stone-600 pt-2 mt-2"><span class="text-emerald-400 font-bold">Net Gain:</span> <span class="font-bold text-white">2 Pyruvate, 2 ATP, 2 NADH</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12">
+                
+                <!-- Left: Interactive Timeline -->
+                <div class="lg:col-span-5 p-6 border-b lg:border-b-0 lg:border-r border-stone-100 bg-stone-50 overflow-y-auto max-h-[600px]">
+                    
+                    <!-- Phase 1: Investment -->
+                    <div class="mb-2 pl-6">
+                        <span class="text-xs font-bold uppercase tracking-widest text-rose-600 bg-rose-100 px-2 py-1 rounded">1. Energy-Requiring Phase</span>
+                        <p class="text-xs text-stone-500 mt-1">Uses 2 ATP to phosphorylate and split glucose.</p>
+                    </div>
+                    <div class="glyco-timeline border-rose-200">
+                        <div onclick="updateGlycoStep(1)" id="g-node-1" class="glyco-node active-glyco">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 1: Phosphorylation</h5>
+                        </div>
+                        <div onclick="updateGlycoStep(2)" id="g-node-2" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 2: Isomerization</h5>
+                        </div>
+                        <div onclick="updateGlycoStep(3)" id="g-node-3" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 3: Phosphorylation</h5>
+                        </div>
+                        <div onclick="updateGlycoStep(4)" id="g-node-4" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 4: Cleavage</h5>
+                        </div>
+                        <div onclick="updateGlycoStep(5)" id="g-node-5" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 5: Conversion</h5>
+                        </div>
+                    </div>
+
+                    <!-- Phase 2: Payoff -->
+                    <div class="mb-2 pl-6 mt-6">
+                        <span class="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-100 px-2 py-1 rounded">2. Energy-Releasing Phase</span>
+                        <p class="text-xs text-stone-500 mt-1">Occurs twice per glucose. Produces 4 ATP.</p>
+                    </div>
+                    <div class="glyco-timeline border-emerald-200">
+                        <div onclick="updateGlycoStep(6)" id="g-node-6" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 6: Oxidation</h5>
+                        </div>
+                        <div onclick="updateGlycoStep(7)" id="g-node-7" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 7: ATP Production</h5>
+                        </div>
+                        <div onclick="updateGlycoStep(8)" id="g-node-8" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 8: Rearrangement</h5>
+                        </div>
+                        <div onclick="updateGlycoStep(9)" id="g-node-9" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 9: Dehydration</h5>
+                        </div>
+                        <div onclick="updateGlycoStep(10)" id="g-node-10" class="glyco-node">
+                            <h5 class="font-bold text-stone-800 text-sm">Step 10: ATP Production</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Details Panel -->
+                <div class="lg:col-span-7 p-8 lg:p-10 flex flex-col justify-center min-h-[400px]">
+                    <div id="glyco-detail-container" class="fade-in">
+                        <div class="inline-flex items-center gap-2 mb-4">
+                            <span class="px-3 py-1 bg-stone-100 text-stone-600 font-bold rounded text-sm border border-stone-200">Step <span id="g-step-num">1</span> of 10</span>
+                            <span id="g-phase-badge" class="px-3 py-1 bg-rose-100 text-rose-700 font-bold rounded text-sm border border-rose-200">Investment Phase</span>
+                        </div>
+                        
+                        <h3 id="g-title" class="text-3xl font-bold text-stone-900 mb-2">Phosphorylation</h3>
+                        <h4 id="g-enzyme" class="text-sm font-semibold text-sky-600 uppercase tracking-wide mb-6">Enzyme: Hexokinase</h4>
+                        
+                        <p id="g-desc" class="text-stone-600 leading-relaxed mb-6 text-lg">
+                            Hexokinase uses 1 ATP to convert glucose into Glucose-6-phosphate (G6P). This traps the glucose inside the cell and destabilizes it for further breakdown.
+                        </p>
+
+                        <div class="grid grid-cols-2 gap-4 mt-auto">
+                            <div class="bg-stone-50 border border-stone-100 p-4 rounded-xl">
+                                <h5 class="text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">Energy Impact</h5>
+                                <div id="g-energy" class="text-rose-600 font-semibold">-1 ATP (Consumed)</div>
+                            </div>
+                            <div class="bg-stone-50 border border-stone-100 p-4 rounded-xl">
+                                <h5 class="text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">Product Formed</h5>
+                                <div id="g-product" class="text-stone-800 font-semibold">Glucose-6-phosphate (G6P)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="link-deep-dive" class="scroll-mt-24">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-stone-800">Deep Dive: The Link Reaction</h2>
+            <p class="mt-2 text-stone-600 max-w-3xl">
+                The critical bridge between glycolysis and the Krebs Cycle. Pyruvate must be transported into the mitochondrion and heavily modified before its remaining energy can be extracted. Explore the 4-step transformation.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 flex flex-col md:flex-row gap-8">
+            <!-- Left: Interactive Pipeline Buttons -->
+            <div class="flex flex-col gap-3 md:w-1/3 justify-center">
+                <button onclick="updateLinkStage(1)" id="btn-link-1" class="link-btn text-left px-4 py-3 rounded-lg border-2 border-rose-500 bg-rose-50 text-rose-800 font-bold transition-all shadow-sm">
+                    1. Transport
+                </button>
+                <button onclick="updateLinkStage(2)" id="btn-link-2" class="link-btn text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:bg-stone-50 font-bold transition-all">
+                    2. Decarboxylation
+                </button>
+                <button onclick="updateLinkStage(3)" id="btn-link-3" class="link-btn text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:bg-stone-50 font-bold transition-all">
+                    3. Oxidation
+                </button>
+                <button onclick="updateLinkStage(4)" id="btn-link-4" class="link-btn text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:bg-stone-50 font-bold transition-all">
+                    4. Acetylation
+                </button>
+            </div>
+
+            <!-- Right: Dynamic Content & Visual -->
+            <div class="md:w-2/3 bg-stone-50 rounded-xl border border-stone-100 p-6 flex flex-col justify-center min-h-[300px]">
+                <div class="min-h-[140px] flex items-center justify-center border-b border-stone-200 pb-6 mb-6">
+                    <!-- Dynamic Visuals controlled by JS -->
+                    <div id="link-visual-container" class="relative w-full flex items-center justify-center fade-in">
+                        <!-- Default Step 1 Visual -->
+                        <div class="flex items-center gap-2 sm:gap-4 w-full justify-center">
+                            <div class="flex flex-col items-center">
+                                <span class="text-xs font-bold text-stone-400 mb-1">Cytoplasm</span>
+                                <div class="bg-stone-300 px-3 py-1 rounded-full font-bold text-stone-700 text-sm sm:text-base">Pyruvate (3C)</div>
+                            </div>
+                            <div class="text-rose-500 font-bold text-lg sm:text-xl animate-pulse">➔</div>
+                            <div class="border-l-4 border-dashed border-rose-300 h-20 sm:h-24 mx-1 sm:mx-2 relative">
+                                <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] sm:text-[10px] font-bold text-rose-400 whitespace-nowrap">Inner Membrane</span>
+                            </div>
+                            <div class="text-rose-500 font-bold text-lg sm:text-xl animate-pulse">➔</div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-xs font-bold text-amber-600 mb-1">Matrix</span>
+                                <div class="bg-rose-100 border border-rose-300 px-3 py-1 rounded-full font-bold text-rose-800 text-sm sm:text-base">Pyruvate (3C)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="link-text-container" class="fade-in">
+                    <h3 id="link-title" class="text-2xl font-bold text-stone-800 mb-2">Transport</h3>
+                    <p id="link-desc" class="text-stone-600 leading-relaxed text-lg">Pyruvate produced in the cytoplasm during glycolysis is actively transported across the inner mitochondrial membrane and into the mitochondrial matrix.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="krebs-deep-dive" class="scroll-mt-24">
+                    <!-- Reaction Labels Bottom -->
+                    <div class="absolute bottom-4 left-0 w-full flex justify-between px-6 z-10 items-end">
+                        <div class="text-xs font-semibold text-stone-600 particle p-del flex flex-col items-center">
+                            <span>NADH &rarr; NAD⁺</span>
+                            <span class="ml-12 mt-1">FADH₂ &rarr; FAD</span>
+                        </div>
+                        <div class="text-xs font-bold text-sky-700 particle p-red mr-20">
+                            ½ O₂ + 2H⁺ &rarr; <span class="text-blue-600">H₂O</span>
+                        </div>
+                        <div class="text-sm font-bold text-emerald-700 particle p-chem mr-2">
+                            ADP + Pi &rarr; <span class="bg-emerald-200 px-1 rounded">ATP</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- Right/Bottom: Controls & Details -->
+            <div class="lg:w-2/5 p-6 flex flex-col">
+                <div class="grid grid-cols-2 gap-2 mb-6">
+                    <button onclick="updateEtcStage(1)" id="btn-etc-1" class="etc-btn bg-sky-600 text-white font-bold py-2 px-3 rounded-lg text-sm border-2 border-sky-700 shadow-sm transition-transform active:scale-95">1. Electron Delivery</button>
+                    <button onclick="updateEtcStage(2)" id="btn-etc-2" class="etc-btn bg-white text-stone-600 hover:bg-stone-50 font-bold py-2 px-3 rounded-lg text-sm border-2 border-stone-200 shadow-sm transition-transform active:scale-95">2. Transport & Pumping</button>
+                    <button onclick="updateEtcStage(3)" id="btn-etc-3" class="etc-btn bg-white text-stone-600 hover:bg-stone-50 font-bold py-2 px-3 rounded-lg text-sm border-2 border-stone-200 shadow-sm transition-transform active:scale-95">3. Reduction of O₂</button>
+                    <button onclick="updateEtcStage(4)" id="btn-etc-4" class="etc-btn bg-white text-stone-600 hover:bg-stone-50 font-bold py-2 px-3 rounded-lg text-sm border-2 border-stone-200 shadow-sm transition-transform active:scale-95">4. Chemiosmosis</button>
+                </div>
+
+                <div id="etc-detail-container" class="fade-in flex-1 bg-stone-50 border border-stone-100 rounded-xl p-5 flex flex-col">
+                    <h3 id="etc-title" class="text-xl font-bold text-sky-800 mb-2 border-b border-sky-200 pb-2">1. Electron Delivery</h3>
+                    <p id="etc-desc" class="text-stone-700 text-sm leading-relaxed mb-4">
+                        NADH deposits high-energy electrons at <strong>Complex I</strong> (NADH dehydrogenase). FADH₂ bypasses Complex I and deposits electrons slightly downstream at <strong>Complex II</strong> (Succinate dehydrogenase).
+                    </p>
+                    <div class="mt-auto bg-white p-3 rounded border border-stone-200">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">Key Components Active</h4>
+                        <span id="etc-comps" class="text-sm font-semibold text-stone-800">Complex I, Complex II</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="fermentation" class="scroll-mt-24">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-stone-800">The Oxygen Crossroads</h2>
+            <p class="mt-2 text-stone-600 max-w-3xl">
+                The fate of pyruvate depends entirely on the availability of oxygen. Toggle the environmental state below to observe how cellular metabolism adapts to aerobic (oxygen-rich) versus anaerobic (oxygen-deprived) conditions.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            <div class="flex flex-col md:flex-row border-b border-stone-200">
+                <button onclick="setRespirationType('aerobic')" id="tab-aerobic" class="flex-1 py-4 px-6 text-center font-bold text-emerald-700 bg-emerald-50 border-b-2 border-emerald-500 transition-colors">
+                    Aerobic Respiration (O<sub>2</sub> Present)
+                </button>
+                <button onclick="setRespirationType('anaerobic')" id="tab-anaerobic" class="flex-1 py-4 px-6 text-center font-bold text-stone-500 bg-stone-50 border-b-2 border-transparent hover:bg-stone-100 transition-colors">
+                    Anaerobic (Fermentation) (No O<sub>2</sub>)
+                </button>
+            </div>
+            
+            <div class="p-8">
+                <div id="content-aerobic" class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center fade-in block">
+                    <div>
+                        <div class="inline-flex items-center justify-center p-3 bg-emerald-100 text-emerald-700 rounded-xl mb-4">
+                            <span class="text-2xl font-bold block">&#10003;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-stone-800 mb-3">Complete Breakdown</h3>
+                        <p class="text-stone-600 mb-4">
+                            When oxygen is present, pyruvate enters the mitochondrion. Oxygen acts as the final electron acceptor in the Electron Transport Chain, pulling electrons down the gradient.
+                        </p>
+                        <ul class="space-y-2 text-sm text-stone-700 font-medium">
+                            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 block"></span> Occurs in Mitochondria</li>
+                            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 block"></span> Complete oxidation of glucose</li>
+                            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 block"></span> High energy yield (38 ATP net)</li>
+                            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 block"></span> End products: CO<sub>2</sub> and H<sub>2</sub>O</li>
+                        </ul>
+                    </div>
+                    <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 flex justify-center items-center h-full min-h-[200px]">
+                        <div class="text-center">
+                            <div class="text-stone-400 font-bold mb-2">Pyruvate</div>
+                            <div class="text-xl text-stone-400 mb-2">&#8595;</div>
+                            <div class="bg-emerald-100 text-emerald-800 font-bold px-4 py-2 rounded-lg inline-block border border-emerald-200">Mitochondrial Matrix</div>
+                            <div class="text-xl text-stone-400 mt-2 mb-2">&#8595;</div>
+                            <div class="text-stone-600 font-bold">Krebs Cycle & ETC</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-anaerobic" class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center fade-in hidden">
+                    <div>
+                        <div class="inline-flex items-center justify-center p-3 bg-rose-100 text-rose-700 rounded-xl mb-4">
+                            <span class="text-2xl font-bold block">&#10005;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-stone-800 mb-3">Incomplete Breakdown</h3>
+                        <p class="text-stone-600 mb-4">
+                            Without oxygen, the ETC halts. NAD+ cannot be regenerated from NADH aerobically. Fermentation occurs to recycle NAD+ so glycolysis can continue, providing a minimal ATP lifeline.
+                        </p>
+                        <div class="space-y-4">
+                            <div class="bg-stone-100 p-3 rounded text-sm">
+                                <span class="font-bold text-stone-800">Animal Cells (Reversible):</span> Pyruvate is reduced to Lactate. Causes muscle fatigue.
+                            </div>
+                            <div class="bg-stone-100 p-3 rounded text-sm">
+                                <span class="font-bold text-stone-800">Plant/Yeast Cells (Irreversible):</span> Pyruvate converted to Ethanol and CO<sub>2</sub>.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 flex justify-center items-center h-full min-h-[200px]">
+                        <div class="text-center">
+                            <div class="text-stone-400 font-bold mb-2">Pyruvate</div>
+                            <div class="text-xl text-stone-400 mb-2">&#8595;</div>
+                            <div class="bg-rose-100 text-rose-800 font-bold px-4 py-2 rounded-lg inline-block border border-rose-200">Stays in Cytoplasm</div>
+                            <div class="flex gap-4 justify-center mt-4">
+                                <div class="text-sm font-semibold text-stone-600 border border-stone-300 px-2 py-1 rounded bg-white">Lactate (Animals)</div>
+                                <div class="text-sm font-semibold text-stone-600 border border-stone-300 px-2 py-1 rounded bg-white">Ethanol + CO<sub>2</sub> (Plants)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    // --- Data Storage for Application State ---
+    const stagesData = {
+        glycolysis: {
+            badge: "Stage 1",
+            badgeColor: "bg-emerald-100 text-emerald-800",
+            title: "Glycolysis",
+            desc: "The initial, anaerobic splitting of a 6-carbon glucose molecule into two 3-carbon pyruvate molecules.",
+            inputs: ["1x Glucose (6C)", "2x ATP (Activation energy)", "2x NAD+"],
+            outputs: ["2x Pyruvate (3C)", "<span class='text-emerald-600 font-bold'>4x ATP (Net yield: 2 ATP)</span>", "<span class='text-sky-600 font-bold'>2x NADH</span>"],
+            significance: "Glycolysis occurs universally in almost all living cells. Because it does not require oxygen, it is the fundamental energy-yielding pathway in anaerobic environments and the necessary precursor for aerobic respiration. It involves an initial energy investment phase followed by an energy payoff phase.",
+            higherBiology: "Note that glycolysis occurs in the cytoplasm, not the mitochondria. Dehydrogenase enzymes are critical here, removing hydrogen ions and electrons to reduce NAD+ to NADH, an essential carrier for the final stage."
+        },
+        link: {
+            badge: "Stage 2",
+            badgeColor: "bg-rose-100 text-rose-800",
+            title: "Link Reaction",
+            desc: "The bridging step connecting the cytoplasm to the mitochondria, preparing pyruvate for the Krebs cycle.",
+            inputs: ["2x Pyruvate (3C)", "2x NAD+", "2x Coenzyme A"],
+            outputs: ["2x Acetyl CoA (2C)", "<span class='text-stone-500 font-bold'>2x CO₂ (Waste)</span>", "<span class='text-sky-600 font-bold'>2x NADH</span>"],
+            significance: "This is an oxidative decarboxylation reaction. Pyruvate moves into the mitochondrial matrix and loses a carbon atom (as CO₂). The remaining 2-carbon acetyl group attaches to Coenzyme A. No ATP is produced directly here.",
+            higherBiology: "The enzyme complex responsible is pyruvate dehydrogenase. The Acetyl CoA formed is highly reactive and acts to transfer the 2-carbon acetyl group into the Krebs cycle seamlessly."
+        },
+        krebs: {
+            badge: "Stage 3",
+            badgeColor: "bg-rose-100 text-rose-800",
+            title: "Krebs Cycle (Citric Acid Cycle)",
+            desc: "A cyclical series of reactions that thoroughly oxidizes the acetyl group, extracting high-energy electrons.",
+            inputs: ["2x Acetyl CoA (2C)", "6x NAD+", "2x FAD", "2x ADP + Pi"],
+            outputs: ["<span class='text-stone-500 font-bold'>4x CO₂ (Waste)</span>", "<span class='text-emerald-600 font-bold'>2x ATP</span>", "<span class='text-sky-600 font-bold'>6x NADH</span>", "<span class='text-sky-600 font-bold'>2x FADH₂</span>"],
+            significance: "The acetyl group from Acetyl CoA combines with a 4-carbon compound (oxaloacetate) to form a 6-carbon compound (citrate). Through a series of enzyme-controlled steps, citrate is converted back into oxaloacetate, releasing CO₂, ATP, and abundant electron carriers.",
+            higherBiology: "The primary purpose of the Krebs cycle is not direct ATP synthesis, but the generation of reduced coenzymes (NADH and FADH₂). These molecules carry high-energy electrons that are essential for the massive ATP payload in the final stage."
+        },
+        etc: {
+            badge: "Stage 4",
+            badgeColor: "bg-sky-100 text-sky-800",
+            title: "Electron Transport Chain",
+            desc: "The final aerobic phase where the majority of ATP is synthesized via oxidative phosphorylation.",
+            inputs: ["10x NADH", "2x FADH₂", "6x O₂ (Final Acceptor)", "~34x ADP + Pi"],
+            outputs: ["10x NAD+ (Recycled)", "2x FAD (Recycled)", "<span class='text-stone-500 font-bold'>6x H₂O (Waste)</span>", "<span class='text-emerald-600 font-bold'>~34x ATP</span>"],
+            significance: "Electrons from NADH and FADH₂ are passed along a chain of protein complexes in the inner mitochondrial membrane. The energy released pumps hydrogen ions (H+) across the membrane, creating an electrochemical gradient.",
+            higherBiology: "This is oxidative phosphorylation. The H+ gradient drives protons back through the enzyme ATP synthase (chemiosmosis), which physically rotates to synthesize ATP. Oxygen is crucial as the final electron acceptor; without it, the chain blocks up, and aerobic respiration ceases."
+        }
+    };
+
+    // --- Glycolysis Specific Data ---
+    const glycoStepsData = {
+        1: { title: "Phosphorylation", phase: "Investment Phase", badge: "bg-rose-100 text-rose-700 border-rose-200", enzyme: "Hexokinase", desc: "Hexokinase uses 1 ATP to convert glucose into Glucose-6-phosphate (G6P). This traps the glucose inside the cell and destabilizes it.", energy: "-1 ATP (Consumed)", energyClass: "text-rose-600", product: "Glucose-6-phosphate (G6P)" },
+        2: { title: "Isomerization", phase: "Investment Phase", badge: "bg-rose-100 text-rose-700 border-rose-200", enzyme: "Phosphoglucose Isomerase", desc: "Glucose-6-phosphate (G6P) is rearranged and converted into its isomer, Fructose-6-phosphate (F6P).", energy: "Neutral", energyClass: "text-stone-500", product: "Fructose-6-phosphate (F6P)" },
+        3: { title: "Phosphorylation", phase: "Investment Phase", badge: "bg-rose-100 text-rose-700 border-rose-200", enzyme: "Phosphofructokinase", desc: "A critical regulatory step. Phosphofructokinase uses a second ATP to convert Fructose-6-phosphate into Fructose-1,6-bisphosphate.", energy: "-1 ATP (Consumed)", energyClass: "text-rose-600", product: "Fructose-1,6-bisphosphate" },
+        4: { title: "Cleavage", phase: "Investment Phase", badge: "bg-rose-100 text-rose-700 border-rose-200", enzyme: "Aldolase", desc: "Aldolase splits the unstable 6-carbon molecule into two different 3-carbon molecules: Glyceraldehyde-3-phosphate (G3P) and Dihydroxyacetone phosphate (DHAP).", energy: "Neutral", energyClass: "text-stone-500", product: "G3P & DHAP (3C each)" },
+        5: { title: "Conversion", phase: "Investment Phase", badge: "bg-rose-100 text-rose-700 border-rose-200", enzyme: "Triosephosphate Isomerase", desc: "Triosephosphate isomerase converts the DHAP into a second G3P molecule. From this point forward, all reactions happen twice per original glucose molecule.", energy: "Neutral", energyClass: "text-stone-500", product: "2x Glyceraldehyde-3-phosphate (G3P)" },
+        6: { title: "Oxidation", phase: "Payoff Phase", badge: "bg-emerald-100 text-emerald-700 border-emerald-200", enzyme: "Glyceraldehyde-3-phosphate Dehydrogenase", desc: "G3P is oxidized. NAD+ is reduced to NADH. Inorganic phosphate is added to form 1,3-bisphosphoglycerate. (Remember: happens twice).", energy: "+2 NADH (Produced)", energyClass: "text-sky-600", product: "1,3-bisphosphoglycerate" },
+        7: { title: "ATP Production", phase: "Payoff Phase", badge: "bg-emerald-100 text-emerald-700 border-emerald-200", enzyme: "Phosphoglycerate Kinase", desc: "Phosphoglycerate kinase transfers a phosphate from 1,3-bisphosphoglycerate to ADP, creating ATP and 3-phosphoglycerate. This replaces the 2 ATP used in the investment phase.", energy: "+2 ATP (Produced)", energyClass: "text-emerald-600 font-bold", product: "3-phosphoglycerate" },
+        8: { title: "Rearrangement", phase: "Payoff Phase", badge: "bg-emerald-100 text-emerald-700 border-emerald-200", enzyme: "Phosphoglycerate Mutase", desc: "Phosphoglycerate mutase simply shifts the position of the phosphate group, isomerizing 3-phosphoglycerate into 2-phosphoglycerate.", energy: "Neutral", energyClass: "text-stone-500", product: "2-phosphoglycerate" },
+        9: { title: "Dehydration", phase: "Payoff Phase", badge: "bg-emerald-100 text-emerald-700 border-emerald-200", enzyme: "Enolase", desc: "Enolase removes a water molecule from 2-phosphoglycerate, creating a high-energy enol phosphate linkage in Phosphoenolpyruvate (PEP).", energy: "Neutral", energyClass: "text-stone-500", product: "Phosphoenolpyruvate (PEP) & H₂O" },
+        10: { title: "ATP Production", phase: "Payoff Phase", badge: "bg-emerald-100 text-emerald-700 border-emerald-200", enzyme: "Pyruvate Kinase", desc: "Pyruvate kinase transfers the final phosphate from PEP to ADP, generating ATP and forming the final product, Pyruvate. This represents the net gain of ATP.", energy: "+2 ATP (Produced)", energyClass: "text-emerald-600 font-bold", product: "Pyruvate" }
+    };
+
+    function updateGlycoStep(stepNum) {
+        // Update nodes visually
+        document.querySelectorAll('.glyco-node').forEach(el => el.classList.remove('active-glyco'));
+        document.getElementById(`g-node-${stepNum}`).classList.add('active-glyco');
+
+        // Fetch data
+        const data = glycoStepsData[stepNum];
+
+        // Animate detail panel
+        const container = document.getElementById('glyco-detail-container');
+        container.classList.remove('fade-in');
+        
+        setTimeout(() => {
+            document.getElementById('g-step-num').innerText = stepNum;
+            
+            const badge = document.getElementById('g-phase-badge');
+            badge.className = `px-3 py-1 font-bold rounded text-sm border ${data.badge}`;
+            badge.innerText = data.phase;
+            
+            document.getElementById('g-title').innerText = data.title;
+            document.getElementById('g-enzyme').innerText = `Enzyme: ${data.enzyme}`;
+            document.getElementById('g-desc').innerText = data.desc;
+            
+            const energyEl = document.getElementById('g-energy');
+            energyEl.className = `font-semibold ${data.energyClass}`;
+            energyEl.innerText = data.energy;
+            
+            document.getElementById('g-product').innerText = data.product;
+            
+            container.classList.add('fade-in');
+        }, 50);
+    }
+
+    // --- Link Reaction Specific Data & Logic ---
+    const linkStepsData = {
+        1: {
+            title: "Transport",
+            desc: "Pyruvate produced in the cytoplasm during glycolysis is actively transported across the inner mitochondrial membrane and into the mitochondrial matrix.",
+            colorTheme: "rose",
+            visual: `
+                <div class="flex items-center gap-2 sm:gap-4 w-full justify-center">
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs font-bold text-stone-400 mb-1">Cytoplasm</span>
+                        <div class="bg-stone-300 px-3 py-1 rounded-full font-bold text-stone-700 text-sm sm:text-base">Pyruvate (3C)</div>
+                    </div>
+                    <div class="text-rose-500 font-bold text-lg sm:text-xl animate-pulse">➔</div>
+                    <div class="border-l-4 border-dashed border-rose-300 h-20 sm:h-24 mx-1 sm:mx-2 relative">
+                        <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] sm:text-[10px] font-bold text-rose-400 whitespace-nowrap">Inner Membrane</span>
+                    </div>
+                    <div class="text-rose-500 font-bold text-lg sm:text-xl animate-pulse">➔</div>
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs font-bold text-amber-600 mb-1">Matrix</span>
+                        <div class="bg-rose-100 border border-rose-300 px-3 py-1 rounded-full font-bold text-rose-800 text-sm sm:text-base">Pyruvate (3C)</div>
+                    </div>
+                </div>`
+        },
+        2: {
+            title: "Decarboxylation",
+            desc: "The 3-carbon pyruvate is decarboxylated (loses a carbon atom). This carbon atom is released as a molecule of carbon dioxide (CO₂), an inorganic waste product that eventually exits the cell.",
+            colorTheme: "amber",
+            visual: `
+                <div class="flex items-center gap-3 sm:gap-6 w-full justify-center">
+                    <div class="flex gap-1">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-stone-400 flex items-center justify-center text-white font-bold text-xs">C</div>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-stone-400 flex items-center justify-center text-white font-bold text-xs">C</div>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-stone-400 flex items-center justify-center text-white font-bold text-xs">C</div>
+                    </div>
+                    <div class="text-stone-400 font-bold text-lg sm:text-xl">➔</div>
+                    <div class="flex gap-1">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-xs shadow-md">C</div>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-xs shadow-md">C</div>
+                    </div>
+                    <div class="text-stone-400 font-bold text-lg sm:text-xl">+</div>
+                    <div class="bg-stone-200 px-2 sm:px-3 py-1 rounded-full font-bold text-stone-600 border border-stone-300 text-sm sm:text-base animate-bounce">CO₂ (Waste)</div>
+                </div>`
+        },
+        3: {
+            title: "Oxidation",
+            desc: "The remaining 2-carbon compound is oxidized, meaning it loses electrons and hydrogen ions. These are accepted by the coenzyme NAD⁺, reducing it to NADH, which will carry this energy to the ETC.",
+            colorTheme: "sky",
+            visual: `
+                <div class="flex flex-col items-center gap-4 w-full justify-center">
+                    <div class="flex items-center gap-3 sm:gap-6">
+                        <div class="flex gap-1">
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-xs">C</div>
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-xs">C</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-stone-400 text-xs sm:text-sm font-bold">Oxidation</span>
+                            <div class="text-sky-500 font-bold text-lg sm:text-xl">➔</div>
+                        </div>
+                        <div class="flex gap-1">
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-600 flex items-center justify-center text-white font-bold text-xs border-2 border-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.5)]">C</div>
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-600 flex items-center justify-center text-white font-bold text-xs border-2 border-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.5)]">C</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 bg-sky-50 px-3 sm:px-4 py-1 sm:py-2 rounded-lg border border-sky-200">
+                        <span class="font-bold text-stone-600 text-sm sm:text-base">NAD⁺</span>
+                        <span class="text-sky-500 font-bold text-sm">➔</span>
+                        <span class="font-bold text-sky-700 text-sm sm:text-base">NADH</span>
+                    </div>
+                </div>`
+        },
+        4: {
+            title: "Acetylation",
+            desc: "The oxidized 2-carbon fragment (the acetyl group) finally combines with Coenzyme A (CoA). This forms Acetyl-Coenzyme A (Acetyl-CoA), highly reactive and primed to enter the Krebs Cycle.",
+            colorTheme: "emerald",
+            visual: `
+                <div class="flex flex-wrap items-center gap-2 sm:gap-4 w-full justify-center">
+                    <div class="flex gap-1">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-600 flex items-center justify-center text-white font-bold text-xs">C</div>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-600 flex items-center justify-center text-white font-bold text-xs">C</div>
+                    </div>
+                    <div class="text-stone-400 font-bold text-lg sm:text-xl">+</div>
+                    <div class="bg-amber-100 border-2 border-amber-300 text-amber-800 font-bold px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-sm sm:text-base">CoA</div>
+                    <div class="text-emerald-500 font-bold text-lg sm:text-xl w-full text-center sm:w-auto">➔</div>
+                    <div class="flex items-center bg-emerald-50 border-2 border-emerald-500 rounded-lg overflow-hidden shadow-md">
+                        <div class="flex gap-1 px-1 sm:px-2 py-2 bg-rose-600">
+                            <div class="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-white opacity-50"></div>
+                            <div class="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-white opacity-50"></div>
+                        </div>
+                        <div class="px-2 sm:px-3 py-1 sm:py-2 font-bold text-emerald-800 text-sm sm:text-base">Acetyl-CoA</div>
+                    </div>
+                </div>`
+        }
+    };
+
+    function updateLinkStage(stepNum) {
+        const data = linkStepsData[stepNum];
+
+        // Reset and style buttons
+        document.querySelectorAll('.link-btn').forEach(btn => {
+            btn.className = "link-btn text-left px-4 py-3 rounded-lg border-2 border-stone-200 text-stone-600 hover:bg-stone-50 font-bold transition-all";
+        });
+        
+        const activeBtn = document.getElementById(`btn-link-${stepNum}`);
+        if(data.colorTheme === 'rose') activeBtn.className = "link-btn text-left px-4 py-3 rounded-lg border-2 border-rose-500 bg-rose-50 text-rose-800 font-bold transition-all shadow-sm";
+        if(data.colorTheme === 'amber') activeBtn.className = "link-btn text-left px-4 py-3 rounded-lg border-2 border-amber-500 bg-amber-50 text-amber-800 font-bold transition-all shadow-sm";
+        if(data.colorTheme === 'sky') activeBtn.className = "link-btn text-left px-4 py-3 rounded-lg border-2 border-sky-500 bg-sky-50 text-sky-800 font-bold transition-all shadow-sm";
+        if(data.colorTheme === 'emerald') activeBtn.className = "link-btn text-left px-4 py-3 rounded-lg border-2 border-emerald-500 bg-emerald-50 text-emerald-800 font-bold transition-all shadow-sm";
+
+        // Animate content change
+        const visualContainer = document.getElementById('link-visual-container');
+        const textContainer = document.getElementById('link-text-container');
+        
+        visualContainer.classList.remove('fade-in');
+        textContainer.classList.remove('fade-in');
+
+        setTimeout(() => {
+            visualContainer.innerHTML = data.visual;
+            document.getElementById('link-title').innerText = `${stepNum}. ${data.title}`;
+            document.getElementById('link-desc').innerText = data.desc;
+            
+            visualContainer.classList.add('fade-in');
+            textContainer.classList.add('fade-in');
+        }, 50);
+    }
+
+
+    // --- ETC Specific Data & Logic ---
+    const etcStepsData = {
+        1: {
+            title: "1. Electron Delivery",
+            desc: "NADH deposits high-energy electrons at Complex I (NADH dehydrogenase), reverting to NAD+. FADH₂ deposits its electrons at Complex II (Succinate dehydrogenase), reverting to FAD. These carriers are now free to return to glycolysis and the Krebs cycle.",
+            comps: "Complex I, Complex II, NADH, FADH₂",
+            highlights: ['etc-c1', 'etc-c2'],
+            particles: ['p-del']
+        },
+        2: {
+            title: "2. Transport & Proton Pumping",
+            desc: "Electrons move down the chain from Complex I/II to Ubiquinone (Q), then to Complex III (Cytochrome bc1), Cytochrome c (Cyt c), and finally Complex IV. As electrons pass through Complexes I, III, and IV, their energy is used to pump H⁺ ions from the matrix into the intermembrane space, building a strong electrochemical gradient.",
+            comps: "Complex I, III, IV, Ubiquinone (Q), Cytochrome c",
+            highlights: ['etc-c1', 'etc-q', 'etc-c3', 'etc-c', 'etc-c4'],
+            particles: ['p-h-top']
+        },
+        3: {
+            title: "3. Reduction of Oxygen",
+            desc: "At Complex IV (Cytochrome c oxidase), the energy-depleted electrons are finally transferred to molecular oxygen (O₂), the final electron acceptor. Oxygen grabs these electrons and combines with H⁺ ions from the matrix to form Water (H₂O). Without O₂, the chain backs up and stops entirely.",
+            comps: "Complex IV, Oxygen (O₂), Water (H₂O)",
+            highlights: ['etc-c4'],
+            particles: ['p-red']
+        },
+        4: {
+            title: "4. ATP Generation (Chemiosmosis)",
+            desc: "The immense concentration of protons in the intermembrane space creates a powerful gradient. Protons naturally flow back into the matrix, but the membrane is impermeable to them. They must flow through the enzyme ATP Synthase. This flow physically spins the enzyme, providing the energy to phosphorylate ADP into massive amounts of ATP (~34 per glucose).",
+            comps: "ATP Synthase, H⁺ Gradient, ADP, ATP",
+            highlights: ['etc-atp'],
+            particles: ['p-h-top', 'p-chem'],
+            isAtp: true
+        }
+    };
+
+    function updateEtcStage(stepNum) {
+        // Reset buttons
+        document.querySelectorAll('.etc-btn').forEach(btn => {
+            btn.className = "etc-btn bg-white text-stone-600 hover:bg-stone-50 font-bold py-2 px-3 rounded-lg text-sm border-2 border-stone-200 shadow-sm transition-transform active:scale-95";
+        });
+        // Activate current button
+        const activeBtn = document.getElementById(`btn-etc-${stepNum}`);
+        if(stepNum === 4) {
+            activeBtn.className = "etc-btn bg-emerald-600 text-white font-bold py-2 px-3 rounded-lg text-sm border-2 border-emerald-700 shadow-sm transition-transform active:scale-95";
+        } else {
+            activeBtn.className = "etc-btn bg-sky-600 text-white font-bold py-2 px-3 rounded-lg text-sm border-2 border-sky-700 shadow-sm transition-transform active:scale-95";
+        }
+
+        const data = etcStepsData[stepNum];
+
+        // Reset Diagram Highlights
+        document.querySelectorAll('.protein-complex').forEach(el => {
+            el.classList.remove('protein-highlight', 'atp-highlight');
+        });
+        document.querySelectorAll('.particle').forEach(el => {
+            el.classList.remove('particle-active');
+        });
+
+        // Apply new highlights
+        data.highlights.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if(data.isAtp && id === 'etc-atp') {
+                    el.classList.add('atp-highlight');
+                } else {
+                    el.classList.add('protein-highlight');
+                }
+            }
+        });
+
+        data.particles.forEach(pClass => {
+            document.querySelectorAll(`.${pClass}`).forEach(el => el.classList.add('particle-active'));
+        });
+
+        // Update Text Panel
+        const container = document.getElementById('etc-detail-container');
+        container.classList.remove('fade-in');
+        
+        setTimeout(() => {
+            const titleEl = document.getElementById('etc-title');
+            titleEl.innerText = data.title;
+            if(stepNum === 4) {
+                titleEl.className = "text-xl font-bold text-emerald-800 mb-2 border-b border-emerald-200 pb-2";
+            } else {
+                titleEl.className = "text-xl font-bold text-sky-800 mb-2 border-b border-sky-200 pb-2";
+            }
+            
+            document.getElementById('etc-desc').innerHTML = data.desc;
+            document.getElementById('etc-comps').innerText = data.comps;
+            container.classList.add('fade-in');
+        }, 50);
+    }
+
+
+    // --- Krebs Cycle Specific Data ---
+    const krebsStepsData = {
+        1: { 
+            title: "Citrate Formation", 
+            carbon: "6-Carbon Stage", 
+            desc: "The 2-carbon acetyl group from Acetyl-CoA enters the cycle by combining with a 4-carbon acceptor molecule, oxaloacetate, to form a 6-carbon molecule called citrate. The Coenzyme A is released and recycled.", 
+            output: "Citrate (6C)" 
+        },
+        2: { 
+            title: "Citrate Isomers Formation", 
+            carbon: "6-Carbon Stage", 
+            desc: "Citrate undergoes a rearrangement. An enzyme (aconitase) removes a water molecule and then adds it back in a different arrangement, converting citrate into its structural isomer, isocitrate.", 
+            output: "Isocitrate (6C)" 
+        },
+        3: { 
+            title: "Isocitrate Decarboxylation & Oxidation", 
+            carbon: "5-Carbon Stage", 
+            desc: "Isocitrate is oxidized, yielding the first molecule of NADH. Following this, it loses a carbon dioxide molecule (decarboxylation) to become the 5-carbon molecule α-ketoglutarate.", 
+            output: "NADH, CO₂ (Waste), α-Ketoglutarate (5C)" 
+        },
+        4: { 
+            title: "Succinyl-CoA Formation", 
+            carbon: "4-Carbon Stage", 
+            desc: "Similar to step 3, α-ketoglutarate is oxidized (reducing NAD+ to NADH) and decarboxylated (releasing CO₂). The remaining 4-carbon fragment attaches to Coenzyme A to form an unstable bond.", 
+            output: "NADH, CO₂ (Waste), Succinyl-CoA (4C)" 
+        },
+        5: { 
+            title: "GTP Production", 
+            carbon: "4-Carbon Stage", 
+            desc: "The unstable CoA bond is broken, providing energy to add a phosphate group to GDP, forming GTP (which easily converts to ATP via substrate-level phosphorylation). Succinate remains.", 
+            output: "GTP (equivalent to ATP), Succinate (4C)" 
+        },
+        6: { 
+            title: "Fumarate Formation", 
+            carbon: "4-Carbon Stage", 
+            desc: "Succinate is oxidized to fumarate. The electrons removed here are of lower energy, so they are transferred to FAD instead of NAD+, creating FADH₂.", 
+            output: "FADH₂ (Electron Carrier), Fumarate (4C)" 
+        },
+        7: { 
+            title: "Malate Formation", 
+            carbon: "4-Carbon Stage", 
+            desc: "A water molecule is added across the double bond of fumarate, rearranging its bonds to form another 4-carbon compound, malate.", 
+            output: "Malate (4C)" 
+        },
+        8: { 
+            title: "Oxaloacetate Formation", 
+            carbon: "4-Carbon Stage", 
+            desc: "In the final oxidation step, malate is oxidized to regenerate oxaloacetate, the starting 4-carbon acceptor. One last molecule of NAD+ is reduced to NADH.", 
+            output: "NADH, Oxaloacetate (4C) - Ready to restart!" 
+        }
+    };
+
+    function updateKrebsStep(stepNum) {
+        // Update nodes
+        document.querySelectorAll('.krebs-node').forEach(el => el.classList.remove('active-krebs'));
+        document.getElementById(`k-node-${stepNum}`).classList.add('active-krebs');
+
+        // Fetch data
+        const data = krebsStepsData[stepNum];
+
+        // Animate detail panel
+        const container = document.getElementById('krebs-detail-container');
+        container.classList.remove('fade-in');
+        
+        setTimeout(() => {
+            document.getElementById('k-step-num').innerText = stepNum;
+            document.getElementById('k-title').innerText = data.title;
+            document.getElementById('k-carbon').innerText = data.carbon;
+            document.getElementById('k-desc').innerText = data.desc;
+            document.getElementById('k-output').innerText = data.output;
+            container.classList.add('fade-in');
+        }, 50);
+    }
+
+    // --- Interaction Logic ---
+    
+    function updateStageDetails(stageKey) {
+        // Reset node styles
+        document.querySelectorAll('.pathway-node').forEach(el => {
+            el.classList.remove('active-node', 'border-emerald-500');
+            el.classList.add('border-stone-200');
+        });
+        
+        // Activate selected node
+        const activeNode = document.getElementById(`btn-${stageKey}`);
+        activeNode.classList.remove('border-stone-200');
+        activeNode.classList.add('active-node');
+
+        // Fetch data
+        const data = stagesData[stageKey];
+
+        // Animate content out and in
+        const contentDiv = document.getElementById('detail-content');
+        contentDiv.classList.remove('fade-in');
+        
+        // Slight delay to allow reflow for animation
+        setTimeout(() => {
+            document.getElementById('detail-badge').className = `px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${data.badgeColor}`;
+            document.getElementById('detail-badge').innerText = data.badge;
+            document.getElementById('detail-title').innerText = data.title;
+            document.getElementById('detail-desc').innerText = data.desc;
+            
+            document.getElementById('detail-inputs').innerHTML = data.inputs.map(i => `<li>${i}</li>`).join('');
+            document.getElementById('detail-outputs').innerHTML = data.outputs.map(i => `<li>${i}</li>`).join('');
+            
+            document.getElementById('detail-significance').innerText = data.significance;
+            document.getElementById('detail-higher').innerText = data.higherBiology;
+            
+            contentDiv.classList.add('fade-in');
+        }, 50);
+    }
+
+    function setRespirationType(type) {
+        const tabAerobic = document.getElementById('tab-aerobic');
+        const tabAnaerobic = document.getElementById('tab-anaerobic');
+        const contentAerobic = document.getElementById('content-aerobic');
+        const contentAnaerobic = document.getElementById('content-anaerobic');
+
+        if (type === 'aerobic') {
+            tabAerobic.className = "flex-1 py-4 px-6 text-center font-bold text-emerald-700 bg-emerald-50 border-b-2 border-emerald-500 transition-colors";
+            tabAnaerobic.className = "flex-1 py-4 px-6 text-center font-bold text-stone-500 bg-stone-50 border-b-2 border-transparent hover:bg-stone-100 transition-colors cursor-pointer";
+            contentAerobic.classList.remove('hidden');
+            contentAnaerobic.classList.add('hidden');
+        } else {
+            tabAnaerobic.className = "flex-1 py-4 px-6 text-center font-bold text-rose-700 bg-rose-50 border-b-2 border-rose-500 transition-colors";
+            tabAerobic.className = "flex-1 py-4 px-6 text-center font-bold text-stone-500 bg-stone-50 border-b-2 border-transparent hover:bg-stone-100 transition-colors cursor-pointer";
+            contentAnaerobic.classList.remove('hidden');
+            contentAerobic.classList.add('hidden');
+        }
+    }
+
+    // --- Chart.js Initialization ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('atpChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Glycolysis', 'Link Reaction', 'Krebs Cycle', 'Electron Transport Chain'],
+                datasets: [{
+                    label: 'Net ATP Produced',
+                    data: [2, 0, 2, 34],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.6)',  // Emerald 500
+                        'rgba(244, 63, 94, 0.4)',   // Rose 500
+                        'rgba(244, 63, 94, 0.6)',   // Rose 500
+                        'rgba(2, 132, 199, 0.8)'    // Sky 600
+                    ],
+                    borderColor: [
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(244, 63, 94, 1)',
+                        'rgba(244, 63, 94, 1)',
+                        'rgba(2, 132, 199, 1)'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 25, 23, 0.9)', // stone-900
+                        titleFont: { family: 'Inter', size: 14 },
+                        bodyFont: { family: 'Inter', size: 13 },
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + ' ATP';
+                                }
+                                return label;
+                            },
+                            afterBody: function(context) {
+                                const stage = context[0].label;
+                                if(stage === 'Glycolysis') return '\nOccurs in Cytoplasm.\nNet 2 ATP + 2 NADH.';
+                                if(stage === 'Link Reaction') return '\nOccurs in Matrix.\nYields 0 ATP, but makes NADH.';
+                                if(stage === 'Krebs Cycle') return '\nOccurs in Matrix.\nYields 2 ATP + carriers.';
+                                if(stage === 'Electron Transport Chain') return '\nOccurs in Cristae.\nMassive payoff via chemiosmosis.';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 40,
+                        grid: {
+                            color: 'rgba(231, 229, 228, 0.5)', // stone-200
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#78716c', // stone-500
+                            font: { family: 'Inter' }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Number of ATP Molecules',
+                            color: '#57534e', // stone-600
+                            font: { family: 'Inter', weight: 'bold' }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#57534e',
+                            font: { family: 'Inter', weight: 'bold' },
+                            callback: function(value) {
+                                // Wrap long labels logic
+                                const label = this.getLabelForValue(value);
+                                if (label.length > 16) {
+                                    const words = label.split(' ');
+                                    let wrapped = [];
+                                    let line = '';
+                                    words.forEach(word => {
+                                        if ((line + word).length > 16) {
+                                            wrapped.push(line.trim());
+                                            line = '';
+                                        }
+                                        line += word + ' ';
+                                    });
+                                    wrapped.push(line.trim());
+                                    return wrapped;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
