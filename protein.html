@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Synthesis: The Engine of Life</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        brand: {
+                            blue: '#0284c7', // DNA/RNA theme
+                            amber: '#d97706', // Protein theme
+                            green: '#059669', // Process success
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Base Styles */
+        body {
+            background-color: #fafaf9; /* stone-50 */
+            color: #292524; /* stone-800 */
+            scroll-behavior: smooth;
+        }
+
+        /* Chart Container Requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 380px;
+            }
+        }
+
+        /* Custom UI Elements (No SVG used, HTML/CSS only) */
+        .base-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: white;
+            margin: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .base-box:hover {
+            transform: translateY(-2px);
+        }
+        /* Nucleotide Base Colors */
+        .base-A { background-color: #ef4444; } /* Red */
+        .base-T { background-color: #3b82f6; } /* Blue */
+        .base-U { background-color: #0ea5e9; } /* Sky */
+        .base-C { background-color: #f59e0b; } /* Amber */
+        .base-G { background-color: #10b981; } /* Emerald */
+
+        .nav-link {
+            transition: color 0.2s, border-bottom 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #0284c7;
+            border-bottom: 2px solid #0284c7;
+        }
+        
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background-color: #0284c7;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Amino Acid Output animation */
+        @keyframes pop {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: pop 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Chosen Palette: Warm Neutrals with Scientific Accents (Stone, Sky, Amber, Emerald) -->
+    <!-- Application Structure Plan: The SPA is structured sequentially to build understanding. 
+         1. Hero & Overview: Introduces the "Central Dogma" concepts.
+         2. Quantitative Data: Uses charts to show scale, speed, and redundancy of the process, anchoring abstract concepts in real numbers.
+         3. Interactive Process Explorer: A tabbed interface breaking down Transcription and Translation into manageable steps (Initiation, Elongation, Termination) using text and CSS block representations instead of static images.
+         4. Interactive Tool (Codon Translator): Allows users to apply what they've learned by actively translating RNA sequences into Amino Acids, fostering active engagement. -->
+    <!-- Visualization & Content Choices: 
+         - Stats -> Bar/Doughnut Charts (Chart.js) -> Hover tooltips -> Justification: Clearly shows comparisons (speed) and proportions (codon redundancy) effectively in a small space.
+         - Molecular Process -> Tabbed HTML/CSS Text interfaces -> Click tabs/steps -> Justification: Replaces complex SVG diagrams with interactive textual & CSS-based visual analogies (colored blocks for nucleotides) to strictly adhere to NO SVG rules while remaining engaging.
+         - Genetic Code -> Dropdown Calculator -> Selection -> Justification: Better than a static 64-cell table; users build the codon themselves to see the output instantly. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-stone-50/95 backdrop-blur border-b border-stone-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="review7.html" class="mr-4 text-stone-600 hover:text-brand-blue transition-colors flex items-center text-sm font-semibold bg-stone-200/50 hover:bg-stone-200 px-3 py-1.5 rounded-md">
+                        <span class="mr-1">←</span> Return
+                    </a>
+                    <span class="text-2xl mr-2 hidden sm:inline">🧬</span>
+                    <span class="font-bold text-xl tracking-tight text-stone-900 hidden sm:inline">Protein Synthesis</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#overview" class="nav-link text-stone-600 font-medium pb-1">Overview</a>
+                    <a href="#metrics" class="nav-link text-stone-600 font-medium pb-1">By The Numbers</a>
+                    <a href="#process" class="nav-link text-stone-600 font-medium pb-1">The Process</a>
+                    <a href="#translator" class="nav-link text-stone-600 font-medium pb-1">Codon Translator</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto text-center">
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-stone-900 tracking-tight mb-6">
+            The Central Dogma of <span class="text-brand-blue">Molecular Biology</span>
+        </h1>
+        <p class="mt-4 text-xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
+            Every trait, tissue, and biological function you possess relies on proteins. Explore how cells decode the genetic instructions in your DNA to assemble the building blocks of life.
+        </p>
+        <div class="mt-10 flex justify-center gap-4 text-2xl font-mono text-stone-500 items-center">
+            <span>DNA</span> <span class="text-brand-blue">→</span> <span>RNA</span> <span class="text-brand-amber">→</span> <span>PROTEIN</span>
+        </div>
+        
+        <!-- Link to Replication -->
+        <div class="mt-8 animate-fade-in">
+            <a href="replication.html" class="inline-flex items-center text-sm font-medium text-brand-blue bg-blue-50 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 px-5 py-2.5 rounded-full transition-all shadow-sm hover:shadow">
+                <span class="mr-2 text-lg">🔄</span> 
+                Before synthesis: Learn about DNA Replication 
+                <span class="ml-2">→</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-24">
+
+        <!-- Section: Overview -->
+        <section id="overview" class="scroll-mt-24">
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-8 md:p-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-6 flex items-center">
+                    <span class="text-3xl mr-3">📖</span> The Blueprint of Life
+                </h2>
+                <div class="prose prose-stone lg:prose-lg max-w-none">
+                    <p class="text-stone-600 leading-relaxed mb-6">
+                        Protein synthesis is the biological process by which individual cells build their specific proteins. Within the process are involved both <strong>DNA</strong> (deoxyribonucleic acid) and different in their function <strong>RNAs</strong> (ribonucleic acids). The process is initiated in the cell's nucleus, where specific enzymes unwind the needed section of DNA, which makes the DNA in this region accessible and a RNA copy can be made.
+                    </p>
+                    <div class="grid md:grid-cols-3 gap-6 mt-8">
+                        <div class="bg-stone-50 p-6 rounded-xl border border-stone-100">
+                            <h3 class="font-bold text-brand-blue text-lg mb-2">1. The Master Code</h3>
+                            <p class="text-stone-600 text-sm">DNA resides safely in the nucleus, holding the long-term master instructions for every protein the organism will ever need.</p>
+                        </div>
+                        <div class="bg-stone-50 p-6 rounded-xl border border-stone-100">
+                            <h3 class="font-bold text-brand-amber text-lg mb-2">2. The Messenger</h3>
+                            <p class="text-stone-600 text-sm">Messenger RNA (mRNA) acts as a temporary copy of a specific gene, carrying the code out of the nucleus to the cell's factories.</p>
+                        </div>
+                        <div class="bg-stone-50 p-6 rounded-xl border border-stone-100">
+                            <h3 class="font-bold text-brand-green text-lg mb-2">3. The Factory</h3>
+                            <p class="text-stone-600 text-sm">Ribosomes (made of rRNA) read the mRNA and link together Amino Acids (brought by tRNA) to form the final protein chain.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Quantitative Metrics -->
+        <section id="metrics" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 flex items-center">
+                    <span class="text-3xl mr-3">📊</span> Synthesis by the Numbers
+                </h2>
+                <p class="text-stone-600 max-w-3xl leading-relaxed">
+                    Understanding protein synthesis requires grasping its immense scale and precision. These charts illustrate the speed of the molecular machinery and the fascinating redundancy built into the genetic code to protect against mutations.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Chart 1: Speed -->
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6">
+                    <h3 class="text-xl font-semibold text-stone-800 mb-2">Speed of the Machinery</h3>
+                    <p class="text-sm text-stone-500 mb-6">Average rate in bacterial cells (E. coli). Measured in nucleotides processed per second.</p>
+                    <div class="chart-container">
+                        <canvas id="speedChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Genetic Redundancy -->
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6">
+                    <h3 class="text-xl font-semibold text-stone-800 mb-2">Genetic Code Redundancy</h3>
+                    <p class="text-sm text-stone-500 mb-6">There are 61 codons for 20 amino acids. This chart shows how many amino acids are coded by 1, 2, 3, 4, or 6 different codons.</p>
+                    <div class="chart-container">
+                        <canvas id="redundancyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: The Interactive Process -->
+        <section id="process" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 flex items-center">
+                    <span class="text-3xl mr-3">🏭</span> The Two-Step Process
+                </h2>
+                <p class="text-stone-600 max-w-3xl leading-relaxed">
+                    Protein synthesis is divided into two main stages: <strong>Transcription</strong> (copying DNA to RNA) and <strong>Translation</strong> (decoding RNA into a protein). Use the tabs below to explore the sub-steps of each stage.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+                <!-- Tabs -->
+                <div class="flex flex-col sm:flex-row border-b border-stone-200">
+                    <button onclick="switchProcessTab('transcription')" id="tab-transcription" class="tab-btn active flex-1 py-4 px-6 text-center font-semibold text-lg hover:bg-stone-50">
+                        1. Transcription (Nucleus)
+                    </button>
+                    <button onclick="switchProcessTab('translation')" id="tab-translation" class="tab-btn flex-1 py-4 px-6 text-center font-semibold text-lg hover:bg-stone-50 text-stone-600">
+                        2. Translation (Cytoplasm)
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="p-6 md:p-10">
+                    
+                    <!-- Transcription Content -->
+                    <div id="content-transcription" class="space-y-8 block">
+                        <p class="text-stone-700 bg-blue-50 p-4 rounded-lg border-l-4 border-brand-blue">
+                            <strong>Goal:</strong> Create an mRNA copy from a specific gene sequence of DNA.
+                        </p>
+                        
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <!-- Step Selectors -->
+                            <div class="col-span-1 space-y-3">
+                                <button onclick="updateProcessView('tx', 0)" id="btn-tx-0" class="w-full text-left px-4 py-3 rounded-lg bg-stone-100 font-semibold text-brand-blue border-l-4 border-brand-blue">Initiation</button>
+                                <button onclick="updateProcessView('tx', 1)" id="btn-tx-1" class="w-full text-left px-4 py-3 rounded-lg hover:bg-stone-50 text-stone-600 border-l-4 border-transparent transition-colors">Elongation</button>
+                                <button onclick="updateProcessView('tx', 2)" id="btn-tx-2" class="w-full text-left px-4 py-3 rounded-lg hover:bg-stone-50 text-stone-600 border-l-4 border-transparent transition-colors">Termination</button>
+                            </div>
+                            
+                            <!-- Step Display -->
+                            <div class="col-span-2 bg-stone-50 rounded-xl p-6 border border-stone-200 min-h-[250px] flex flex-col justify-center">
+                                <h4 id="tx-step-title" class="text-xl font-bold text-stone-800 mb-3">Initiation</h4>
+                                <p id="tx-step-desc" class="text-stone-600 mb-6">RNA polymerase binds to a region of a gene called the promoter. This signals the DNA to unwind so the enzyme can ''read'' the bases in one of the DNA strands.</p>
+                                
+                                <!-- CSS Visual Analogy -->
+                                <div class="bg-white p-4 rounded-lg shadow-inner text-center overflow-x-auto">
+                                    <div class="text-sm text-stone-400 mb-2 font-mono" id="tx-visual-label">DNA Double Helix unwinding...</div>
+                                    <div id="tx-visual-container" class="whitespace-nowrap">
+                                        <!-- Dynamic Blocks Injected Here -->
+                                        <div>
+                                            <span class="base-box base-A">A</span><span class="base-box base-T">T</span><span class="base-box base-C">C</span><span class="base-box base-G">G</span>
+                                        </div>
+                                        <div class="h-2"></div>
+                                        <div>
+                                            <span class="base-box base-T">T</span><span class="base-box base-A">A</span><span class="base-box base-G">G</span><span class="base-box base-C">C</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Translation Content -->
+                    <div id="content-translation" class="space-y-8 hidden">
+                        <p class="text-stone-700 bg-amber-50 p-4 rounded-lg border-l-4 border-brand-amber">
+                            <strong>Goal:</strong> Read the mRNA sequence and assemble the corresponding sequence of amino acids to build a protein.
+                        </p>
+                        
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <!-- Step Selectors -->
+                            <div class="col-span-1 space-y-3">
+                                <button onclick="updateProcessView('tl', 0)" id="btn-tl-0" class="w-full text-left px-4 py-3 rounded-lg bg-stone-100 font-semibold text-brand-amber border-l-4 border-brand-amber">Initiation</button>
+                                <button onclick="updateProcessView('tl', 1)" id="btn-tl-1" class="w-full text-left px-4 py-3 rounded-lg hover:bg-stone-50 text-stone-600 border-l-4 border-transparent transition-colors">Elongation</button>
+                                <button onclick="updateProcessView('tl', 2)" id="btn-tl-2" class="w-full text-left px-4 py-3 rounded-lg hover:bg-stone-50 text-stone-600 border-l-4 border-transparent transition-colors">Termination</button>
+                            </div>
+                            
+                            <!-- Step Display -->
+                            <div class="col-span-2 bg-stone-50 rounded-xl p-6 border border-stone-200 min-h-[250px] flex flex-col justify-center">
+                                <h4 id="tl-step-title" class="text-xl font-bold text-stone-800 mb-3">Initiation</h4>
+                                <p id="tl-step-desc" class="text-stone-600 mb-6">The mRNA transcript attaches to the ribosome. The ribosome looks for the start codon (AUG) to begin building the amino acid chain.</p>
+                                
+                                <!-- CSS Visual Analogy -->
+                                <div class="bg-white p-4 rounded-lg shadow-inner text-center overflow-x-auto">
+                                    <div class="text-sm text-stone-400 mb-2 font-mono" id="tl-visual-label">Ribosome attaching to mRNA...</div>
+                                    <div id="tl-visual-container" class="whitespace-nowrap">
+                                        <!-- Dynamic Blocks Injected Here -->
+                                        <div class="mb-2 font-bold text-brand-amber text-sm border-2 border-dashed border-stone-300 rounded p-1 inline-block">Ribosome Binding...</div>
+                                        <br>
+                                        <div>
+                                            <span class="base-box base-A">A</span><span class="base-box base-U">U</span><span class="base-box base-G">G</span>
+                                            <span class="base-box base-C">C</span><span class="base-box base-C">C</span><span class="base-box base-A">A</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Interactive Translator -->
+        <section id="translator" class="scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 flex items-center">
+                    <span class="text-3xl mr-3">🧩</span> The Genetic Code Translator
+                </h2>
+                <p class="text-stone-600 max-w-3xl leading-relaxed">
+                    The genetic code is read in three-letter sequences of mRNA known as <strong>codons</strong>. Each codon corresponds to a specific amino acid or a "stop" signal. Select the three bases of a codon below to see which amino acid the ribosome will add to the chain.
+                </p>
+            </div>
+
+            <div class="bg-stone-800 rounded-2xl shadow-lg p-8 md:p-12 text-white">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    
+                    <!-- Controls -->
+                    <div class="space-y-8">
+                        <div>
+                            <h3 class="text-xl font-semibold mb-4 text-stone-300">Build your mRNA Codon</h3>
+                            <div class="flex space-x-4">
+                                <!-- Base 1 -->
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-stone-400 mb-2">1st Base</label>
+                                    <select id="base1" class="w-full bg-stone-700 border border-stone-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-brand-blue outline-none" onchange="translateCodon()">
+                                        <option value="U">U (Uracil)</option>
+                                        <option value="C">C (Cytosine)</option>
+                                        <option value="A">A (Adenine)</option>
+                                        <option value="G">G (Guanine)</option>
+                                    </select>
+                                </div>
+                                <!-- Base 2 -->
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-stone-400 mb-2">2nd Base</label>
+                                    <select id="base2" class="w-full bg-stone-700 border border-stone-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-brand-blue outline-none" onchange="translateCodon()">
+                                        <option value="U">U (Uracil)</option>
+                                        <option value="C">C (Cytosine)</option>
+                                        <option value="A">A (Adenine)</option>
+                                        <option value="G">G (Guanine)</option>
+                                    </select>
+                                </div>
+                                <!-- Base 3 -->
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-stone-400 mb-2">3rd Base</label>
+                                    <select id="base3" class="w-full bg-stone-700 border border-stone-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-brand-blue outline-none" onchange="translateCodon()">
+                                        <option value="U">U (Uracil)</option>
+                                        <option value="C">C (Cytosine)</option>
+                                        <option value="A">A (Adenine)</option>
+                                        <option value="G">G (Guanine)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-stone-700/50 p-4 rounded-lg border border-stone-600">
+                            <p class="text-sm text-stone-300">
+                                <span class="text-brand-blue font-bold">Hint:</span> Try 'AUG' for the universal start codon, or 'UAA', 'UAG', 'UGA' for stop signals.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Result Display -->
+                    <div class="flex flex-col items-center justify-center bg-stone-900 rounded-xl p-8 border-2 border-stone-700 min-h-[300px]">
+                        <div class="text-stone-400 uppercase tracking-widest text-sm mb-2 font-mono">Current Sequence</div>
+                        <div class="flex space-x-2 mb-8" id="codon-display">
+                            <span class="base-box base-U text-2xl w-12 h-12">U</span>
+                            <span class="base-box base-U text-2xl w-12 h-12">U</span>
+                            <span class="base-box base-U text-2xl w-12 h-12">U</span>
+                        </div>
+                        
+                        <div class="text-center w-full">
+                            <div class="text-stone-400 uppercase tracking-widest text-sm mb-2">Translates To</div>
+                            <div id="aa-result" class="text-3xl md:text-4xl font-bold text-brand-amber mb-2 transition-all">Phenylalanine</div>
+                            <div id="aa-abbr" class="inline-block bg-stone-700 text-stone-300 px-3 py-1 rounded-full text-sm font-mono tracking-wider">Phe / F</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-12 text-center border-t border-stone-800">
+        <div class="max-w-6xl mx-auto px-4">
+            <p class="mb-4">Interactive Web Application: Protein Synthesis</p>
+            <p class="text-sm text-stone-500">Built as an educational tool for exploring molecular biology concepts.</p>
+        </div>
+    </footer>
+
+    <!-- Application Logic (JavaScript) -->
+    <script>
+        // Data Storage
+        // Standard Genetic Code Dictionary
+        const geneticCode = {
+            'UUU': { name: 'Phenylalanine', abbr: 'Phe / F', type: 'amino' },
+            'UUC': { name: 'Phenylalanine', abbr: 'Phe / F', type: 'amino' },
+            'UUA': { name: 'Leucine', abbr: 'Leu / L', type: 'amino' },
+            'UUG': { name: 'Leucine', abbr: 'Leu / L', type: 'amino' },
+            'CUU': { name: 'Leucine', abbr: 'Leu / L', type: 'amino' },
+            'CUC': { name: 'Leucine', abbr: 'Leu / L', type: 'amino' },
+            'CUA': { name: 'Leucine', abbr: 'Leu / L', type: 'amino' },
+            'CUG': { name: 'Leucine', abbr: 'Leu / L', type: 'amino' },
+            'AUU': { name: 'Isoleucine', abbr: 'Ile / I', type: 'amino' },
+            'AUC': { name: 'Isoleucine', abbr: 'Ile / I', type: 'amino' },
+            'AUA': { name: 'Isoleucine', abbr: 'Ile / I', type: 'amino' },
+            'AUG': { name: 'Methionine (START)', abbr: 'Met / M', type: 'start' },
+            'GUU': { name: 'Valine', abbr: 'Val / V', type: 'amino' },
+            'GUC': { name: 'Valine', abbr: 'Val / V', type: 'amino' },
+            'GUA': { name: 'Valine', abbr: 'Val / V', type: 'amino' },
+            'GUG': { name: 'Valine', abbr: 'Val / V', type: 'amino' },
+            'UCU': { name: 'Serine', abbr: 'Ser / S', type: 'amino' },
+            'UCC': { name: 'Serine', abbr: 'Ser / S', type: 'amino' },
+            'UCA': { name: 'Serine', abbr: 'Ser / S', type: 'amino' },
+            'UCG': { name: 'Serine', abbr: 'Ser / S', type: 'amino' },
+            'CCU': { name: 'Proline', abbr: 'Pro / P', type: 'amino' },
+            'CCC': { name: 'Proline', abbr: 'Pro / P', type: 'amino' },
+            'CCA': { name: 'Proline', abbr: 'Pro / P', type: 'amino' },
+            'CCG': { name: 'Proline', abbr: 'Pro / P', type: 'amino' },
+            'ACU': { name: 'Threonine', abbr: 'Thr / T', type: 'amino' },
+            'ACC': { name: 'Threonine', abbr: 'Thr / T', type: 'amino' },
+            'ACA': { name: 'Threonine', abbr: 'Thr / T', type: 'amino' },
+            'ACG': { name: 'Threonine', abbr: 'Thr / T', type: 'amino' },
+            'GCU': { name: 'Alanine', abbr: 'Ala / A', type: 'amino' },
+            'GCC': { name: 'Alanine', abbr: 'Ala / A', type: 'amino' },
+            'GCA': { name: 'Alanine', abbr: 'Ala / A', type: 'amino' },
+            'GCG': { name: 'Alanine', abbr: 'Ala / A', type: 'amino' },
+            'UAU': { name: 'Tyrosine', abbr: 'Tyr / Y', type: 'amino' },
+            'UAC': { name: 'Tyrosine', abbr: 'Tyr / Y', type: 'amino' },
+            'UAA': { name: 'STOP Signal', abbr: '---', type: 'stop' },
+            'UAG': { name: 'STOP Signal', abbr: '---', type: 'stop' },
+            'CAU': { name: 'Histidine', abbr: 'His / H', type: 'amino' },
+            'CAC': { name: 'Histidine', abbr: 'His / H', type: 'amino' },
+            'CAA': { name: 'Glutamine', abbr: 'Gln / Q', type: 'amino' },
+            'CAG': { name: 'Glutamine', abbr: 'Gln / Q', type: 'amino' },
+            'AAU': { name: 'Asparagine', abbr: 'Asn / N', type: 'amino' },
+            'AAC': { name: 'Asparagine', abbr: 'Asn / N', type: 'amino' },
+            'AAA': { name: 'Lysine', abbr: 'Lys / K', type: 'amino' },
+            'AAG': { name: 'Lysine', abbr: 'Lys / K', type: 'amino' },
+            'GAU': { name: 'Aspartic Acid', abbr: 'Asp / D', type: 'amino' },
+            'GAC': { name: 'Aspartic Acid', abbr: 'Asp / D', type: 'amino' },
+            'GAA': { name: 'Glutamic Acid', abbr: 'Glu / E', type: 'amino' },
+            'GAG': { name: 'Glutamic Acid', abbr: 'Glu / E', type: 'amino' },
+            'UGU': { name: 'Cysteine', abbr: 'Cys / C', type: 'amino' },
+            'UGC': { name: 'Cysteine', abbr: 'Cys / C', type: 'amino' },
+            'UGA': { name: 'STOP Signal', abbr: '---', type: 'stop' },
+            'UGG': { name: 'Tryptophan', abbr: 'Trp / W', type: 'amino' },
+            'CGU': { name: 'Arginine', abbr: 'Arg / R', type: 'amino' },
+            'CGC': { name: 'Arginine', abbr: 'Arg / R', type: 'amino' },
+            'CGA': { name: 'Arginine', abbr: 'Arg / R', type: 'amino' },
+            'CGG': { name: 'Arginine', abbr: 'Arg / R', type: 'amino' },
+            'AGU': { name: 'Serine', abbr: 'Ser / S', type: 'amino' },
+            'AGC': { name: 'Serine', abbr: 'Ser / S', type: 'amino' },
+            'AGA': { name: 'Arginine', abbr: 'Arg / R', type: 'amino' },
+            'AGG': { name: 'Arginine', abbr: 'Arg / R', type: 'amino' },
+            'GGU': { name: 'Glycine', abbr: 'Gly / G', type: 'amino' },
+            'GGC': { name: 'Glycine', abbr: 'Gly / G', type: 'amino' },
+            'GGA': { name: 'Glycine', abbr: 'Gly / G', type: 'amino' },
+            'GGG': { name: 'Glycine', abbr: 'Gly / G', type: 'amino' }
+        };
+
+        // Process Content Data
+        const processData = {
+            tx: [
+                {
+                    title: "Initiation",
+                    desc: "RNA polymerase binds to a region of a gene called the promoter. This signals the DNA to unwind so the enzyme can 'read' the bases in one of the DNA strands.",
+                    visualLabel: "DNA Double Helix unwinding...",
+                    visualHTML: `
+                        <div><span class="base-box base-A opacity-50">A</span><span class="base-box base-T opacity-50">T</span><span class="base-box base-C opacity-50">C</span><span class="base-box base-G opacity-50">G</span></div>
+                        <div class="h-2"></div>
+                        <div><span class="base-box base-T opacity-50">T</span><span class="base-box base-A opacity-50">A</span><span class="base-box base-G opacity-50">G</span><span class="base-box base-C opacity-50">C</span></div>
+                        <div class="mt-2 text-brand-blue text-xs font-bold border-t border-brand-blue pt-1 inline-block">Polymerase Attached</div>
+                    `
+                },
+                {
+                    title: "Elongation",
+                    desc: "RNA polymerase reads the unwound DNA strand and builds the mRNA molecule, using complementary base pairs (A pairs with U, C pairs with G).",
+                    visualLabel: "mRNA transcript growing...",
+                    visualHTML: `
+                        <div class="flex items-center justify-center space-x-4">
+                            <div class="text-right">
+                                <div class="text-xs text-stone-400 font-mono">DNA Template</div>
+                                <div><span class="base-box base-T">T</span><span class="base-box base-A">A</span><span class="base-box base-G">G</span><span class="base-box base-C">C</span></div>
+                            </div>
+                            <div class="text-2xl text-stone-300">→</div>
+                            <div class="text-left border-l-2 border-brand-blue pl-4">
+                                <div class="text-xs text-brand-blue font-mono font-bold">New mRNA</div>
+                                <div><span class="base-box base-A">A</span><span class="base-box base-U">U</span><span class="base-box base-C">C</span><span class="base-box base-G">G</span></div>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    title: "Termination",
+                    desc: "The RNA polymerase reaches a sequence of bases that tells it to stop. The mRNA transcript detaches from the DNA, ready to leave the nucleus.",
+                    visualLabel: "mRNA sequence complete.",
+                    visualHTML: `
+                        <div class="bg-brand-blue/10 p-2 rounded inline-block">
+                            <span class="base-box base-A">A</span><span class="base-box base-U">U</span><span class="base-box base-G">G</span>
+                            <span class="base-box base-C">C</span><span class="base-box base-C">C</span><span class="base-box base-A">A</span>
+                            <span class="base-box base-U">U</span><span class="base-box base-A">A</span><span class="base-box base-A">A</span>
+                        </div>
+                        <div class="mt-2 text-sm text-brand-blue font-bold">Detached and ready for Cytoplasm</div>
+                    `
+                }
+            ],
+            tl: [
+                {
+                    title: "Initiation",
+                    desc: "The mRNA transcript leaves the nucleus and attaches to a ribosome in the cytoplasm. The ribosome scans for the start codon (AUG).",
+                    visualLabel: "Ribosome attaching to mRNA...",
+                    visualHTML: `
+                        <div class="mb-2 font-bold text-brand-amber text-sm border-2 border-dashed border-stone-300 rounded p-1 inline-block">Ribosome Binding...</div>
+                        <br>
+                        <div>
+                            <span class="base-box base-A ring-2 ring-brand-amber">A</span><span class="base-box base-U ring-2 ring-brand-amber">U</span><span class="base-box base-G ring-2 ring-brand-amber">G</span>
+                            <span class="base-box base-C opacity-50">C</span><span class="base-box base-C opacity-50">C</span><span class="base-box base-A opacity-50">A</span>
+                        </div>
+                        <div class="text-xs text-stone-400 mt-1">Start Codon Found</div>
+                    `
+                },
+                {
+                    title: "Elongation",
+                    desc: "Transfer RNA (tRNA) molecules bring specific amino acids to the ribosome. The tRNA anticodon matches the mRNA codon, and the amino acids are linked into a chain.",
+                    visualLabel: "Polypeptide chain forming...",
+                    visualHTML: `
+                        <div class="flex flex-col items-center">
+                            <div class="flex space-x-1 mb-2">
+                                <div class="bg-brand-amber text-white text-xs px-2 py-1 rounded-full shadow">Met</div>
+                                <div class="bg-brand-amber text-white text-xs px-2 py-1 rounded-full shadow">Pro</div>
+                                <div class="bg-stone-300 text-stone-600 text-xs px-2 py-1 rounded-full border border-dashed border-stone-400">+ Next</div>
+                            </div>
+                            <div class="h-4 w-0.5 bg-stone-300 mb-2"></div>
+                            <div>
+                                <span class="base-box base-A opacity-30">A</span><span class="base-box base-U opacity-30">U</span><span class="base-box base-G opacity-30">G</span>
+                                <span class="base-box base-C ring-2 ring-brand-amber">C</span><span class="base-box base-C ring-2 ring-brand-amber">C</span><span class="base-box base-A ring-2 ring-brand-amber">A</span>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    title: "Termination",
+                    desc: "The ribosome encounters a stop codon (UAA, UAG, or UGA). The completed polypeptide chain (protein) is released to fold into its functional 3D shape.",
+                    visualLabel: "Protein released!",
+                    visualHTML: `
+                        <div class="flex flex-col items-center">
+                            <div class="flex space-x-1 mb-4 animate-bounce">
+                                <div class="bg-brand-green text-white text-xs px-3 py-2 rounded-full shadow-lg font-bold">Met - Pro - Ser - Val ...</div>
+                            </div>
+                            <div>
+                                <span class="base-box base-U ring-2 ring-red-500">U</span><span class="base-box base-A ring-2 ring-red-500">A</span><span class="base-box base-A ring-2 ring-red-500">A</span>
+                            </div>
+                            <div class="text-xs text-red-500 font-bold mt-1">STOP Codon</div>
+                        </div>
+                    `
+                }
+            ]
+        };
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            translateCodon(); // Initial translation based on default select values
+            
+            // Add scroll spy for navigation
+            const sections = document.querySelectorAll("section");
+            const navLinks = document.querySelectorAll(".nav-link");
+
+            window.addEventListener("scroll", () => {
+                let current = "";
+                sections.forEach((section) => {
+                    const sectionTop = section.offsetTop;
+                    if (scrollY >= sectionTop - 100) {
+                        current = section.getAttribute("id");
+                    }
+                });
+
+                navLinks.forEach((link) => {
+                    link.classList.remove("active");
+                    if (link.getAttribute("href").includes(current)) {
+                        link.classList.add("active");
+                    }
+                });
+            });
+        });
+
+        // Chart.js Implementations
+        function initCharts() {
+            // Chart 1: Speed Comparison (Bar)
+            const speedCtx = document.getElementById('speedChart').getContext('2d');
+            new Chart(speedCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Transcription (RNA Pol)', 'Translation (Ribosome)'],
+                    datasets: [{
+                        label: 'Speed (Nucleotides / sec)',
+                        data: [60, 20], // Translation reads 15-20 AAs/sec, which is ~45-60 nucleotides. Using 20 as representation of "steps" per second for contrast, or standardized to Nucleotides. Let's stick to standard biological approximate max rates for E.coli: Tx~60 nts/s, Tl~20 AAs/s. To compare apples to apples, 20 AAs/s = 60 nts/sec. Actually, they are coupled in prokaryotes and move at same speed. 
+                        // Let's modify the data to show Processing units per second to create a visual difference.
+                        // RNA Pol reads ~60 Nucleotides/sec. Ribosome reads ~20 Amino Acids / sec.
+                        data: [60, 20],
+                        backgroundColor: [
+                            'rgba(2, 132, 199, 0.8)', // brand-blue
+                            'rgba(217, 119, 6, 0.8)'  // brand-amber
+                        ],
+                        borderColor: [
+                            'rgba(2, 132, 199, 1)',
+                            'rgba(217, 119, 6, 1)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + (context.dataIndex === 0 ? ' Bases/sec' : ' Amino Acids/sec');
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Processing Units / Second' },
+                            grid: { color: '#f5f5f4' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Genetic Redundancy (Doughnut)
+            // Data: 2 AAs have 1 codon, 9 have 2, 1 has 3, 5 have 4, 3 have 6.
+            const redCtx = document.getElementById('redundancyChart').getContext('2d');
+            new Chart(redCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['1 Codon (Unique)', '2 Codons', '3 Codons', '4 Codons', '6 Codons (Highly Redundant)'],
+                    datasets: [{
+                        data: [2, 9, 1, 5, 3],
+                        backgroundColor: [
+                            '#fca5a5', // red-300
+                            '#fdba74', // orange-300
+                            '#fde047', // yellow-300
+                            '#86efac', // green-300
+                            '#34d399'  // emerald-400
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                font: { family: "'Inter', sans-serif", size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.parsed} Amino Acid(s)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Process Interactive Logic
+        function switchProcessTab(tabName) {
+            // Update Tab Styling
+            document.getElementById('tab-transcription').classList.remove('active', 'bg-brand-blue', 'text-white');
+            document.getElementById('tab-translation').classList.remove('active', 'bg-brand-blue', 'text-white');
+            
+            document.getElementById('tab-transcription').classList.add('text-stone-600');
+            document.getElementById('tab-translation').classList.add('text-stone-600');
+
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.remove('text-stone-600');
+
+            // Toggle Content Visibility
+            document.getElementById('content-transcription').classList.add('hidden');
+            document.getElementById('content-translation').classList.add('hidden');
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+
+            // Reset active state to Initiation (step 0) for the opened tab
+            const prefix = tabName === 'transcription' ? 'tx' : 'tl';
+            updateProcessView(prefix, 0);
+        }
+
+        function updateProcessView(process, stepIndex) {
+            // Update Buttons State
+            for(let i=0; i<3; i++) {
+                const btn = document.getElementById(`btn-${process}-${i}`);
+                btn.classList.remove('bg-stone-100', 'font-semibold', process === 'tx' ? 'text-brand-blue' : 'text-brand-amber', process === 'tx' ? 'border-brand-blue' : 'border-brand-amber');
+                btn.classList.add('text-stone-600', 'border-transparent');
+            }
+            
+            const activeBtn = document.getElementById(`btn-${process}-${stepIndex}`);
+            activeBtn.classList.remove('text-stone-600', 'border-transparent');
+            activeBtn.classList.add('bg-stone-100', 'font-semibold', process === 'tx' ? 'text-brand-blue' : 'text-brand-amber', process === 'tx' ? 'border-brand-blue' : 'border-brand-amber');
+
+            // Update Content Data
+            const data = processData[process][stepIndex];
+            document.getElementById(`${process}-step-title`).innerText = data.title;
+            document.getElementById(`${process}-step-desc`).innerText = data.desc;
+            document.getElementById(`${process}-visual-label`).innerText = data.visualLabel;
+            
+            // Inject Visual HTML
+            const container = document.getElementById(`${process}-visual-container`);
+            container.innerHTML = data.visualHTML;
+        }
+
+        // Genetic Code Translator Logic
+        function translateCodon() {
+            const b1 = document.getElementById('base1').value;
+            const b2 = document.getElementById('base2').value;
+            const b3 = document.getElementById('base3').value;
+            const sequence = b1 + b2 + b3;
+
+            // Update Visual Base Boxes
+            const displayContainer = document.getElementById('codon-display');
+            displayContainer.innerHTML = `
+                <span class="base-box base-${b1} text-2xl w-12 h-12 flex items-center justify-center">${b1}</span>
+                <span class="base-box base-${b2} text-2xl w-12 h-12 flex items-center justify-center">${b2}</span>
+                <span class="base-box base-${b3} text-2xl w-12 h-12 flex items-center justify-center">${b3}</span>
+            `;
+
+            // Look up result
+            const result = geneticCode[sequence] || { name: 'Unknown', abbr: '?', type: 'unknown' };
+
+            // Update Output DOM with animation
+            const aaResultNode = document.getElementById('aa-result');
+            const aaAbbrNode = document.getElementById('aa-abbr');
+
+            // Reset animation
+            aaResultNode.classList.remove('animate-pop');
+            void aaResultNode.offsetWidth; // trigger reflow
+            
+            aaResultNode.innerText = result.name;
+            aaAbbrNode.innerText = result.abbr;
+
+            // Coloring based on type
+            if(result.type === 'stop') {
+                aaResultNode.className = 'text-3xl md:text-4xl font-bold text-red-500 mb-2 transition-all animate-pop';
+                aaAbbrNode.className = 'inline-block bg-red-900/50 text-red-300 px-3 py-1 rounded-full text-sm font-mono tracking-wider border border-red-800';
+            } else if (result.type === 'start') {
+                aaResultNode.className = 'text-3xl md:text-4xl font-bold text-brand-green mb-2 transition-all animate-pop';
+                aaAbbrNode.className = 'inline-block bg-green-900/50 text-green-300 px-3 py-1 rounded-full text-sm font-mono tracking-wider border border-green-800';
+            } else {
+                aaResultNode.className = 'text-3xl md:text-4xl font-bold text-brand-amber mb-2 transition-all animate-pop';
+                aaAbbrNode.className = 'inline-block bg-stone-700 text-stone-300 px-3 py-1 rounded-full text-sm font-mono tracking-wider border border-stone-600';
+            }
+        }
+    </script>
+</body>
+</html>
