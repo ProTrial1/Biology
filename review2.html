@@ -390,11 +390,21 @@
                         
                         <div class="bg-stone-50 p-4 rounded-xl border border-stone-200 text-sm text-stone-700 font-mono">
                             <h4 class="font-bold text-stone-800 font-sans text-lg mb-2">Key Indices</h4>
-                            <p class="mb-2"><strong class="text-blue-600">Shannon Index (H'):</strong> <br> H' = - &Sigma; (p<sub>i</sub> &times; ln(p<sub>i</sub>))</p>
-                            <p class="text-xs text-stone-500 font-sans mb-3">Accounts for both richness and evenness. Higher value = higher diversity (typically 1.5 to 3.5).</p>
                             
-                            <p class="mb-2"><strong class="text-purple-600">Simpson's Index of Diversity (1-D):</strong> <br> 1 - D = 1 - &Sigma; (p<sub>i</sub><sup>2</sup>)</p>
-                            <p class="text-xs text-stone-500 font-sans">Probability that two randomly selected individuals belong to different species. Ranges from 0 (no diversity) to 1 (infinite diversity).</p>
+                            <p class="mb-1"><strong class="text-emerald-600">Shannon (H'):</strong> - &Sigma; (p<sub>i</sub> &times; ln(p<sub>i</sub>))</p>
+                            <p class="text-xs text-stone-500 font-sans mb-3">Accounts for richness and evenness.</p>
+                            
+                            <p class="mb-1"><strong class="text-blue-600">Simpson (1-D):</strong> 1 - &Sigma; (p<sub>i</sub><sup>2</sup>)</p>
+                            <p class="text-xs text-stone-500 font-sans mb-3">Probability 2 individuals are different.</p>
+
+                            <p class="mb-1"><strong class="text-amber-600">Simpson Dom (1/D):</strong> 1 / &Sigma; (p<sub>i</sub><sup>2</sup>)</p>
+                            <p class="text-xs text-stone-500 font-sans mb-3">Effective number of equally common species.</p>
+
+                            <p class="mb-1"><strong class="text-orange-600">Berger-Parker (BP):</strong> N<sub>max</sub> / N</p>
+                            <p class="text-xs text-stone-500 font-sans mb-3">Proportional abundance of the most abundant species.</p>
+
+                            <p class="mb-1"><strong class="text-purple-600">Pielou's Evenness (J'):</strong> H' / ln(S)</p>
+                            <p class="text-xs text-stone-500 font-sans">Measures how even the community is (0 to 1).</p>
                         </div>
                     </div>
 
@@ -431,20 +441,32 @@
                             
                             <div class="w-full grid grid-cols-2 gap-2 text-center">
                                 <div class="bg-stone-800 p-2 rounded border border-stone-700">
-                                    <div class="text-[10px] text-stone-400 uppercase tracking-widest">Richness (S)</div>
-                                    <div class="text-xl font-black text-white" id="out-richness">4</div>
+                                    <div class="text-[10px] text-stone-400 uppercase tracking-widest">Total (N)</div>
+                                    <div class="text-lg font-black text-white" id="out-total">200</div>
                                 </div>
                                 <div class="bg-stone-800 p-2 rounded border border-stone-700">
-                                    <div class="text-[10px] text-stone-400 uppercase tracking-widest">Total Indiv. (N)</div>
-                                    <div class="text-xl font-black text-white" id="out-total">200</div>
+                                    <div class="text-[10px] text-stone-400 uppercase tracking-widest">Richness (S)</div>
+                                    <div class="text-lg font-black text-white" id="out-richness">4</div>
                                 </div>
                                 <div class="bg-stone-800 p-2 rounded border border-stone-700">
                                     <div class="text-[10px] text-stone-400 uppercase tracking-widest">Shannon (H')</div>
-                                    <div class="text-xl font-black text-emerald-400" id="out-shannon">1.39</div>
+                                    <div class="text-lg font-black text-emerald-400" id="out-shannon">1.39</div>
                                 </div>
                                 <div class="bg-stone-800 p-2 rounded border border-stone-700">
                                     <div class="text-[10px] text-stone-400 uppercase tracking-widest">Simpson (1-D)</div>
-                                    <div class="text-xl font-black text-blue-400" id="out-simpson">0.75</div>
+                                    <div class="text-lg font-black text-blue-400" id="out-simpson">0.75</div>
+                                </div>
+                                <div class="bg-stone-800 p-2 rounded border border-stone-700">
+                                    <div class="text-[10px] text-stone-400 uppercase tracking-widest">Simp Dom (1/D)</div>
+                                    <div class="text-lg font-black text-amber-400" id="out-simp-dom">4.00</div>
+                                </div>
+                                <div class="bg-stone-800 p-2 rounded border border-stone-700">
+                                    <div class="text-[10px] text-stone-400 uppercase tracking-widest">Berger-P (BP)</div>
+                                    <div class="text-lg font-black text-orange-400" id="out-berger">0.25</div>
+                                </div>
+                                <div class="bg-stone-800 p-2 rounded border border-stone-700 col-span-2">
+                                    <div class="text-[10px] text-stone-400 uppercase tracking-widest">Pielou's Evenness (J')</div>
+                                    <div class="text-lg font-black text-purple-400" id="out-pielou">1.00</div>
                                 </div>
                             </div>
                         </div>
@@ -1064,10 +1086,12 @@
                 
                 let shannon = 0;
                 let simpsonD = 0;
+                let maxN = 0;
 
                 if (N > 0) {
                     n.forEach(val => {
                         if (val > 0) {
+                            if (val > maxN) maxN = val;
                             const p = val / N;
                             shannon -= (p * Math.log(p));
                             simpsonD += (p * p);
@@ -1075,12 +1099,18 @@
                     });
                 }
                 const simpsonIndex = N > 0 ? (1 - simpsonD) : 0;
+                const simpsonDominance = (N > 0 && simpsonD > 0) ? (1 / simpsonD) : 0;
+                const bergerParker = N > 0 ? (maxN / N) : 0;
+                const pielouEvenness = (richness > 1) ? (shannon / Math.log(richness)) : 0;
 
                 // Update DOM Outputs
                 document.getElementById('out-total').innerText = N;
                 document.getElementById('out-richness').innerText = richness;
                 document.getElementById('out-shannon').innerText = shannon.toFixed(2);
                 document.getElementById('out-simpson').innerText = simpsonIndex.toFixed(2);
+                document.getElementById('out-simp-dom').innerText = simpsonDominance.toFixed(2);
+                document.getElementById('out-berger').innerText = bergerParker.toFixed(2);
+                document.getElementById('out-pielou').innerText = pielouEvenness.toFixed(2);
 
                 // Update Chart
                 bioChart.data.datasets[0].data = n;
