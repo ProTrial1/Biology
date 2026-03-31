@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Cellular Blueprint: Anatomy & Division</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    scroll-behavior: smooth;
+}
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 300px;
+    max-height: 400px;
+}
+@media (min-width: 768px) {
+    .chart-container {
+        height: 350px;
+    }
+}
+.nav-item.active {
+    color: #10b981;
+    border-bottom: 2px solid #10b981;
+}
+.interactive-btn {
+    transition: all 0.2s ease-in-out;
+}
+.interactive-btn.active {
+    background-color: #10b981;
+    color: white;
+    transform: scale(1.02);
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);
+    border-color: #10b981;
+}
+.mode-btn.active {
+    background-color: #6366f1;
+    color: white;
+    border-color: #6366f1;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9; 
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; 
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+    animation: spin 2s linear infinite;
+}
+/* Toast Animations */
+.toast-enter {
+    transform: translateY(100%);
+    opacity: 0;
+}
+.toast-enter-active {
+    transform: translateY(0);
+    opacity: 1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toast-exit {
+    transform: translateY(0);
+    opacity: 1;
+}
+.toast-exit-active {
+    transform: translateY(100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>
+</head>
+<body class="antialiased">
+
+<!-- Chosen Palette: Vitality & Growth (Emerald Green #10b981, Indigo #6366f1, Amber #f59e0b, Rose #f43f5e, Slate #0f172a, #f8fafc) -->
+
+<!-- TOP MODULE SWITCHER RIBBON (Added before main body content) -->
+<div class="bg-slate-900 text-slate-300 py-2 border-b border-slate-800 text-xs relative z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-2 items-center justify-center md:justify-start">
+        <span class="font-semibold text-slate-500 mr-2 uppercase tracking-wider flex items-center gap-1">
+            <span class="text-[10px]">&#128218;</span> Related Modules:
+        </span>
+        <button onclick="showToast('Navigating to DNA Replication module...')" class="bg-slate-800 hover:bg-indigo-600 hover:text-white px-3 py-1 rounded-full transition-colors duration-200 focus:outline-none">Replication</button>
+        <button onclick="showToast('Navigating to Photosynthesis module...')" class="bg-slate-800 hover:bg-emerald-600 hover:text-white px-3 py-1 rounded-full transition-colors duration-200 focus:outline-none">Photosynthesis</button>
+        <button onclick="showToast('Navigating to Cellular Respiration module...')" class="bg-slate-800 hover:bg-amber-600 hover:text-white px-3 py-1 rounded-full transition-colors duration-200 focus:outline-none">Cellular Respiration</button>
+        <button onclick="showToast('Navigating to Cell Transport module...')" class="bg-slate-800 hover:bg-sky-600 hover:text-white px-3 py-1 rounded-full transition-colors duration-200 focus:outline-none">Cell Transport</button>
+        <button onclick="showToast('Navigating to Cell Metabolism module...')" class="bg-slate-800 hover:bg-rose-600 hover:text-white px-3 py-1 rounded-full transition-colors duration-200 focus:outline-none">Cell Metabolism</button>
+    </div>
+</div>
+
+<nav class="sticky top-0 z-40 bg-white/95 backdrop-blur shadow-sm border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-3xl text-emerald-500">&#129420;</span>
+                <span class="font-bold text-xl tracking-tight text-slate-800">Bio<span class="text-emerald-500">Cell</span></span>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#anatomy" class="nav-item text-sm font-semibold text-slate-600 hover:text-emerald-500 py-2 transition-colors">Anatomy</a>
+                <a href="#cycle" class="nav-item text-sm font-semibold text-slate-600 hover:text-emerald-500 py-2 transition-colors">Cell Cycle</a>
+                <a href="#division" class="nav-item text-sm font-semibold text-slate-600 hover:text-emerald-500 py-2 transition-colors">Division</a>
+                <a href="#quiz-section" class="nav-item text-sm font-semibold text-slate-600 hover:text-emerald-500 py-2 transition-colors">✨ AI Quiz</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<header class="bg-slate-900 text-white py-20 md:py-28 px-4 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#10b981 2px, transparent 2px); background-size: 30px 30px;"></div>
+    <div class="absolute top-10 left-10 w-64 h-64 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+    <div class="absolute bottom-10 right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+    
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">The Cellular Blueprint</h1>
+        <p class="text-xl md:text-2xl text-slate-300 font-light max-w-3xl mx-auto">An interactive guide to the complete anatomy, structures, and reproductive cycles of living cells.</p>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-24">
+
+    <!-- SECTION 1: ANATOMY -->
+    <section id="anatomy" class="scroll-mt-24">
+        <div class="mb-10 text-center max-w-3xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4">Cellular Anatomy Explorer</h2>
+            <p class="text-lg text-slate-600">A cell consists of a protective cell membrane, a jelly-like cytoplasm, and genetic material. Select an organelle to explore and ask our AI any questions you have.</p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden mb-16">
+            <div class="grid grid-cols-1 md:grid-cols-12 h-auto md:h-[600px]">
+                <div class="md:col-span-4 bg-slate-50 border-r border-slate-100 p-4 flex flex-col h-full max-h-[400px] md:max-h-full">
+                    <h3 class="font-bold text-slate-500 text-sm uppercase tracking-wider mb-3 px-2">Core Structures</h3>
+                    <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2 pb-4">
+                        <div id="organelle-list"></div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-8 p-6 md:p-12 flex flex-col bg-white overflow-y-auto custom-scrollbar" id="organelle-display">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cell Type Comparison -->
+        <div>
+            <h3 class="text-3xl font-bold text-slate-800 mb-8 text-center">Key Differences: Comparing Cell Types</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-2xl shadow-lg border-t-4 border-rose-500 p-8 flex flex-col hover:-translate-y-1 transition-transform">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="text-4xl">&#129427;</span>
+                        <h4 class="text-2xl font-bold text-slate-800">Animal Cells</h4>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-6 flex-grow">Eukaryotic cells that make up animal tissues. Highly flexible and compartmentalized.</p>
+                    <ul class="space-y-4 bg-slate-50 p-4 rounded-xl">
+                        <li class="flex items-start gap-3"><span class="text-rose-500 font-bold">&#10003;</span><span class="text-sm text-slate-700">Contain <strong>Lysosomes</strong> for waste removal.</span></li>
+                        <li class="flex items-start gap-3"><span class="text-rose-500 font-bold">&#10003;</span><span class="text-sm text-slate-700">Contain <strong>Centrosomes</strong> for cell division.</span></li>
+                        <li class="flex items-start gap-3"><span class="text-slate-400 font-bold">&#10007;</span><span class="text-sm text-slate-700"><strong>Lack</strong> a rigid Cell Wall.</span></li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg border-t-4 border-emerald-500 p-8 flex flex-col hover:-translate-y-1 transition-transform">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="text-4xl">&#127807;</span>
+                        <h4 class="text-2xl font-bold text-slate-800">Plant Cells</h4>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-6 flex-grow">Eukaryotic cells engineered for structural stability and autotrophic energy production.</p>
+                    <ul class="space-y-4 bg-slate-50 p-4 rounded-xl">
+                        <li class="flex items-start gap-3"><span class="text-emerald-500 font-bold">&#10003;</span><span class="text-sm text-slate-700">Contain a rigid <strong>Cell Wall</strong> (cellulose).</span></li>
+                        <li class="flex items-start gap-3"><span class="text-emerald-500 font-bold">&#10003;</span><span class="text-sm text-slate-700">Contain <strong>Chloroplasts</strong> for photosynthesis.</span></li>
+                        <li class="flex items-start gap-3"><span class="text-emerald-500 font-bold">&#10003;</span><span class="text-sm text-slate-700">Feature a large <strong>Central Vacuole</strong>.</span></li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg border-t-4 border-indigo-500 p-8 flex flex-col hover:-translate-y-1 transition-transform">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="text-4xl">&#129440;</span>
+                        <h4 class="text-2xl font-bold text-slate-800">Prokaryotic Cells</h4>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-6 flex-grow">Structurally simpler, evolutionarily older cells, characteristic of Bacteria.</p>
+                    <ul class="space-y-4 bg-slate-50 p-4 rounded-xl">
+                        <li class="flex items-start gap-3"><span class="text-slate-400 font-bold">&#10007;</span><span class="text-sm text-slate-700"><strong>Lack</strong> a true nucleus.</span></li>
+                        <li class="flex items-start gap-3"><span class="text-slate-400 font-bold">&#10007;</span><span class="text-sm text-slate-700"><strong>Lack</strong> membrane-bound organelles.</span></li>
+                        <li class="flex items-start gap-3"><span class="text-indigo-500 font-bold">&#10003;</span><span class="text-sm text-slate-700">Store DNA in an unbound <strong>nucleoid region</strong>.</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: CELL CYCLE -->
+    <section id="cycle" class="scroll-mt-24">
+        <div class="mb-10 text-center max-w-3xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4">The Cell Cycle & Regulation</h2>
+            <p class="text-lg text-slate-600">The life of a cell is meticulously timed and regulated by cyclins and CDKs. The vast majority of a cell's existence is spent in Interphase preparing for the dramatic event of division.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-white rounded-3xl shadow-xl border border-slate-100 p-8 md:p-12">
+            <div class="space-y-6">
+                <div class="border-l-4 border-emerald-500 pl-4 bg-emerald-50/50 p-3 rounded-r-lg">
+                    <h3 class="text-xl font-bold text-emerald-900">G1 Phase (First Gap)</h3>
+                    <p class="text-slate-700 text-sm mt-1">Cell growth and normal metabolic roles. The <strong>G1 Checkpoint</strong> ensures conditions are favorable and DNA is undamaged.</p>
+                </div>
+                <div class="border-l-4 border-indigo-500 pl-4 bg-indigo-50/50 p-3 rounded-r-lg">
+                    <h3 class="text-xl font-bold text-indigo-900">S Phase (Synthesis)</h3>
+                    <p class="text-slate-700 text-sm mt-1">DNA replication occurs. Every single chromosome is duplicated to form two identical sister chromatids.</p>
+                </div>
+                <div class="border-l-4 border-amber-500 pl-4 bg-amber-50/50 p-3 rounded-r-lg">
+                    <h3 class="text-xl font-bold text-amber-900">G2 Phase (Second Gap)</h3>
+                    <p class="text-slate-700 text-sm mt-1">Final growth and preparation for division. The <strong>G2 Checkpoint</strong> confirms DNA replication was completely successful and error-free.</p>
+                </div>
+                <div class="border-l-4 border-rose-500 pl-4 bg-rose-50/50 p-3 rounded-r-lg">
+                    <h3 class="text-xl font-bold text-rose-900">M Phase (Mitotic Phase)</h3>
+                    <p class="text-slate-700 text-sm mt-1">Mitosis (nuclear division) and Cytokinesis. The <strong>M Checkpoint</strong> ensures all chromosomes are properly attached to spindle fibers.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                <h3 class="text-center font-bold text-slate-700 mb-2">Temporal Distribution</h3>
+                <p class="text-center text-xs text-slate-500 mb-6">Approximate time spent in each phase (standard 24h cycle).</p>
+                <div class="chart-container">
+                    <canvas id="cycleChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: DIVISION MECHANICS -->
+    <section id="division" class="scroll-mt-24">
+        <div class="mb-10 text-center max-w-3xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4">Division Mechanics</h2>
+            <p class="text-lg text-slate-600">Cells divide via two primary processes. <strong>Mitosis</strong> ensures exact somatic cloning for growth and repair, while <strong>Meiosis</strong> generates unique haploid gametes for sexual reproduction.</p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 mb-12">
+            <h3 class="text-2xl font-bold text-slate-800 mb-8 text-center">Division Outcome Comparison</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                <div class="lg:col-span-2 chart-container">
+                    <canvas id="divisionChart"></canvas>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+                        <h4 class="font-bold text-indigo-800 mb-1 text-lg">Mitosis Outcome</h4>
+                        <p class="text-sm text-indigo-900/80">1 parent cell divides once to produce <strong>2 genetically identical, diploid (2n)</strong> somatic cells.</p>
+                    </div>
+                    <div class="bg-amber-50 p-5 rounded-xl border border-amber-100">
+                        <h4 class="font-bold text-amber-800 mb-1 text-lg">Meiosis Outcome</h4>
+                        <p class="text-sm text-amber-900/80">1 parent cell divides twice to produce <strong>4 genetically distinct, haploid (n)</strong> germ cells.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Phase Explorer -->
+        <div class="bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800 relative">
+            <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 10px 10px; background-size: 20px 20px;"></div>
+            
+            <div class="p-8 md:p-12 relative z-10">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+                    <div>
+                        <h3 class="text-3xl font-bold text-white mb-2">Interactive Phase Explorer</h3>
+                        <p class="text-slate-400">Select a division type to explore the molecular mechanics of each phase.</p>
+                    </div>
+                    <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+                        <button onclick="setDivisionMode('mitosis')" id="mode-mitosis" class="mode-btn active px-6 py-3 rounded-lg font-bold text-sm transition-all text-slate-300">Mitosis</button>
+                        <button onclick="setDivisionMode('meiosis')" id="mode-meiosis" class="mode-btn px-6 py-3 rounded-lg font-bold text-sm transition-all text-slate-300">Meiosis</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 h-auto md:h-[450px]">
+                    <div class="md:col-span-4 bg-slate-800/80 rounded-2xl p-4 border border-slate-700 h-full max-h-[300px] md:max-h-full">
+                        <div id="phase-list" class="flex flex-col gap-2 h-full overflow-y-auto custom-scrollbar pr-2">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-8 bg-slate-800/80 border border-slate-700 rounded-2xl p-6 md:p-8 flex flex-col justify-between overflow-y-auto custom-scrollbar" id="phase-content">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: AI PRACTICE QUIZ -->
+    <section id="quiz-section" class="scroll-mt-24 pb-12">
+        <div class="bg-gradient-to-br from-indigo-50 to-emerald-50 rounded-3xl shadow-xl border border-indigo-100 p-8 md:p-16 text-center">
+            <h2 class="text-3xl md:text-5xl font-bold text-indigo-950 mb-4">Test Your Knowledge</h2>
+            <p class="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">Ready to see what you've learned? Our AI Biologist will generate a custom 3-question multiple-choice quiz based on the material in this guide.</p>
+            
+            <div id="quiz-container" class="max-w-3xl mx-auto text-left mb-8 space-y-6">
+                <!-- Quiz dynamically injected here -->
+            </div>
+
+            <button onclick="generateQuiz()" id="btn-generate-quiz" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-indigo-500/30 inline-flex items-center gap-2">
+                <span id="quiz-btn-icon">✨</span> Generate AI Quiz
+            </button>
+        </div>
+    </section>
+
+</main>
+
+<footer class="bg-slate-900 py-12 border-t border-slate-800 text-center">
+    <div class="max-w-4xl mx-auto px-4">
+        <h4 class="text-slate-100 text-xl font-bold mb-4">BioCell Interactive Learning</h4>
+        <p class="text-slate-400 text-sm">@MightyChondria 2026</p>
+    </div>
+</footer>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+<script>
+// --- GEMINI API CONFIGURATION ---
+const apiKey = ""; // API key will be injected by the environment
+
+// Fetch utility with exponential backoff
+async function fetchWithRetry(url, options, maxRetries = 5) {
+    let delay = 1000;
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (e) {
+            if (i === maxRetries - 1) throw e;
+            await new Promise(res => setTimeout(res, delay));
+            delay *= 2;
+        }
+    }
+}
+
+// AI Chatbot Function
+async function askAI(contextType, contextName) {
+    const inputId = `ai-input-${contextType}`;
+    const responseId = `ai-response-${contextType}`;
+    const inputEl = document.getElementById(inputId);
+    const responseEl = document.getElementById(responseId);
+    
+    const question = inputEl.value.trim();
+    if (!question) return;
+
+    inputEl.disabled = true;
+    responseEl.classList.remove('hidden');
+    responseEl.innerHTML = `<span class="flex items-center gap-2 text-indigo-600"><span class="inline-block animate-spin-slow">✨</span> Thinking...</span>`;
+
+    const prompt = `You are an expert, encouraging biology tutor. The user is learning about "${contextName}" in a cell biology app. Answer their question concisely in 2-3 sentences. Question: ${question}`;
+
+    try {
+        const result = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: "You are a helpful biology AI assistant. Do not use markdown." }] }
+            })
+        });
+        
+        const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that response.";
+        responseEl.innerHTML = `<div class="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm text-slate-700"><strong>AI Biologist:</strong> ${text}</div>`;
+    } catch (error) {
+        responseEl.innerHTML = `<span class="text-rose-600">Error connecting to the AI. Please try again.</span>`;
+    } finally {
+        inputEl.disabled = false;
+        inputEl.value = '';
+    }
+}
+
+// AI Quiz Generator Function
+async function generateQuiz() {
+    const btn = document.getElementById('btn-generate-quiz');
+    const container = document.getElementById('quiz-container');
+    const icon = document.getElementById('quiz-btn-icon');
+    
+    btn.disabled = true;
+    icon.innerHTML = '⟳';
+    icon.classList.add('inline-block', 'animate-spin-slow');
+    btn.innerHTML = `<span id="quiz-btn-icon" class="inline-block animate-spin-slow">⟳</span> Generating...`;
+    
+    container.innerHTML = `<div class="text-center text-indigo-600 py-8"><span class="inline-block animate-spin-slow text-4xl mb-4">✨</span><p>Crafting your custom biology quiz...</p></div>`;
+
+    const prompt = `Generate a 3-question multiple choice quiz about Cell Biology. Cover topics from Organelles, Mitosis, and Meiosis. Ensure one correct answer per question.`;
+    
+    const schema = {
+        type: "OBJECT",
+        properties: {
+            questions: {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        question: { type: "STRING" },
+                        options: { type: "ARRAY", items: { type: "STRING" } },
+                        correctAnswer: { type: "STRING" },
+                        explanation: { type: "STRING" }
+                    },
+                    required: ["question", "options", "correctAnswer", "explanation"]
+                }
+            }
+        },
+        required: ["questions"]
+    };
+
+    try {
+        const result = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                }
+            })
+        });
+
+        const data = JSON.parse(result.candidates[0].content.parts[0].text);
+        renderQuiz(data.questions);
+    } catch (error) {
+        container.innerHTML = `<div class="text-center bg-rose-50 text-rose-600 p-6 rounded-xl border border-rose-200">Failed to generate quiz. Please check your connection and try again.</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span id="quiz-btn-icon">✨</span> Generate Another Quiz`;
+    }
+}
+
+function renderQuiz(questions) {
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = '';
+    
+    questions.forEach((q, qIndex) => {
+        let optionsHtml = '';
+        q.options.forEach((opt, oIndex) => {
+            const isCorrect = opt === q.correctAnswer;
+            optionsHtml += `
+                <button onclick="handleQuizAnswer(this, ${isCorrect}, '${q.explanation.replace(/'/g, "\\'")}')" class="w-full text-left p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors mb-2 text-slate-700 font-medium option-btn">
+                    ${opt}
+                </button>
+            `;
+        });
+
+        container.innerHTML += `
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-slate-100 quiz-question-block">
+                <h4 class="text-xl font-bold text-slate-800 mb-4"><span class="text-indigo-500 mr-2">Q${qIndex + 1}.</span>${q.question}</h4>
+                <div class="options-container">
+                    ${optionsHtml}
+                </div>
+                <div class="explanation-container hidden mt-4 p-4 rounded-lg text-sm"></div>
+            </div>
+        `;
+    });
+}
+
+function handleQuizAnswer(btn, isCorrect, explanation) {
+    const container = btn.closest('.quiz-question-block');
+    const allBtns = container.querySelectorAll('.option-btn');
+    const explContainer = container.querySelector('.explanation-container');
+    
+    allBtns.forEach(b => {
+        b.disabled = true;
+        b.classList.remove('hover:bg-slate-50', 'bg-white');
+        if(b === btn) {
+            b.classList.add(isCorrect ? 'bg-emerald-100' : 'bg-rose-100', isCorrect ? 'border-emerald-500' : 'border-rose-500');
+        } else {
+            b.classList.add('bg-slate-50', 'opacity-50');
+        }
+    });
+
+    explContainer.classList.remove('hidden');
+    if(isCorrect) {
+        explContainer.classList.add('bg-emerald-50', 'text-emerald-800', 'border', 'border-emerald-200');
+        explContainer.innerHTML = `<strong>✨ Correct!</strong> ${explanation}`;
+    } else {
+        explContainer.classList.add('bg-rose-50', 'text-rose-800', 'border', 'border-rose-200');
+        explContainer.innerHTML = `<strong>Not quite.</strong> ${explanation}`;
+    }
+}
+
+// --- UTILITY & TOAST SYSTEM ---
+function showToast(message) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'bg-slate-800 text-white px-6 py-3 rounded-lg shadow-xl border border-slate-700 flex items-center gap-3 toast-enter';
+    toast.innerHTML = `<span class="text-emerald-400 text-lg">&#10024;</span> <span>${message}</span>`;
+    
+    container.appendChild(toast);
+    
+    // Trigger entrance animation
+    requestAnimationFrame(() => {
+        toast.classList.remove('toast-enter');
+        toast.classList.add('toast-enter-active');
+    });
+
+    // Remove entrance classes after animation
+    setTimeout(() => {
+        toast.classList.remove('toast-enter-active');
+    }, 300);
+
+    // Trigger exit animation and remove
+    setTimeout(() => {
+        toast.classList.add('toast-exit-active');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
+function wrapLabel(text) {
+    if (typeof text !== 'string') return text;
+    if (text.length <= 16) return text;
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+    words.forEach(word => {
+        if ((currentLine + word).length > 16) {
+            if (currentLine.length > 0) lines.push(currentLine.trim());
+            currentLine = word + ' ';
+        } else {
+            currentLine += word + ' ';
+        }
+    });
+    if (currentLine.trim().length > 0) lines.push(currentLine.trim());
+    return lines;
+}
+
+const standardTooltipConfig = {
+    callbacks: {
+        title: function(tooltipItems) {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            return Array.isArray(label) ? label.join(' ') : label;
+        }
+    }
+};
+
+// --- DATA STRUCTURES ---
+const organelleData = {
+    membrane: { title: "Cell Membrane", icon: "&#129412;", type: "Universal", tagColor: "bg-slate-200 text-slate-800", desc: "A semipermeable barrier (phospholipid bilayer) separating the inside of the cell from the outside environment." },
+    nucleus: { title: "Nucleus", icon: "&#129516;", type: "Eukaryotes Only", tagColor: "bg-indigo-100 text-indigo-700", desc: "The control center. Contains genetic material (DNA/chromatin) and controls activities like growth and reproduction." },
+    cytoplasm: { title: "Cytoplasm", icon: "&#129514;", type: "Universal", tagColor: "bg-slate-200 text-slate-800", desc: "The entire contents within the cell membrane, including the jelly-like cytosol and organelles." },
+    mitochondria: { title: "Mitochondria", icon: "&#9889;", type: "Eukaryotes Only", tagColor: "bg-amber-100 text-amber-700", desc: "Powerhouses of the cell. They generate ATP through cellular respiration." },
+    ribosome: { title: "Ribosomes", icon: "&#128300;", type: "Universal", tagColor: "bg-fuchsia-100 text-fuchsia-700", desc: "Sites of protein synthesis, found free in cytoplasm or attached to the ER." },
+    er: { title: "Endoplasmic Reticulum", icon: "&#128230;", type: "Eukaryotes Only", tagColor: "bg-blue-100 text-blue-700", desc: "Network for transporting materials. Rough ER has ribosomes (proteins); Smooth ER does not (lipids)." },
+    golgi: { title: "Golgi Apparatus", icon: "&#128230;", type: "Eukaryotes Only", tagColor: "bg-sky-100 text-sky-700", desc: "Modifies, sorts, and packages proteins and lipids." },
+    lysosome: { title: "Lysosomes", icon: "&#129529;", type: "Animal Cells", tagColor: "bg-rose-100 text-rose-700", desc: "Contain hydrolytic enzymes that digest waste and damaged cell parts." },
+    vacuole: { title: "Vacuoles", icon: "&#128167;", type: "Eukaryotes", tagColor: "bg-cyan-100 text-cyan-700", desc: "Sacs that store water, nutrients, or waste. The central vacuole in plants is massive." },
+    cytoskeleton: { title: "Cytoskeleton", icon: "&#129440;", type: "Universal", tagColor: "bg-slate-200 text-slate-800", desc: "Network of fibers (microtubules, microfilaments) providing shape and movement." },
+    wall: { title: "Cell Wall", icon: "&#129665;", type: "Plants, Bacteria", tagColor: "bg-emerald-100 text-emerald-700", desc: "A rigid outer layer (made of cellulose in plants) providing structural support." },
+    chloroplast: { title: "Chloroplasts", icon: "&#127807;", type: "Plant Cells", tagColor: "bg-emerald-100 text-emerald-700", desc: "Site of photosynthesis in plant cells." },
+    centrosome: { title: "Centrosomes", icon: "&#10042;", type: "Animal Cells", tagColor: "bg-rose-100 text-rose-700", desc: "Involved in organizing the spindle during cell division." }
+};
+
+const divisionData = {
+    mitosis: [
+        { id: 'm-pro', name: "Prophase", desc: "Chromatin fibers become tightly coiled, condensing into discrete, observable chromosomes. The nucleolus disappears. The mitotic spindle begins to form from migrating centrosomes.", highlights: ["Chromatin Condensation", "Spindle Formation"] },
+        { id: 'm-proM', name: "Prometaphase", desc: "The nuclear envelope fragments and disappears. Kinetochores form at the centromere of each chromatid. Microtubules attach to these kinetochores and begin jerking the chromosomes.", highlights: ["Envelope Breakdown", "Kinetochore Attachment"] },
+        { id: 'm-meta', name: "Metaphase", desc: "Centrosomes are at opposite poles. Motor proteins push and pull chromosomes until they convene perfectly along the metaphase plate. The M Checkpoint verifies full attachment.", highlights: ["Equatorial Alignment", "M Checkpoint"] },
+        { id: 'm-ana', name: "Anaphase", desc: "The enzyme separase cleaves cohesin proteins. The suddenly independent sister chromatids are rapidly pulled toward opposite poles as their kinetochore microtubules shorten.", highlights: ["Sister Chromatids Separate", "Shortest Phase"] },
+        { id: 'm-telo', name: "Telophase & Cytokinesis", desc: "Two sets of chromosomes reach opposite poles. New nuclear envelopes form. Chromosomes decondense. Simultaneously, Cytokinesis divides the cell via a cleavage furrow (animals) or cell plate (plants).", highlights: ["Nuclei Reform", "Cytoplasmic Division"] }
+    ],
+    meiosis: [
+        { id: 'mei-pro1', name: "Prophase I", desc: "Chromosomes condense. Homologous chromosomes physically pair up (synapsis) to form a tetrad. Non-sister chromatids intertwine at chiasmata and exchange DNA segments (Crossing Over).", highlights: ["Synapsis (Tetrads)", "Crossing Over (Recombination)"] },
+        { id: 'mei-meta1', name: "Metaphase I", desc: "Homologous pairs (tetrads) line up along the metaphase plate. The orientation of the pairs is completely random, a process known as Independent Assortment.", highlights: ["Tetrad Alignment", "Independent Assortment"] },
+        { id: 'mei-ana1', name: "Anaphase I", desc: "Spindle fibers pull the homologous chromosomes apart to opposite poles. Crucially, sister chromatids remain attached at the centromere.", highlights: ["Homologous Separation", "Chromatids Intact"] },
+        { id: 'mei-telo1', name: "Telophase I", desc: "Two haploid (n) daughter cells form. Each has only one chromosome from each homologous pair, but each chromosome still consists of two sister chromatids.", highlights: ["Haploid Cells Form", "No DNA Replication Next"] },
+        { id: 'mei-pro2', name: "Prophase II", desc: "A new spindle apparatus forms in both of the haploid cells created in Meiosis I. Chromosomes begin moving toward the metaphase II plate.", highlights: ["Spindle Reforms"] },
+        { id: 'mei-meta2', name: "Metaphase II", desc: "Chromosomes align individually on the metaphase plate. Because of crossing over in Prophase I, the two sister chromatids are not genetically identical.", highlights: ["Individual Alignment"] },
+        { id: 'mei-ana2', name: "Anaphase II", desc: "The centromeres finally split. The sister chromatids are separated and pulled to opposite poles of the cells.", highlights: ["Sister Chromatids Separate"] },
+        { id: 'mei-telo2', name: "Telophase II", desc: "Nuclei reform, chromosomes decondense, and cytokinesis occurs. The final result is four genetically unique, haploid daughter cells (gametes).", highlights: ["4 Unique Haploid Gametes"] }
+    ]
+};
+
+// --- LOGIC & RENDERING ---
+
+// 1. Anatomy Explorer Logic
+function initOrganelles() {
+    const list = document.getElementById('organelle-list');
+    list.innerHTML = '';
+    Object.keys(organelleData).forEach((key, index) => {
+        const btn = document.createElement('button');
+        btn.id = `btn-org-${key}`;
+        btn.className = `interactive-btn text-left px-4 py-3 rounded-xl font-semibold border border-slate-200 bg-white text-slate-700 text-sm ${index === 0 ? 'active text-white' : ''}`;
+        btn.innerHTML = organelleData[key].title;
+        btn.onclick = () => updateOrganelle(key);
+        list.appendChild(btn);
+    });
+    updateOrganelle(Object.keys(organelleData)[0]);
+}
+
+function updateOrganelle(key) {
+    document.querySelectorAll('[id^="btn-org-"]').forEach(btn => {
+        btn.classList.remove('active', 'text-white');
+        btn.classList.add('text-slate-700', 'bg-white');
+    });
+    const activeBtn = document.getElementById(`btn-org-${key}`);
+    activeBtn.classList.add('active', 'text-white');
+    activeBtn.classList.remove('text-slate-700', 'bg-white');
+
+    const data = organelleData[key];
+    const display = document.getElementById('organelle-display');
+    
+    display.innerHTML = `
+        <div class="flex-grow">
+            <div class="flex items-center gap-6 mb-6">
+                <div class="text-5xl bg-slate-50 p-4 rounded-2xl shadow-inner border border-slate-100 flex-shrink-0">${data.icon}</div>
+                <div>
+                    <h3 class="text-3xl font-bold text-slate-800 mb-2">${data.title}</h3>
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold border ${data.tagColor}">${data.type}</span>
+                </div>
+            </div>
+            <p class="text-lg text-slate-600 leading-relaxed mb-8">${data.desc}</p>
+        </div>
+        
+        <div class="mt-auto bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100">
+            <h4 class="text-indigo-900 font-bold mb-3 flex items-center gap-2">✨ Ask the AI Biologist</h4>
+            <div class="flex gap-2">
+                <input type="text" id="ai-input-organelle" class="flex-grow rounded-xl border border-indigo-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. What happens if ${data.title} fails?">
+                <button onclick="askAI('organelle', '${data.title}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-sm font-bold transition-colors shadow-md">Ask</button>
+            </div>
+            <div id="ai-response-organelle" class="mt-3 text-sm hidden"></div>
+        </div>
+    `;
+}
+
+// 2. Division Explorer Logic
+let currentDivisionMode = 'mitosis';
+
+function setDivisionMode(mode) {
+    currentDivisionMode = mode;
+    document.getElementById('mode-mitosis').classList.toggle('active', mode === 'mitosis');
+    document.getElementById('mode-mitosis').classList.toggle('bg-slate-700', mode !== 'mitosis');
+    document.getElementById('mode-meiosis').classList.toggle('active', mode === 'meiosis');
+    document.getElementById('mode-meiosis').classList.toggle('bg-slate-700', mode !== 'meiosis');
+    
+    renderPhaseList();
+}
+
+function renderPhaseList() {
+    const list = document.getElementById('phase-list');
+    list.innerHTML = '';
+    const phases = divisionData[currentDivisionMode];
+    
+    phases.forEach((phase, index) => {
+        const btn = document.createElement('button');
+        btn.id = `btn-phase-${index}`;
+        btn.className = `text-left px-4 py-3 rounded-xl font-semibold border transition-all text-sm ${index === 0 ? 'bg-indigo-600 border-indigo-500 text-white shadow-md' : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'}`;
+        btn.innerHTML = phase.name;
+        btn.onclick = () => updatePhaseContent(index);
+        list.appendChild(btn);
+    });
+    updatePhaseContent(0);
+}
+
+function updatePhaseContent(index) {
+    const phases = divisionData[currentDivisionMode];
+    
+    phases.forEach((_, i) => {
+        const btn = document.getElementById(`btn-phase-${i}`);
+        if(i === index) {
+            btn.className = 'text-left px-4 py-3 rounded-xl font-semibold border transition-all text-sm bg-indigo-600 border-indigo-500 text-white shadow-md transform scale-105';
+        } else {
+            btn.className = 'text-left px-4 py-3 rounded-xl font-semibold border transition-all text-sm bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600';
+        }
+    });
+
+    const data = phases[index];
+    const display = document.getElementById('phase-content');
+    
+    let highlightsHtml = data.highlights.map(hl => `<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-bold">${hl}</span>`).join('');
+
+    display.innerHTML = `
+        <div>
+            <h4 class="text-3xl font-bold text-white mb-3">${data.name}</h4>
+            <div class="flex flex-wrap gap-2 mb-6">
+                ${highlightsHtml}
+            </div>
+            <p class="text-lg text-slate-300 leading-relaxed mb-6">${data.desc}</p>
+        </div>
+        
+        <div class="mt-auto bg-slate-700/50 p-4 rounded-xl border border-slate-600">
+            <h4 class="text-indigo-300 font-bold mb-3 flex items-center gap-2 text-sm">✨ Ask about ${data.name}</h4>
+            <div class="flex gap-2">
+                <input type="text" id="ai-input-phase" class="flex-grow bg-slate-800 text-white rounded-lg border border-slate-600 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-slate-400" placeholder="e.g. Why is this phase important?">
+                <button onclick="askAI('phase', '${data.name}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">Ask</button>
+            </div>
+            <div id="ai-response-phase" class="mt-3 text-sm hidden"></div>
+        </div>
+    `;
+}
+
+// --- INITIALIZATION ---
+window.onload = () => {
+    initOrganelles();
+    setDivisionMode('mitosis');
+
+    // Chart.js Init
+    const ctxCycle = document.getElementById('cycleChart').getContext('2d');
+    new Chart(ctxCycle, {
+        type: 'doughnut',
+        data: {
+            labels: [wrapLabel('G1 Phase'), wrapLabel('S Phase'), wrapLabel('G2 Phase'), wrapLabel('M Phase')],
+            datasets: [{
+                data: [45, 35, 15, 5],
+                backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#f43f5e'],
+                borderWidth: 2, borderColor: '#ffffff', hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '65%',
+            plugins: { legend: { position: 'right' }, tooltip: standardTooltipConfig }
+        }
+    });
+
+    const ctxDivision = document.getElementById('divisionChart').getContext('2d');
+    new Chart(ctxDivision, {
+        type: 'bar',
+        data: {
+            labels: [wrapLabel('Number of Divisions'), wrapLabel('Total Daughter Cells'), wrapLabel('Ploidy Level (Sets of n)')],
+            datasets: [
+                { label: 'Mitosis', data: [1, 2, 2], backgroundColor: '#6366f1', borderRadius: 4 },
+                { label: 'Meiosis', data: [2, 4, 1], backgroundColor: '#f59e0b', borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } },
+            plugins: { legend: { position: 'top' }, tooltip: standardTooltipConfig }
+        }
+    });
+
+    // Scroll Nav logic
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('section');
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            if (pageYOffset >= (section.offsetTop - 150)) current = section.getAttribute('id');
+        });
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('href').includes(current) && current !== '') item.classList.add('active');
+        });
+    });
+};
+</script>
+</body>
+</html>
