@@ -1,617 +1,488 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  Leaf, 
-  BookOpen, 
-  Search, 
-  Menu, 
-  X, 
-  Microscope, 
-  Sprout, 
-  Dna, 
-  TreePine,
-  CheckCircle2,
-  Info,
-  ChevronRight,
-  Zap,
-  Waves,
-  Globe,
-  Activity,
-  Maximize2,
-  BookMarked,
-  Layers,
-  Sparkles,
-  Send,
-  Loader2,
-  MessageSquare,
-  RefreshCw
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Framework of Botanical Sciences</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- KaTeX for rendering scientific/math notations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
-// --- GEMINI API INTEGRATION UTILS ---
-const apiKey = ""; 
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        botany: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .content-section p { margin-bottom: 1.25rem; line-height: 1.8; color: #374151; font-family: 'Merriweather', serif;}
+        .content-section h2 { font-size: 2rem; font-weight: 700; color: #166534; margin-top: 3rem; margin-bottom: 1.5rem; border-bottom: 2px solid #dcfce7; padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+        .content-section h3 { font-size: 1.5rem; font-weight: 600; color: #15803d; margin-top: 2rem; margin-bottom: 1rem; }
+        .content-section ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; font-family: 'Merriweather', serif; color: #374151; line-height: 1.8;}
+        .content-section li { margin-bottom: 0.5rem; }
+        .content-section strong { color: #14532d; font-weight: 700; }
+        
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; margin-top: 2rem; margin-bottom: 2rem; font-family: 'Inter', sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem; overflow: hidden;}
+        th { background-color: #166534; color: white; text-align: left; padding: 1rem; font-weight: 600; }
+        td { padding: 1rem; border-bottom: 1px solid #e5e7eb; background-color: white; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background-color: #f9fafb; }
+        
+        /* Sidebar active link */
+        .toc-link.active {
+            color: #166534;
+            font-weight: 600;
+            background-color: #dcfce7;
+            border-left: 4px solid #166534;
+        }
+        .toc-link {
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+        
+        /* Hide scrollbar for sidebar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-900 flex flex-col md:flex-row min-h-screen">
 
-const callGemini = async (prompt, systemPrompt = "You are an expert botanist and academic tutor.") => {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-  
-  const payload = {
-    contents: [{ parts: [{ text: prompt }] }],
-    systemInstruction: { parts: [{ text: systemPrompt }] }
-  };
-
-  const fetchWithRetry = async (retries = 5, delay = 1000) => {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      if (retries > 0) {
-        await new Promise(resolve => setTimeout(resolve, delay));
-        return fetchWithRetry(retries - 1, delay * 2);
-      }
-      throw error;
-    }
-  };
-
-  const result = await fetchWithRetry();
-  return result.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
-};
-
-// --- DATA ---
-const STUDY_DATA = [
-  {
-    id: 'intro',
-    title: '1. Fundamentals of Botany',
-    icon: <Leaf className="w-5 h-5" />,
-    summary: "The foundational principles of plant biology, from hierarchical organization to the history of botanical science.",
-    content: `Botany, or Plant Biology, is the rigorous scientific study of organisms in the kingdom Plantae. Beyond simple classification, modern botany integrates molecular genetics, biochemistry, and ecology to understand how plants sustain life on Earth.`,
-    topics: [
-      { name: 'Hierarchical Organization', details: 'Plants are organized from atoms $\rightarrow$ molecules $\rightarrow$ organelles $\rightarrow$ cells $\rightarrow$ tissues $\rightarrow$ organs $\rightarrow$ organism.' },
-      { name: 'Primary Metabolism', details: 'The unique ability to utilize $CO_2$, $H_2O$, and photons to synthesize glucose ($C_6H_{12}O_6$).' },
-      { name: 'Botanical Disciplines', details: 'Systematics, Paleobotany, Ethnobotany, and Phytopathology.' }
-    ],
-    deepDive: {
-      title: "The Importance of Plants",
-      text: "Plants are responsible for the 'Great Oxidation Event' approximately 2.4 billion years ago, which paved the way for aerobic life. Today, they sequester gigatons of carbon annually, acting as the primary buffer against climate change."
-    }
-  },
-  {
-    id: 'cytology',
-    title: '2. Plant Cytology & Cell Cycle',
-    icon: <Microscope className="w-5 h-5" />,
-    summary: "A detailed look at the eukaryotic plant cell, unique organelles, and the mechanics of plant-specific cell division.",
-    content: `Plant cells are characterized by a rigid cell wall and a massive central vacuole. Unlike animal cells, plant cells must manage high turgor pressure and communicate through literal holes in their walls called plasmodesmata.`,
-    subsections: [
-      {
-        title: 'Organelle Specialization',
-        details: 'Specific structures for energy and storage.',
-        list: [
-          'Chloroplasts: Contain chlorophyll and thylakoids for light harvesting.',
-          'Amyloplasts: Non-pigmented plastids that store starch granules.',
-          'Large Central Vacuole: Maintains turgor pressure ($\psi_p$) and stores waste.',
-          'Plasmodesmata: Channels for symplastic transport between cells.'
-        ]
-      },
-      {
-        title: 'The Plant Cell Cycle',
-        details: 'Plants undergo mitosis similarly to animals but with two key differences: the Preprophase Band (PPB) and the Phragmoplast.',
-        list: [
-          'Preprophase Band: Predicts the future plane of cell division.',
-          'Phragmoplast: A scaffold for cell plate formation during cytokinesis.',
-          'Cell Plate: Becomes the new middle lamella and primary cell walls.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'histology',
-    title: '3. Histology & Secondary Growth',
-    icon: <Layers className="w-5 h-5" />,
-    summary: "Exploration of tissue systems and the complex process of wood formation (Secondary Growth).",
-    content: `Plant tissues are categorized into Meristematic (undifferentiated) and Permanent (differentiated) tissues. Secondary growth is what allows trees to grow in diameter, a process driven by lateral meristems.`,
-    topics: [
-      { name: 'Meristematic Zones', details: 'Apical meristems (Primary growth) vs. Lateral meristems (Secondary growth).' },
-      { name: 'Tissue Systems', details: 'Dermal (protection), Ground (bulk/metabolism), and Vascular (transport).' },
-      { name: 'Xylem vs. Phloem', details: 'Xylem moves water via negative pressure (transpiration pull); Phloem moves sap via positive pressure (source-to-sink).' }
-    ],
-    deepDive: {
-      title: "Secondary Growth & Wood",
-      text: "The Vascular Cambium produces secondary xylem (wood) to the inside and secondary phloem to the outside. The Cork Cambium produces the periderm (bark), replacing the epidermis as the plant ages."
-    }
-  },
-  {
-    id: 'morphology',
-    title: '4. Vegetative Morphology',
-    icon: <Sprout className="w-5 h-5" />,
-    summary: "The external architecture of roots, stems, and leaves, including specialized adaptations.",
-    content: `Morphology is the study of form. Plants exhibit plastic development, meaning their form can change significantly based on environmental stressors like light availability and soil moisture.`,
-    subsections: [
-      {
-        title: 'Leaf Architecture & Phyllotaxy',
-        details: 'The arrangement of leaves on a stem is mathematically optimized for light interception.',
-        list: [
-          'Alternate: One leaf per node.',
-          'Opposite: Two leaves per node.',
-          'Whorled: Three or more leaves per node.',
-          'Venation: Parallel (Monocots) vs. Reticulate (Eudicots).'
-        ]
-      },
-      {
-        title: 'Modified Organs',
-        details: 'Organs evolved for functions beyond the standard vegetative roles.',
-        list: [
-          'Rhizomes & Tubers: Underground storage and asexual reproduction.',
-          'Tendrils: Modified leaves or stems for climbing support.',
-          'Pneumatophores: Specialized roots for gas exchange in swampy soils.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'physiology',
-    title: '5. Advanced Physiology & Metabolism',
-    icon: <Waves className="w-5 h-5" />,
-    summary: "The biochemistry of photosynthesis, water potential, and the hormonal regulation of growth.",
-    content: `Physiology integrates physics and chemistry to explain plant life. Central to this is Water Potential ($\psi$), the governing force behind water movement from soil to atmosphere.`,
-    subsections: [
-      {
-        title: 'Photosynthesis Deep Dive',
-        details: 'Conversion of light energy into chemical energy occurs in two stages.',
-        list: [
-          'Light Reactions: Occur in Thylakoids; produce ATP and NADPH.',
-          'Calvin Cycle: Occurs in the Stroma; fixes $CO_2$ using RuBisCO.',
-          'C4 & CAM: Evolutionary adaptations to minimize photorespiration in hot/dry climates.'
-        ]
-      },
-      {
-        title: 'Phytohormones',
-        details: 'Chemical signals that regulate every aspect of the plant life cycle.',
-        list: [
-          'Auxins: Control cell elongation and apical dominance.',
-          'Cytokinins: Promote cell division and delay leaf senescence.',
-          'Abscisic Acid (ABA): The "stress hormone"; closes stomata during drought.',
-          'Ethylene: A gaseous hormone promoting fruit ripening.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'reproduction',
-    title: '6. Reproductive Biology',
-    icon: <Zap className="w-5 h-5" />,
-    summary: "Sexual and asexual reproduction, floral evolution, and the unique phenomenon of Double Fertilization.",
-    content: `Plants exhibit an 'Alternation of Generations' between a diploid sporophyte and a haploid gametophyte. In flowering plants, this process has become highly specialized and efficient.`,
-    topics: [
-      { name: 'The Flower', details: 'A modified shoot with four whorls: Sepals, Petals, Stamens, and Carpels.' },
-      { name: 'Double Fertilization', details: 'One sperm fuses with the egg (zygote); the other fuses with two polar nuclei to form the 3n endosperm.' },
-      { name: 'Seed Dispersal', details: 'Anemochory (wind), Hydrochory (water), and Zoochory (animals).' }
-    ]
-  },
-  {
-    id: 'taxonomy',
-    title: '7. Taxonomy & Phylogeny',
-    icon: <TreePine className="w-5 h-5" />,
-    summary: "Modern classification systems and the evolutionary history from Green Algae to Angiosperms.",
-    content: `Plant taxonomy has shifted from purely morphological descriptions to molecular phylogenetics. The APG (Angiosperm Phylogeny Group) system is the current standard for classifying flowering plants.`,
-    topics: [
-      { name: 'Cladistics', details: 'Using shared derived characters (synapomorphies) to build evolutionary trees.' },
-      { name: 'Major Clades', details: 'Bryophytes (Non-vascular), Lycophytes (Seedless vascular), Gymnosperms (Naked seeds), Angiosperms (Flowering).' },
-      { name: 'Monocots vs. Eudicots', details: 'Distinguished by cotyledon number, leaf venation, and vascular bundle arrangement.' }
-    ]
-  },
-  {
-    id: 'ecology',
-    title: '8. Plant Ecology & Ethnobotany',
-    icon: <Globe className="w-5 h-5" />,
-    summary: "Plants in ecosystems, community interactions, and the historical human use of flora.",
-    content: `Plants do not exist in isolation. They form complex symbioses with fungi (Mycorrhizae) and bacteria (Nitrogen-fixation) to survive in diverse environments.`,
-    topics: [
-      { name: 'Mycorrhizae', details: 'Mutualistic association between roots and fungi that increases nutrient absorption area.' },
-      { name: 'Plant-Herbivore Defense', details: 'Mechanical (thorns) and chemical (alkaloids, tannins) defenses.' },
-      { name: 'Ethnobotanical Applications', details: '90% of current medicine is derived from or inspired by plant secondary metabolites.' }
-    ]
-  }
-];
-
-const App = () => {
-  const [activeSectionId, setActiveSectionId] = useState(STUDY_DATA[0].id);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isReadingMode, setIsReadingMode] = useState(false);
-
-  // AI Assistant States
-  const [showAiAssistant, setShowAiAssistant] = useState(false);
-  const [aiQuery, setAiQuery] = useState('');
-  const [aiHistory, setAiHistory] = useState([]);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiError, setAiError] = useState(null);
-
-  // Section AI Insight States
-  const [sectionInsights, setSectionInsights] = useState({}); // {sectionId: insightText}
-  const [isInsightLoading, setIsInsightLoading] = useState(false);
-
-  const filteredData = useMemo(() => {
-    if (!searchTerm) return STUDY_DATA;
-    const lowerSearch = searchTerm.toLowerCase();
-    return STUDY_DATA.filter(s => 
-      s.title.toLowerCase().includes(lowerSearch) || 
-      s.summary.toLowerCase().includes(lowerSearch) ||
-      s.content.toLowerCase().includes(lowerSearch) ||
-      s.topics?.some(t => t.name.toLowerCase().includes(lowerSearch))
-    );
-  }, [searchTerm]);
-
-  const activeSection = useMemo(() => 
-    STUDY_DATA.find(s => s.id === activeSectionId) || STUDY_DATA[0]
-  , [activeSectionId]);
-
-  const handleAiAsk = async (e) => {
-    e.preventDefault();
-    if (!aiQuery.trim()) return;
-
-    const userMsg = { role: 'user', text: aiQuery };
-    setAiHistory(prev => [...prev, userMsg]);
-    setAiQuery('');
-    setIsAiLoading(true);
-    setAiError(null);
-
-    try {
-      const response = await callGemini(aiQuery);
-      setAiHistory(prev => [...prev, { role: 'ai', text: response }]);
-    } catch (err) {
-      setAiError("Failed to reach the AI Botanist. Please check your connection.");
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
-  const getSectionInsight = async () => {
-    setIsInsightLoading(true);
-    try {
-      const prompt = `Based on the following summary of a botany chapter: "${activeSection.title}: ${activeSection.summary}", provide 3 fascinating, highly technical, and lesser-known facts that would interest an advanced botany student. Keep the tone academic but engaging. Format as a clean bulleted list.`;
-      const response = await callGemini(prompt);
-      setSectionInsights(prev => ({ ...prev, [activeSection.id]: response }));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsInsightLoading(false);
-    }
-  };
-
-  return (
-    <div className={`min-h-screen font-sans text-slate-900 flex flex-col md:flex-row transition-colors duration-300 ${isReadingMode ? 'bg-orange-50/30' : 'bg-slate-50'}`}>
-      
-      {/* Mobile Header */}
-      <div className="md:hidden bg-emerald-900 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-[60]">
-        <div className="flex items-center gap-2">
-          <Leaf className="fill-emerald-400 text-emerald-400 w-5 h-5" />
-          <h1 className="font-bold text-lg tracking-tight">Botany Master</h1>
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-botany-800 text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
+        <div class="flex items-center gap-2">
+            <i class="ph-fill ph-plant text-2xl"></i>
+            <h1 class="font-bold text-lg truncate">Botanical Sciences</h1>
         </div>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 bg-white/10 rounded-lg">
-          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+        <button id="mobile-menu-btn" class="p-2 bg-botany-700 rounded-lg hover:bg-botany-600 transition">
+            <i class="ph ph-list text-xl"></i>
         </button>
-      </div>
+    </header>
 
-      {/* Sidebar Navigation */}
-      <aside className={`
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-        md:translate-x-0 transition-transform duration-300
-        fixed md:static inset-0 z-50 bg-white border-r border-slate-200 
-        w-80 flex flex-col shadow-2xl md:shadow-none
-      `}>
-        <div className="p-6 hidden md:flex items-center gap-3 border-b border-slate-100 bg-white">
-          <div className="bg-emerald-600 p-2 rounded-xl shadow-lg shadow-emerald-200">
-            <Leaf className="text-white w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="font-black text-lg text-emerald-950 leading-none">Botany Master</h1>
-            <p className="text-[10px] text-emerald-600 font-bold tracking-widest mt-1">COMPETENCY GUIDE</p>
-          </div>
-        </div>
-
-        <div className="p-4 border-b border-slate-50 bg-slate-50/50">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-emerald-600 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Quick find..." 
-              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 overflow-y-auto space-y-1 scrollbar-hide">
-          <div className="flex items-center justify-between mb-4 px-2">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Syllabus Chapters</p>
-            <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">8 Modules</span>
-          </div>
-          
-          {filteredData.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => {setActiveSectionId(section.id); setSidebarOpen(false);}}
-              className={`w-full group flex flex-col gap-1 px-4 py-3 rounded-xl transition-all duration-200 text-left relative overflow-hidden ${
-                activeSectionId === section.id 
-                  ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-100 ring-4 ring-emerald-600/5' 
-                  : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={activeSectionId === section.id ? 'text-white' : 'text-emerald-500'}>
-                  {section.icon}
-                </span>
-                <span className="font-bold text-sm truncate">{section.title.split('. ')[1]}</span>
-              </div>
-              <p className={`text-[10px] line-clamp-1 ml-8 ${activeSectionId === section.id ? 'text-emerald-100' : 'text-slate-400'}`}>
-                {section.summary}
-              </p>
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 w-72 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out z-40 md:sticky md:top-0 md:h-screen shadow-xl md:shadow-none">
+        <div class="p-6 bg-botany-50 border-b border-botany-100 flex items-center justify-between">
+            <div>
+                <i class="ph-fill ph-leaf text-botany-600 text-3xl mb-2"></i>
+                <h1 class="font-bold text-xl text-botany-900 leading-tight">Botanical Sciences</h1>
+                <p class="text-xs text-botany-600 mt-1 uppercase tracking-wider font-semibold">Core Competencies</p>
+            </div>
+            <button id="close-menu-btn" class="md:hidden text-gray-500 hover:text-gray-800">
+                <i class="ph ph-x text-2xl"></i>
             </button>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-slate-100 space-y-2">
-          <button 
-            onClick={() => setIsReadingMode(!isReadingMode)}
-            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-bold transition-all ${
-              isReadingMode ? 'bg-orange-100 border-orange-200 text-orange-800' : 'bg-slate-50 border-slate-200 text-slate-600'
-            }`}
-          >
-            <BookMarked size={14} />
-            {isReadingMode ? 'Reading Mode On' : 'Standard View'}
-          </button>
-          
-          <button 
-            onClick={() => setShowAiAssistant(!showAiAssistant)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold shadow-lg hover:shadow-emerald-200/50 transition-all active:scale-95"
-          >
-            <Sparkles size={14} />
-            ✨ Ask AI Botanist
-          </button>
         </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto h-screen relative scroll-smooth flex flex-col">
-        <div className={`flex-1 max-w-5xl mx-auto p-6 md:p-12 lg:p-16 transition-opacity duration-500 ${sidebarOpen ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-          
-          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            
-            {/* Header Section */}
-            <header className="space-y-4">
-              <div className="flex items-center gap-3 text-emerald-600 font-black text-sm tracking-widest uppercase">
-                <div className="h-px flex-1 bg-emerald-100"></div>
-                Module {activeSection.title.split('. ')[0]}
-                <div className="h-px flex-1 bg-emerald-100"></div>
-              </div>
-              <h1 className={`text-4xl md:text-6xl font-black tracking-tight leading-none ${isReadingMode ? 'text-slate-800' : 'text-slate-900'}`}>
-                {activeSection.title.split('. ')[1]}
-              </h1>
-              <p className="text-lg md:text-xl text-slate-500 font-medium max-w-2xl leading-relaxed">
-                {activeSection.summary}
-              </p>
-            </header>
-
-            {/* Core Content Block */}
-            <section className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              
-              <div className="lg:col-span-8 space-y-10">
-                <div className={`rounded-[2.5rem] p-8 md:p-12 shadow-sm border relative overflow-hidden group ${isReadingMode ? 'bg-white border-orange-100' : 'bg-white border-slate-100'}`}>
-                  <div className="absolute -top-10 -right-10 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700">
-                    {React.cloneElement(activeSection.icon, { size: 300 })}
-                  </div>
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3">
-                      <BookOpen className="text-emerald-500" size={24} />
-                      Scientific Overview
-                    </h3>
-                    <button 
-                      onClick={getSectionInsight}
-                      disabled={isInsightLoading}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors disabled:opacity-50"
-                    >
-                      {isInsightLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      ✨ AI Deep Dive
-                    </button>
-                  </div>
-
-                  {sectionInsights[activeSection.id] && (
-                    <div className="mb-8 p-6 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl text-white shadow-xl animate-in zoom-in-95">
-                      <h4 className="font-black text-sm uppercase tracking-[0.2em] mb-4 text-emerald-200">AI Enhanced Insights</h4>
-                      <div className="text-sm font-medium leading-relaxed whitespace-pre-wrap opacity-90">
-                        {sectionInsights[activeSection.id]}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className={`prose prose-slate max-w-none ${isReadingMode ? 'text-lg leading-loose font-serif text-slate-700' : 'text-slate-600 leading-relaxed'}`}>
-                    {activeSection.content}
-                  </div>
-                </div>
-
-                {/* Topics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {activeSection.topics && activeSection.topics.map((topic, idx) => (
-                    <div key={idx} className="bg-white p-8 rounded-3xl border border-slate-100 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5 transition-all group">
-                      <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                         <Activity className="w-5 h-5 text-emerald-600 group-hover:text-white" />
-                      </div>
-                      <h4 className="font-black text-slate-800 text-lg mb-3 tracking-tight">{topic.name}</h4>
-                      <p className="text-sm text-slate-500 leading-relaxed font-medium">
-                        {topic.details}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Special Detail Sections */}
-                {activeSection.subsections && activeSection.subsections.map((sub, idx) => (
-                  <div key={idx} className="bg-slate-900 rounded-[3rem] p-10 md:p-14 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-sky-400 to-emerald-400"></div>
-                    <div className="relative z-10 space-y-8">
-                      <div>
-                        <h4 className="text-3xl font-black mb-4 text-white tracking-tight">{sub.title}</h4>
-                        <p className="text-slate-400 font-medium max-w-2xl leading-relaxed">{sub.details}</p>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {sub.list.map((item, i) => {
-                          const [label, ...desc] = item.split(':');
-                          return (
-                            <div key={i} className="group/item p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
-                              <p className="text-emerald-400 font-black text-sm uppercase tracking-wider mb-2">{label}</p>
-                              {desc.length > 0 && (
-                                <p className="text-slate-300 text-xs leading-relaxed font-medium">{desc.join(':')}</p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Sidebar / Quick Reference */}
-              <div className="lg:col-span-4 space-y-8">
-                {activeSection.deepDive && (
-                  <div className="bg-emerald-600 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-emerald-200 relative overflow-hidden">
-                    <Zap className="absolute top-4 right-4 text-emerald-400/30" size={48} />
-                    <h4 className="text-xl font-black mb-4 flex items-center gap-2">Deep Dive</h4>
-                    <p className="text-sm text-emerald-50 leading-loose font-medium italic">
-                      "{activeSection.deepDive.text}"
-                    </p>
-                  </div>
-                )}
-
-                <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm sticky top-8">
-                  <h4 className="text-slate-900 font-black text-lg mb-6 flex items-center gap-3">
-                    <Info className="text-emerald-500" size={20} />
-                    Key Vocabulary
-                  </h4>
-                  <ul className="space-y-5">
-                    {[
-                      { word: 'Turgor', def: 'Internal water pressure in cells.' },
-                      { word: 'RuBisCO', def: 'Key enzyme in $CO_2$ fixation.' },
-                      { word: 'Xylem', def: 'Unidirectional water transport.' },
-                      { word: 'Phloem', def: 'Bidirectional sugar transport.' }
-                    ].map((item, i) => (
-                      <li key={i} className="group">
-                        <p className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-1 group-hover:translate-x-1 transition-transform">{item.word}</p>
-                        <p className="text-xs text-slate-500 font-medium leading-relaxed">{item.def}</p>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Module Completion</p>
-                    <div className="flex gap-2 mb-2">
-                      {[1,2,3,4,5,6,7,8].map(n => (
-                        <div 
-                          key={n} 
-                          className={`h-1.5 flex-1 rounded-full transition-all duration-1000 ${
-                            n <= parseInt(activeSection.title) ? 'bg-emerald-500' : 'bg-slate-200'
-                          }`}
-                        ></div>
-                      ))}
-                    </div>
-                    <p className="text-[10px] font-bold text-slate-500 text-right">Progress: {Math.round((parseInt(activeSection.title)/8)*100)}%</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
+        
+        <div class="flex-1 overflow-y-auto no-scrollbar py-4 px-3 space-y-1" id="toc">
+            <a href="#introduction" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Introduction</a>
+            <a href="#cellular-foundations" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Cellular Foundations & Tissue Systems</a>
+            <a href="#stelar-architecture" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Stelar Architecture</a>
+            <a href="#morphology" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Vegetative & Reproductive Morphology</a>
+            <a href="#physiology" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Physiology: Tropisms & Movement</a>
+            <a href="#circadian-clock" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Circadian Clock & Temporal Reg.</a>
+            <a href="#life-cycles" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Life Cycles: Alternation of Generations</a>
+            <a href="#genetics" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Genetics: Polyploidy & Inheritance</a>
+            <a href="#apg-system" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">APG IV System</a>
+            <a href="#ecology" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Ecology & Biomes</a>
+            <a href="#economic-botany" class="toc-link block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-r-lg">Economic & Ethnobotany</a>
         </div>
+    </nav>
 
-        {/* AI Assistant Drawer */}
-        {showAiAssistant && (
-          <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-2xl z-[100] border-l border-slate-200 flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="p-6 border-b border-slate-100 bg-emerald-900 text-white flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <Sparkles size={20} className="text-emerald-400" />
-                <h2 className="font-black text-sm uppercase tracking-widest">AI Botanist</h2>
-              </div>
-              <button onClick={() => setShowAiAssistant(false)} className="hover:bg-white/10 p-1 rounded-lg">
-                <X size={20} />
-              </button>
+    <!-- Overlay for mobile menu -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden transition-opacity"></div>
+
+    <!-- Main Content -->
+    <main class="flex-1 w-full max-w-4xl mx-auto px-6 py-10 md:py-16 content-section relative">
+        
+        <!-- Hero Section -->
+        <header class="mb-16 text-center md:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-botany-100 text-botany-800 text-sm font-semibold mb-6">
+                <i class="ph-fill ph-book-open text-botany-600"></i> Comprehensive Study Guide
             </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-stone-900 leading-tight mb-6 tracking-tight">
+                Exhaustive Framework of <span class="text-botany-700">Botanical Sciences</span>
+            </h1>
+            <p class="text-lg text-gray-600 max-w-2xl font-serif">
+                A definitive guide spanning from the molecular architecture of plant cells to the complex ecological biomes and ethnobotanical traditions of the Philippines.
+            </p>
+        </header>
+
+        <section id="introduction" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-microscope"></i> From Molecules to Organisms</h2>
+            <p>
+                The study of plant anatomy and morphology constitutes the structural foundation of botany. <strong>Morphology</strong> deals with the external form and life cycles of plants, including cytology (the study of the cell), histology (the study of tissues), and morphogenesis (the study of development). <strong>Anatomy</strong> delves into the internal organization of these tissues into the complex organs of the plant.
+            </p>
+        </section>
+
+        <section id="cellular-foundations" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-cell-signal-full"></i> Cellular Foundations and Tissue Systems</h2>
+            <p>
+                Plant cells distinguish themselves from animal cells through several highly specialized structures. A rigid outer <strong>cell wall</strong>, composed primarily of cellulose, provides structural integrity and defines the cellular shape. Just inside this wall lies the plasma membrane, which regulates the transport of molecules into and out of the cytoplasm.
+            </p>
+            <p>
+                The plant cell is characterized by one or more large <strong>central vacuoles</strong> that maintain turgor pressure—a hydrostatic force essential for cellular expansion, structural support, and the storage of metabolic byproducts. Furthermore, plant cells possess specialized plastids, most notably chloroplasts, which contain carotenoid pigments (yellow and orange) and chlorophyll (green), serving as the vital sites of photosynthesis.
+            </p>
+            <p>
+                The transition from a single fertilized cell to a complex, multicellular organism relies on tissue systems originating from <strong>meristems</strong>. Meristems are localized regions of persistent, undifferentiated cellular division.
+            </p>
+            <ul>
+                <li><strong>Apical meristems:</strong> Located at the extreme tips of roots and shoots, drive primary growth, allowing the plant to elongate and access sunlight or deep soil moisture.</li>
+                <li><strong>Lateral meristems:</strong> Such as the vascular cambium and cork cambium, drive secondary growth. This process thickens the stem and root, producing the woody tissues essential for the structural support of massive angiosperm and gymnosperm trees.</li>
+            </ul>
+            <p>
+                The internal tissue organization of vascular plants is broadly divided into dermal, ground, and vascular systems. The dermal tissue acts as the plant's interface with the environment. To facilitate necessary gas exchange while minimizing water loss, the lower epidermis features <strong>stomata</strong>—microscopic pores surrounded by pairs of specialized guard cells that open and close in response to environmental cues.
+            </p>
+        </section>
+
+        <section id="stelar-architecture" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-tree-structure"></i> Stelar Architecture and Evolutionary Theories</h2>
+            <p>
+                The vascular tissue system (xylem and phloem) is organized centrally within the roots and stems into a structural core known as the <strong>stele</strong>. According to the Stelar Theory proposed by Van Tieghem and Douliot (1886), the cortex and the stele form the fundamental parts of a shoot, separated by an endodermis (or pericycle in some seed plants). Understanding stelar architecture is deeply tied to plant phylogeny:
+            </p>
+            <ul>
+                <li><strong>Protostele:</strong> The most primitive stelar type, lacking a central pith, where a solid core of xylem is completely surrounded by phloem. It evolved into various forms: the <em>haplostele</em> (smooth core, e.g., Selaginella), the <em>actinostele</em> (radiating ribs, e.g., Psilotum), and the highly advanced <em>plectostele</em> (parallel plates of xylem, e.g., Lycopodium).</li>
+                <li><strong>Siphonostele:</strong> An evolutionary advancement where the central xylem core is replaced by a parenchymatous pith. This adaptation is observed in many ferns.</li>
+                <li><strong>Dictyostele & Eustele:</strong> In more advanced plants, the vascular cylinder is dissected by overlapping leaf gaps. The <em>eustele</em>, common in dicotyledons and gymnosperms, consists of a ring of collateral vascular bundles situated on the periphery of the pith.</li>
+            </ul>
+            <p>
+                The evolution of these complex vascular architectures, alongside leaf development, is often explained by the <strong>Telome Theory</strong> (tracing complex organs back to simple branching ancestral axes) and the <strong>Enation Theory</strong>.
+            </p>
+        </section>
+
+        <section id="morphology" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-flower"></i> Vegetative and Reproductive Morphology</h2>
+            <p>
+                Plant morphology categorizes macroscopic structures into <strong>vegetative organs</strong> (roots, stems, leaves), which maintain the individual plant, and <strong>reproductive organs</strong> (flowers, fruits, seeds), which ensure the continuation of the species.
+            </p>
+            <p>
+                The flower represents the highly specialized, determinate reproductive shoot of angiosperms. Its sole evolutionary purpose is sexual reproduction. The flower is composed of sterile outer parts (the perianth) and fertile reproductive organs. The male reproductive structure is the <strong>stamen</strong>, comprising a supporting filament that holds the anther, a specialized sac where pollen (the male gametophyte) is produced. The central female reproductive structure is the <strong>pistil</strong>, consisting of a receptive stigma at the apex, a connecting tubular style, and a basal ovary.
+            </p>
+            <p>
+                Following successful pollination and fertilization, the ovary matures into a <strong>fruit</strong>, and the enclosed ovules develop into <strong>seeds</strong>, completing the intricate reproductive cycle. Fruits are broadly classified into three major groups based on their floral origin:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-botany-100">
+                    <h4 class="font-bold text-botany-800 mb-2">Simple Fruits</h4>
+                    <p class="text-sm font-sans">Developing from a single ovary, such as berries or drupes.</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-botany-100">
+                    <h4 class="font-bold text-botany-800 mb-2">Aggregate Fruits</h4>
+                    <p class="text-sm font-sans">Developing from multiple ovaries of a single flower, like strawberries.</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-botany-100">
+                    <h4 class="font-bold text-botany-800 mb-2">Multiple Fruits</h4>
+                    <p class="text-sm font-sans">Derived from many coalescent flowers, like pineapples.</p>
+                </div>
+            </div>
+            <p>
+                Following fruit maturation, seed dispersal occurs through various evolutionary mechanisms, including anemochory (wind dispersal), hydrochory (water dispersal), zoochory (animal dispersal), and autochory (explosive self-dispersal).
+            </p>
+        </section>
+
+        <section id="physiology" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-sun"></i> Plant Physiology: Photoperiodism, Tropisms, and Movement</h2>
             
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50">
-              {aiHistory.length === 0 && (
-                <div className="text-center py-10 space-y-4">
-                  <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto">
-                    <MessageSquare className="text-emerald-600" />
-                  </div>
-                  <h3 className="font-bold text-slate-800">Ask a Question</h3>
-                  <p className="text-xs text-slate-500 max-w-[200px] mx-auto">Ask anything about xylem transport, photosynthetic pathways, or taxonomy!</p>
-                </div>
-              )}
-              {aiHistory.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                    msg.role === 'user' 
-                      ? 'bg-emerald-600 text-white rounded-br-none' 
-                      : 'bg-white text-slate-700 border border-slate-200 rounded-bl-none'
-                  }`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {isAiLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 animate-pulse flex items-center gap-2">
-                    <Loader2 size={16} className="animate-spin text-emerald-600" />
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Consulting Lab...</span>
-                  </div>
-                </div>
-              )}
-              {aiError && (
-                <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs font-bold rounded-xl text-center">
-                  {aiError}
-                </div>
-              )}
+            <h3>Photoperiodism: Timing and Seasonal Adaptation</h3>
+            <p>
+                Photoperiodism allows plants to align their reproductive cycles with specific seasons, ensuring optimal conditions for pollination and seed development. Plants are categorized based on their response to day length into three primary groups:
+            </p>
+            <ul>
+                <li><strong>Short-Day (Long-Night) Plants (SDP):</strong> Flower when the day length is below a critical threshold (e.g., rice, soybean, chrysanthemum). They require a continuous, uninterrupted dark period.</li>
+                <li><strong>Long-Day (Short-Night) Plants (LDP):</strong> Flower when the day length exceeds a critical threshold (e.g., spinach, sugar beet, lettuce).</li>
+                <li><strong>Day-Neutral Plants (DNP):</strong> Flower regardless of day length, typically triggered by age or other cues (e.g., tomato, sunflower).</li>
+            </ul>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 my-6 rounded-r-lg">
+                <h4 class="font-bold text-blue-800 font-sans flex items-center gap-2 mb-2"><i class="ph-fill ph-flask"></i> Molecular Mechanism</h4>
+                <p class="text-sm font-sans mb-0">
+                    The chemical <strong>phytochrome</strong> measures the dark period. It exists in two forms: $P_r$ (absorbs red light, inactive) and $P_{fr}$ (absorbs far-red light, active). During the day, $P_r \rightarrow P_{fr}$. In the dark, $P_{fr} \rightarrow P_r$. If the night is long enough, $P_{fr}$ drops, signaling SDPs to flower. This controls the CONSTANS (CO) protein, which promotes the transcription of the FT gene, producing the flowering hormone <strong>florigen</strong>.
+                </p>
             </div>
 
-            <form onSubmit={handleAiAsk} className="p-4 border-t border-slate-200 bg-white">
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={aiQuery}
-                  onChange={(e) => setAiQuery(e.target.value)}
-                  placeholder="Ask the AI Botanist..."
-                  className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-                <button 
-                  type="submit" 
-                  disabled={isAiLoading || !aiQuery.trim()}
-                  className="p-3 bg-emerald-600 text-white rounded-xl shadow-lg hover:bg-emerald-700 disabled:opacity-50 transition-all active:scale-95"
-                >
-                  <Send size={18} />
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+            <h3>Plant Movement and Growth Responses</h3>
+            <p>
+                <strong>Tropic movements</strong> are growth-driven responses where the direction of the movement is strictly determined by the direction of the stimulus. <strong>Nastic movements</strong> are non-directional, meaning the movement occurs rapidly regardless of where the stimulus originates, driven by sudden changes in turgor pressure.
+            </p>
 
-        {/* Footer */}
-        <footer className="mt-auto p-10 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6 opacity-60">
-          <div className="flex items-center gap-2">
-            <Leaf size={16} />
-            <span className="text-xs font-bold tracking-widest">MightyChondria © 2026</span>
-          </div>
+            <div class="overflow-x-auto">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Stimulus</th>
+                            <th>Directional</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Phototropism</strong></td>
+                            <td>Light</td>
+                            <td><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">Yes</span></td>
+                            <td>Stem growing toward light</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gravitropism</strong></td>
+                            <td>Gravity</td>
+                            <td><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">Yes</span></td>
+                            <td>Root growing down</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Thigmotropism</strong></td>
+                            <td>Touch</td>
+                            <td><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">Yes</span></td>
+                            <td>Tendril coiling around a stake</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hydrotropism</strong></td>
+                            <td>Water</td>
+                            <td><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">Yes</span></td>
+                            <td>Root growing toward water</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nastic (Seismonasty)</strong></td>
+                            <td>Touch/Shock</td>
+                            <td><span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">No</span></td>
+                            <td><em>Mimosa pudica</em> closing leaves</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nastic (Nyctinasty)</strong></td>
+                            <td>Light/Temp</td>
+                            <td><span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">No</span></td>
+                            <td>Flowers opening in the morning</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <p class="text-sm text-gray-600 italic">
+                * Note on Mechanism: Nyctinasty targets specific extensor motor cells, activating reactive oxygen species (ROS)-dependent potassium ($K^+$) and chloride ($Cl^-$) efflux channels, causing water to forcefully leave the cells.
+            </p>
+        </section>
+
+        <section id="circadian-clock" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-clock"></i> The Plant Circadian Clock and Temporal Regulation</h2>
+            <p>
+                Plants possess a highly sophisticated, endogenous biological timekeeper known as the <strong>circadian clock</strong>. This internal oscillator generates robust rhythms with a period of approximately 24 hours. The core molecular architecture consists of interlocking transcription-translation feedback loops (TTFLs) involving proteins like CCA1, LHY, and TOC1.
+            </p>
+            <ul>
+                <li><strong>Photosynthesis Optimization:</strong> The clock anticipates dawn, priming photosynthetic machinery before light strikes, maximizing carbon fixation.</li>
+                <li><strong>Starch Consumption (Arithmetic Division):</strong> Plants divide total starch ($S$) by time remaining until expected dawn ($T$), continuously adjusting the degradation rate ($R$) so that $R = S/T$ to prevent starvation.</li>
+                <li><strong>Flowering Integration:</strong> The clock tracks seasonal changes in day length to trigger flowering hormones like Hd3a (in rice) only during optimal conditions.</li>
+                <li><strong>Defense and Immunity (Circadian Gating):</strong> The clock regulates innate immunity, opening stomata or scheduling salicylic acid (SA) defense responses strategically to not conflict with nocturnal growth.</li>
+            </ul>
+        </section>
+
+        <section id="life-cycles" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-arrows-clockwise"></i> Life Cycles: The Alternation of Generations</h2>
+            <p>
+                A unifying characteristic of all land plants is the haplodiplontic life cycle, or the "alternation of generations". This cycle involves a diploid sporophyte ($2n$), producing haploid spores through meiosis, and a haploid gametophyte ($1n$), producing gametes. As plants evolved, the sporophyte generation became massively dominant.
+            </p>
+            <h3>The Evolutionary Leap from Homospory to Heterospory</h3>
+            <p>
+                <strong>Homospory</strong> is observed primarily in primitive bryophytes and most ferns. The sporophyte produces a single, uniform type of spore that develops into a bisexual gametophyte. These rely entirely on environmental water for sperm to swim to the egg.
+            </p>
+            <p>
+                <strong>Heterospory</strong> is ubiquitous across all seed plants. The sporophyte generates two distinct spore types: microspores (male) and megaspores (female). This evolutionary shift culminated in endomegasporangy—the retention of the female gametophyte within the protective tissues of the parent sporophyte, leading directly to the evolution of the <strong>seed</strong> and freeing plants from standing water dependence.
+            </p>
+        </section>
+
+        <section id="genetics" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-dna"></i> Plant Genetics: Polyploidy and Cytoplasmic Inheritance</h2>
+            <p>
+                Unlike terrestrial animals, plant genomes exhibit extraordinary structural plasticity. <strong>Polyploidy</strong>—possessing more than two complete sets of chromosomes—is a major driver of sympatric speciation.
+            </p>
+            <p>
+                Agricultural crops rely heavily on polyploidy for agronomically desirable traits like gigantism and resilience. In the Philippines, the <strong>Saba banana</strong> is a robust triploid (ABB genome group) hybrid. Its triploid makeup yields large, seedless fruits while inheriting immense vigor and resistance to environmental stress, such as immunity to Fusarium wilt (TR4).
+            </p>
+            <h3>Cytoplasmic Inheritance and Hybrid Rice Systems</h3>
+            <p>
+                Essential genetic material is also stored autonomously in plastids (chloroplasts) and mitochondria, characterized by uniparental transmission (usually maternal). This is practically applied in the development of <strong>Cytoplasmic Male Sterility (CMS)</strong> systems, utilized in the Philippine Hybrid Rice Program.
+            </p>
+            <p>
+                In hybrid rice production, male sterility is induced by a mitochondrial mutation. A nuclear Restorer of fertility (Rf) gene is introgressed to suppress toxic CMS proteins, overriding the cytoplasmic mutation and restoring viable pollen production for commercial seed.
+            </p>
+        </section>
+
+        <section id="apg-system" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-git-merge"></i> The Angiosperm Phylogeny Group (APG IV) System</h2>
+            <p>
+                To resolve historical taxonomic inaccuracies, the Angiosperm Phylogeny Group established a modern taxonomy based predominantly on molecular phylogenetics. The APG IV system (2016) organizes flowering plants into several foundational lineages:
+            </p>
+            <ul>
+                <li><strong>The ANA Grade:</strong> The basalmost angiosperms forming a sequentially branching "grade" (Amborellales, Nymphaeales, Austrobaileyales).</li>
+                <li><strong>The Magnoliids:</strong> A major clade (e.g., Magnoliales, Laurales) retaining primitive features like unfused carpels and utilizing specific alkaloid chemical defenses.</li>
+                <li><strong>Monocots and Eudicots:</strong> The vast majority of diversity. Eudicots are specifically defined by the evolutionary synapomorphy of equatorially tricolpate pollen.</li>
+            </ul>
+        </section>
+
+        <section id="ecology" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-globe-hemisphere-east"></i> Plant Ecology, Biomes, and Inter-species Interactions</h2>
+            <p>
+                Plant ecology bridges individual cellular physiology with macroscopic environmental dynamics. A critical biochemical interaction actively shaping communities is <strong>allelopathy</strong>—where a donor plant synthesizes secondary metabolites to alter the development of competing species.
+            </p>
+            <p>
+                In Philippine agriculture, rice (<em>Oryza sativa</em>) exudes allelochemicals—such as momilactones and tricin—directly from roots into the soil, aggressively inhibiting devastating paddy weeds like barnyard grass (<em>Echinochloa crus-galli</em>). High-yielding varieties like BR17 possess naturally heightened allelopathic traits.
+            </p>
+            <h3>Philippine Forest Ecosystems</h3>
+            <p>
+                The Philippine archipelago hosts uniquely diverse forest biomes essential as watersheds:
+            </p>
+            <ul>
+                <li><strong>Dipterocarp Forests:</strong> Dominant and commercially valuable, featuring a massive upper canopy.</li>
+                <li><strong>Mangrove and Beach Forests:</strong> Coastal wetlands essential for protecting coastlines and marine nurseries.</li>
+                <li><strong>Molave and Pine Forests:</strong> Molave on limestone, Pine (Benguet pine) in cooler mountainous regions.</li>
+                <li><strong>Mossy / Midmountain Forests:</strong> High-altitude terrain with trees completely draped in epiphytic orchids and mosses, acting strictly as protective watersheds.</li>
+            </ul>
+        </section>
+
+        <section id="economic-botany" class="scroll-mt-24">
+            <h2><i class="ph-fill ph-mortar-stand"></i> Economic Botany and Ethnobotany in the Philippines</h2>
+            <p>
+                Economic botany explores the vital intersection of plant science and human utility. The Philippine Department of Health (DOH) has scientifically validated ten medicinal plants for public use, acknowledging ethnobotanical traditions:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+                <div class="bg-botany-50 p-4 rounded-xl border-l-4 border-botany-600">
+                    <h4 class="font-bold text-botany-900">Lagundi</h4>
+                    <p class="text-xs text-gray-500 italic mb-2">Vitex negundo</p>
+                    <p class="text-sm font-sans">Used primarily for asthma and respiratory relief.</p>
+                </div>
+                <div class="bg-botany-50 p-4 rounded-xl border-l-4 border-botany-600">
+                    <h4 class="font-bold text-botany-900">Sambong</h4>
+                    <p class="text-xs text-gray-500 italic mb-2">Blumea balsamifera</p>
+                    <p class="text-sm font-sans">Utilized as an effective diuretic.</p>
+                </div>
+                <div class="bg-botany-50 p-4 rounded-xl border-l-4 border-botany-600">
+                    <h4 class="font-bold text-botany-900">Ampalaya</h4>
+                    <p class="text-xs text-gray-500 italic mb-2">Momordica charantia</p>
+                    <p class="text-sm font-sans">Used for diabetes management and blood sugar regulation.</p>
+                </div>
+            </div>
+            
+            <h3>Indigenous Botanical Knowledge</h3>
+            <p>
+                Beyond standard lists, profound botanical repositories exist within indigenous communities:
+            </p>
+            <ul>
+                <li><strong>The Ayta of Bataan:</strong> Utilize 118 distinct plant species. Heavily rely on <em>Psidium guajava</em> (guava) and <em>Lunasia amara</em> for treating infections and wounds.</li>
+                <li><strong>The Mangyan of Mindoro:</strong> Groups like the Tadyawan utilize over 114 medicinal plants via decoctions and poultices for wound care and post-pregnancy recovery.</li>
+                <li><strong>The Panay Bukidnon:</strong> In Lambunao, Iloilo, documented using 131 medicinal species, highly preferring <em>Chromolaena odorata</em> for efficient wound healing.</li>
+            </ul>
+        </section>
+
+        <footer class="mt-20 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm pb-10">
+            <i class="ph-fill ph-plant text-botany-600 text-2xl mb-2 inline-block"></i>
+            <p>Compiled from the Exhaustive Framework of Botanical Sciences.</p>
+            <p class="mt-1">Core Competencies in Plant Biology, Physiology, and Philippine Ecology.</p>
         </footer>
-      </main>
 
-      {/* Reading Mode Overlay Hint */}
-      {isReadingMode && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-orange-900 text-white px-4 py-2 rounded-full text-[10px] font-black tracking-widest shadow-2xl z-50 animate-bounce">
-          EYE-CARE READING MODE ACTIVE
-        </div>
-      )}
-    </div>
-  );
-};
+    </main>
 
-export default App;
+    <!-- Interactive JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Render Math with KaTeX ---
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+            
+            // --- Mobile Menu Toggle ---
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const closeBtn = document.getElementById('close-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            function toggleMenu() {
+                const isOpen = !sidebar.classList.contains('-translate-x-full');
+                if (isOpen) {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                } else {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                }
+            }
+
+            mobileBtn.addEventListener('click', toggleMenu);
+            closeBtn.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+
+            // Close menu when a link is clicked (on mobile)
+            const tocLinks = document.querySelectorAll('.toc-link');
+            tocLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 768) { // md breakpoint in tailwind
+                        toggleMenu();
+                    }
+                });
+            });
+
+            // --- Scroll Spy for Active TOC Item ---
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.toc-link');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -60% 0px', // Trigger when section is in top part of view
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        // Remove active class from all links
+                        navLinks.forEach(link => link.classList.remove('active'));
+                        
+                        // Add active class to corresponding link
+                        const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
+                        if (activeLink) {
+                            activeLink.classList.add('active');
+                            // Optional: scroll sidebar to keep active item in view
+                            activeLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
