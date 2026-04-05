@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>General Zoology: Interactive Study Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- MathJax for rendering LaTeX formulas -->
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$']] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        h1, h2, h3, .serif-font {
+            font-family: 'Merriweather', serif;
+        }
+        
+        /* Mandatory Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        /* Interactive Flashcard */
+        .flashcard {
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .flashcard-front {
+            background-color: white;
+            border-top: 4px solid #0f766e; /* teal-700 */
+        }
+        .flashcard-back {
+            background-color: #f0fdfa; /* teal-50 */
+            transform: rotateY(180deg);
+            border-top: 4px solid #d97706; /* amber-600 */
+        }
+
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Button Active States */
+        .sex-btn-active {
+            background-color: #0f766e !important;
+            color: white !important;
+            border-color: #0f766e !important;
+            box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.4);
+            transform: translateX(4px);
+        }
+        .sex-btn-active h4, .sex-btn-active p { color: white !important; }
+
+        /* Chromosome CSS Shapes */
+        .chrom-large { width: 1.25rem; height: 4rem; border-radius: 9999px; }
+        .chrom-small { width: 1.25rem; height: 2rem; border-radius: 9999px; }
+        .chrom-medium { width: 1.25rem; height: 3rem; border-radius: 9999px; }
+        .chrom-none { width: 1.25rem; height: 4rem; border: 2px dashed #cbd5e1; border-radius: 9999px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.75rem;}
+        
+        .bg-chrom-x { background-color: #3b82f6; } /* Blue for X */
+        .bg-chrom-y { background-color: #fbbf24; } /* Amber for Y */
+        .bg-chrom-z { background-color: #10b981; } /* Emerald for Z */
+        .bg-chrom-w { background-color: #f43f5e; } /* Rose for W */
+    </style>
+</head>
+<body class="antialiased selection:bg-teal-200 selection:text-teal-900">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-teal-800 tracking-tight serif-font">&#129419; GenZoo</span>
+                </div>
+                <div class="hidden lg:flex items-center space-x-6">
+                    <a href="#foundations" class="text-sm font-medium text-slate-600 hover:text-teal-700 transition-colors">1. Foundations</a>
+                    <a href="#diversity" class="text-sm font-medium text-slate-600 hover:text-teal-700 transition-colors">2. Diversity</a>
+                    <a href="#ecology" class="text-sm font-medium text-slate-600 hover:text-teal-700 transition-colors">3. Ecology</a>
+                    <a href="#physiology" class="text-sm font-medium text-slate-600 hover:text-teal-700 transition-colors">4. Physiology</a>
+                    <a href="#evolution" class="text-sm font-medium text-slate-600 hover:text-teal-700 transition-colors">5. Evolution</a>
+                    <a href="#reproduction" class="text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors">6. Reproduction</a>
+                </div>
+                <div class="flex items-center lg:hidden">
+                    <button id="mobile-menu-btn" class="text-slate-500 hover:text-teal-700 focus:outline-none">
+                        <span class="text-2xl">&#9776;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#foundations" class="mobile-link block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-teal-700">1. Foundations</a>
+                <a href="#diversity" class="mobile-link block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-teal-700">2. Diversity</a>
+                <a href="#ecology" class="mobile-link block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-teal-700">3. Ecology</a>
+                <a href="#physiology" class="mobile-link block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-teal-700">4. Physiology</a>
+                <a href="#evolution" class="mobile-link block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-teal-700">5. Evolution</a>
+                <a href="#reproduction" class="mobile-link block px-3 py-2 rounded-md text-base font-bold text-amber-600 hover:text-amber-700">6. Reproduction & Genetics</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative bg-teal-900 text-white overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-teal-900 to-slate-900 opacity-90"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-center text-center">
+            <div class="inline-flex items-center px-4 py-2 rounded-full bg-teal-800/50 border border-teal-600/50 text-teal-100 text-sm font-semibold tracking-wide mb-6">
+                Interactive Study Material
+            </div>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
+                General <span class="text-amber-400">Zoology</span>
+            </h1>
+            <p class="mt-4 max-w-2xl text-lg md:text-xl text-teal-100 font-light">
+                A Comprehensive Study of Animal Biology, Evolution, and Ecology. From cellular foundations and evolutionary history to complex physiological systems and genetic inheritance.
+            </p>
+            <div class="mt-10">
+                <a href="#foundations" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-teal-900 bg-amber-400 hover:bg-amber-300 transition-colors shadow-lg shadow-amber-500/30">
+                    Start Learning
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- SECTION 1: Foundations -->
+        <section id="foundations" class="scroll-mt-24">
+            <div class="border-l-4 border-amber-500 pl-4 mb-8">
+                <h2 class="text-3xl font-bold text-slate-800">1. Foundations of Animal Life</h2>
+                <p class="mt-2 text-slate-600 max-w-3xl">The Disciplinary Framework and Scope of Zoological Science</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                <div>
+                    <h3 class="text-xl font-bold text-teal-800 mb-4">The Science of <i>Zôion Lógos</i></h3>
+                    <p class="text-slate-700 mb-4 leading-relaxed">
+                        Deriving its nomenclature from the Ancient Greek words <i>zôion</i> (animal) and <i>lógos</i> (study), zoology constitutes a systematic inquiry into the kingdom <strong>Animalia</strong>. While human interest was rooted in the survival necessities of domestication, the formal genesis of zoology is widely attributed to <strong>Aristotle</strong>, whose pioneering efforts to classify organisms laid the conceptual groundwork for taxonomy.
+                    </p>
+                    <p class="text-slate-700 leading-relaxed mb-6">
+                        Contemporary zoology is highly integrated, scrutinizing animal life at microscopic (biochemical, cytological) and macroscopic (anatomy, behavioral ecology) levels. The primary unifying paradigm is the modern evolutionary synthesis.
+                    </p>
+                    <h4 class="font-bold text-slate-800 mb-3">Prominent Sub-disciplines:</h4>
+                    <div class="flex flex-wrap gap-2 text-sm">
+                        <span class="bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full">Mammalogy (Mammals)</span>
+                        <span class="bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full">Ornithology (Birds)</span>
+                        <span class="bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full">Herpetology (Reptiles/Amphibians)</span>
+                        <span class="bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full">Ichthyology (Fish)</span>
+                        <span class="bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full">Entomology (Insects)</span>
+                        <span class="bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full">Parasitology</span>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-center text-slate-800 mb-4">Core Biological Concepts</h3>
+                    <div class="grid grid-cols-2 gap-4 h-64">
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')"><div class="flashcard-inner"><div class="flashcard-front"><span class="text-3xl mb-2">&#129302;</span><h4 class="font-bold">Eukaryote</h4></div><div class="flashcard-back"><p class="text-sm">Multicellular organisms featuring a true nucleus enclosed within a membrane.</p></div></div></div>
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')"><div class="flashcard-inner"><div class="flashcard-front"><span class="text-3xl mb-2">&#127822;</span><h4 class="font-bold">Heterotrophy</h4></div><div class="flashcard-back"><p class="text-sm">Requirement to consume external organic matter for cellular sustenance.</p></div></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Diversity -->
+        <section id="diversity" class="scroll-mt-24 pt-12 border-t border-slate-200">
+            <div class="border-l-4 border-teal-600 pl-4 mb-8">
+                <h2 class="text-3xl font-bold text-slate-800">2. Systematics, Taxonomy & Diversity</h2>
+                <p class="mt-2 text-slate-600 max-w-3xl">From the Cambrian Explosion to the Conquering of Land.</p>
+            </div>
+
+            <!-- Invertebrate vs Vertebrate -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="lg:col-span-2">
+                    <h3 class="text-2xl font-bold text-teal-800 mb-4">The Ecological Reality</h3>
+                    <p class="text-slate-700 mb-4 leading-relaxed">
+                        The evolutionary trajectory of animals is inscribed deep in the geological record, witnessing a rapid evolutionary radiation of major body plans during the <strong>Cambrian explosion</strong> (~530 million years ago). Biologists use Linnaean taxonomy to organize this output. 
+                    </p>
+                    <p class="text-slate-700 leading-relaxed">
+                        A striking ecological reality is that <strong>invertebrates</strong>—animals lacking a vertebral column—constitute at least <strong>95%</strong> of all known animal species. They are classified based on body symmetry, germ layers, cephalization, and coelom development.
+                    </p>
+                </div>
+                <div class="chart-container !h-[250px] !max-h-[250px]">
+                    <canvas id="diversityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Phyla Table -->
+            <div class="mb-12">
+                <h3 class="text-xl font-bold text-slate-800 mb-4">Major Animal Phyla</h3>
+                <div class="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead class="bg-slate-50 text-slate-700">
+                            <tr>
+                                <th class="p-4 font-bold w-1/5">Taxonomic Phylum</th>
+                                <th class="p-4 font-bold w-1/5">Representative Organisms</th>
+                                <th class="p-4 font-bold">Defining Characteristics</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-600">
+                            <tr><td class="p-4 font-semibold text-slate-800">Porifera</td><td class="p-4">Sponges</td><td class="p-4">Basal, multicellular but lack true tissues. Asymmetrical, filter feeders utilizing pores (ostia) and flagellated choanocytes.</td></tr>
+                            <tr><td class="p-4 font-semibold text-slate-800">Cnidaria</td><td class="p-4">Jellyfish, Corals, Sea Anemones</td><td class="p-4">Radially symmetrical, diploblastic. Use a single gastrovascular cavity. Defined by stinging organelles called nematocysts.</td></tr>
+                            <tr><td class="p-4 font-semibold text-slate-800">Platyhelminthes</td><td class="p-4">Flatworms, Tapeworms</td><td class="p-4">Bilaterally symmetrical, triploblastic, acoelomate. Dorsoventral flattening allows gas exchange entirely via cellular diffusion.</td></tr>
+                            <tr><td class="p-4 font-semibold text-slate-800">Nematoda</td><td class="p-4">Roundworms</td><td class="p-4">Triploblastic pseudocoelomates. Possess a complete, one-way alimentary canal but lack a formal circulatory system.</td></tr>
+                            <tr><td class="p-4 font-semibold text-slate-800">Annelida</td><td class="p-4">Earthworms, Leeches</td><td class="p-4">Coelomate protostomes defined by striking metamerism (body segmentation). Closed circulatory system and complete digestive tract.</td></tr>
+                            <tr><td class="p-4 font-semibold text-slate-800">Mollusca</td><td class="p-4">Snails, Clams, Octopuses</td><td class="p-4">Unsegmented coelomates. Body plan features a muscular foot, visceral mass, and a mantle (often secreting a shell). Use a rasping radula.</td></tr>
+                            <tr><td class="p-4 font-semibold text-slate-800">Arthropoda</td><td class="p-4">Insects, Spiders, Crustaceans</td><td class="p-4">Most species-rich phylum. Coelomate, segmented, with jointed appendages and a rigid chitinous exoskeleton requiring molting. Open circulatory system.</td></tr>
+                            <tr><td class="p-4 font-semibold text-slate-800">Echinodermata</td><td class="p-4">Sea Stars, Sea Urchins</td><td class="p-4">Deuterostomes exhibiting secondary radial symmetry as adults. Internal calcareous skeleton and a specialized water vascular system.</td></tr>
+                            <tr><td class="p-4 font-semibold text-slate-800">Chordata</td><td class="p-4">Tunicates, Lancelets, Vertebrates</td><td class="p-4">Deuterostomes defined by a notochord, dorsal hollow nerve cord, pharyngeal slits, and post-anal tail.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vertebrates & Terrestrial Transition -->
+            <div class="bg-teal-900 text-teal-50 p-8 rounded-2xl">
+                <h3 class="text-2xl font-bold text-white mb-4">Vertebrate Phylogeny & The Terrestrial Transition</h3>
+                <p class="mb-4 text-teal-100">The subphylum <strong>Vertebrata</strong> emerged during the Cambrian explosion. Evolving from modified pharyngeal gill arches, jaws transformed early vertebrates from passive filter feeders into active predators (Devonian period, the "Age of Fishes").</p>
+                <div class="grid md:grid-cols-2 gap-6 mt-6">
+                    <div class="bg-teal-800 p-5 rounded-xl border border-teal-700">
+                        <h4 class="font-bold text-amber-400 mb-2">Tiktaalik roseae (The Missing Link)</h4>
+                        <p class="text-sm">Discovered in 2004, this transitional fossil bridges aquatic lobe-finned fishes and early tetrapods. It retained fish-like scales and gills, but possessed robust limb bones to support gravity and exhibited <em>cranial kinesis</em>—mobile skull bones permitting a hybrid of suction and direct biting, essential for feeding on land.</p>
+                    </div>
+                    <div class="bg-teal-800 p-5 rounded-xl border border-teal-700">
+                        <h4 class="font-bold text-amber-400 mb-2">Amphibians to Amniotes</h4>
+                        <p class="text-sm">While amphibians were the first tetrapods, complete independence from water required the <strong>amniotic egg</strong> (found in reptiles, birds, and mammals). Reptilia further adapted with keratinized skin and uric acid excretion to prevent desiccation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Ecology & Ethology -->
+        <section id="ecology" class="scroll-mt-24 pt-12 border-t border-slate-200">
+            <div class="border-l-4 border-sky-500 pl-4 mb-8">
+                <h2 class="text-3xl font-bold text-slate-800">3. Ecology & Ethology</h2>
+                <p class="mt-2 text-slate-600 max-w-3xl">Population modeling, animal behavior, and conservation in the Anthropocene.</p>
+            </div>
+
+            <!-- Population Models -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+                <div class="order-2 lg:order-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="chart-container"><canvas id="ecologyChart"></canvas></div>
+                </div>
+                <div class="order-1 lg:order-2 space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-2">Exponential Growth</h3>
+                        <p class="text-slate-700 text-sm mb-2">Occurs in idealized environments with unlimited resources, resulting in a J-shaped curve.</p>
+                        <div class="bg-slate-100 p-3 rounded font-mono text-center text-slate-800">
+                            $$\frac{dN}{dt} = r_{max}N$$
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-2">Logistic Growth</h3>
+                        <p class="text-slate-700 text-sm mb-2">Introduces environmental limits. As population ($N$) approaches the carrying capacity ($K$), growth decelerates, creating an S-shaped curve.</p>
+                        <div class="bg-slate-100 p-3 rounded font-mono text-center text-slate-800">
+                            $$\frac{dN}{dt} = r_{max}N \left( \frac{K - N}{K} \right)$$
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ethology & Strategies Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                <!-- Life History -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Life History Strategies</h3>
+                    <ul class="space-y-4">
+                        <li>
+                            <strong class="text-teal-700">r-selected species:</strong> Adapted to volatile environments. Small body size, short lifespans, early maturity, massive offspring quantity, zero parental care (e.g., insects, rodents). Prone to boom-and-bust cycles.
+                        </li>
+                        <li>
+                            <strong class="text-teal-700">K-selected species:</strong> Adapted to stable environments near carrying capacity. Large body size, long lifespans, few offspring, immense parental care investment (e.g., elephants, primates).
+                        </li>
+                    </ul>
+                </div>
+                <!-- Ethology -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Ethology (Animal Behavior)</h3>
+                    <p class="text-sm text-slate-700 mb-3">Behavior is categorized by origin and plasticity. <strong>Learned behaviors</strong> allow flexible adaptation, ranging from habituation to insight learning.</p>
+                    <p class="text-sm text-slate-700"><strong>Innate behaviors</strong> are genetically hardwired. Pioneers Lorenz and Tinbergen studied the <em>Fixed Action Pattern (FAP)</em>—an immutable motor sequence triggered by a specific <em>sign stimulus</em>. </p>
+                    <div class="mt-3 bg-slate-50 p-3 rounded text-sm text-slate-600 border border-slate-100">
+                        <em>Example:</em> The Greylag Goose rolling a displaced egg into the nest. Even if the egg is removed mid-action, the goose completes the complex sweeping motion.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conservation -->
+            <div class="bg-amber-50 p-6 rounded-xl border border-amber-200">
+                <h3 class="text-xl font-bold text-amber-800 mb-2">Conservation Biology in the Anthropocene</h3>
+                <p class="text-sm text-slate-800 mb-3">We are currently situated in the Anthropocene, where anthropogenic stressors drive a global biodiversity crisis. Conservation strategy focuses on:</p>
+                <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
+                    <li>Preserving complex biodiversity (genes, species, and ecosystems).</li>
+                    <li>Addressing socio-economic root causes of habitat destruction.</li>
+                    <li>Strategic management of <strong>Keystone species</strong> (vital to food web stability) and <strong>Umbrella species</strong> (protecting them indirectly protects vast shared habitats).</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Physiology -->
+        <section id="physiology" class="scroll-mt-24 pt-12 border-t border-slate-200">
+            <div class="border-l-4 border-rose-500 pl-4 mb-8">
+                <h2 class="text-3xl font-bold text-slate-800">4. Comparative Anatomy & Physiology</h2>
+                <p class="mt-2 text-slate-600 max-w-3xl">How tissues and organs evolved specialized configurations to maintain homeostasis.</p>
+            </div>
+
+            <!-- Tabbed Interface -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <!-- Tab Buttons -->
+                <div class="flex border-b border-slate-200 overflow-x-auto no-scrollbar bg-slate-50">
+                    <button onclick="switchTab('digestion')" class="tab-btn active-tab bg-teal-700 text-white font-bold py-4 px-6 focus:outline-none transition-colors whitespace-nowrap">Digestion & Nutrients</button>
+                    <button onclick="switchTab('respiration')" class="tab-btn bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-4 px-6 focus:outline-none transition-colors whitespace-nowrap">Respiration</button>
+                    <button onclick="switchTab('circulation')" class="tab-btn bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold py-4 px-6 focus:outline-none transition-colors whitespace-nowrap">Circulation</button>
+                </div>
+
+                <!-- Digestion Content -->
+                <div id="digestion" class="tab-content p-6 md:p-8">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">Nutrient Acquisition</h3>
+                    <p class="text-slate-600 mb-6">From simple gastrovascular cavities in flatworms to complex, one-way alimentary canals, digestion extracts macromolecules to synthesize ATP.</p>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                            <h4 class="font-bold text-teal-800 mb-2">Monogastric Systems</h4>
+                            <p class="text-sm text-slate-700">Found in humans and carnivores. A single-chambered, highly acidic stomach denatures proteins before enzymatic degradation in the small intestine.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                            <h4 class="font-bold text-teal-800 mb-2">Avian Systems</h4>
+                            <p class="text-sm text-slate-700">Lacking teeth, birds use a <strong>crop</strong> for rapid storage, a glandular <strong>proventriculus</strong> for gastric juices, and a muscular <strong>gizzard</strong> (with swallowed grit) to grind food.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                            <h4 class="font-bold text-teal-800 mb-2">Ruminant Systems</h4>
+                            <p class="text-sm text-slate-700">Cattle and sheep consume fibrous roughage. Their massive 4-chambered stomach relies on fermentation vats (rumen/reticulum) containing symbiotic microbiota to degrade cellulose.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Respiration Content -->
+                <div id="respiration" class="tab-content hidden p-6 md:p-8">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">Gas Exchange</h3>
+                    <p class="text-slate-600 mb-6">Gas exchange relies on passive diffusion requiring massive surface areas and thin barriers. Design is linked to the physical properties of the medium.</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-bold text-sky-700 text-lg mb-2">Aquatic: Countercurrent Exchange</h4>
+                            <p class="text-sm text-slate-700 mb-3">Water is dense with low oxygen. Fish use gills where water flows over lamellae in one direction, while blood flows in the <em>opposite</em> direction in underlying capillaries. This maintains a favorable concentration gradient across the entire capillary bed, maximizing oxygen extraction.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-emerald-700 text-lg mb-2">Terrestrial: Internal Ventilation</h4>
+                            <p class="text-sm text-slate-700 mb-3">Air has high oxygen but poses desiccation risks. Mammalian lungs use <em>tidal</em> (bidirectional) ventilation through millions of alveoli. Birds, requiring immense ATP for endothermic flight, use a uniquely efficient <em>crosscurrent</em> exchange system with unidirectional air flow across parabronchi.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Circulation Content -->
+                <div id="circulation" class="tab-content hidden p-6 md:p-8">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">Transport Dynamics & Heart Evolution</h3>
+                    <p class="text-slate-600 mb-6">Invertebrates often use an <strong>open system</strong> (hemolymph bathes organs). Vertebrates use a <strong>closed system</strong> to precisely regulate blood pressure and shunt blood.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="bg-rose-100 text-rose-800 rounded-full h-8 w-8 flex items-center justify-center font-bold mr-4 shrink-0">2</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Two-Chambered (Fishes)</h4>
+                                <p class="text-sm text-slate-600">Single atrium and ventricle. A single circuit pumps deoxygenated blood to the gills, then directly to systemic tissues.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="bg-rose-100 text-rose-800 rounded-full h-8 w-8 flex items-center justify-center font-bold mr-4 shrink-0">3</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Three-Chambered (Amphibians)</h4>
+                                <p class="text-sm text-slate-600">Two atria, one ventricle. Dual circuits (pulmonary and systemic) evolved for land, though the single ventricle permits some mixing of oxygenated/deoxygenated blood.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="bg-rose-100 text-rose-800 rounded-full h-8 w-8 flex items-center justify-center font-bold mr-4 shrink-0">4</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Four-Chambered (Mammals/Birds/Crocs)</h4>
+                                <p class="text-sm text-slate-600">Convergent evolution led to complete septation. Absolute separation of circuits allows the systemic side to operate at high pressure, necessary for endothermic metabolism.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: Evolution -->
+        <section id="evolution" class="scroll-mt-24 pt-12 border-t border-slate-200">
+            <div class="border-l-4 border-indigo-500 pl-4 mb-8">
+                <h2 class="text-3xl font-bold text-slate-800">5. Evolutionary Genetics & Speciation</h2>
+                <p class="mt-2 text-slate-600 max-w-3xl">The modern synthesis mathematically integrates Mendelian genetics with Darwinian natural selection.</p>
+            </div>
+
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-teal-800 mb-6">The Four Forces of Evolution</h3>
+                <p class="text-slate-700 mb-6">While the Hardy-Weinberg equilibrium provides a null hypothesis of constant allele frequencies, natural ecosystems are constantly altered by four primary forces:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-t-indigo-400">
+                        <h4 class="font-bold text-slate-800 mb-2">Mutation</h4>
+                        <p class="text-sm text-slate-600">Errors in DNA replication provide the ultimate, raw source of all novel genetic variation fueling adaptation.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-t-sky-400">
+                        <h4 class="font-bold text-slate-800 mb-2">Gene Flow</h4>
+                        <p class="text-sm text-slate-600">Migration of individuals between populations, introducing novel genotypes and preventing extreme divergence.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-t-teal-400">
+                        <h4 class="font-bold text-slate-800 mb-2">Natural Selection</h4>
+                        <p class="text-sm text-slate-600">Non-random survival of individuals with suited phenotypic traits. The only force consistently driving adaptation.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-t-4 border-t-rose-400">
+                        <h4 class="font-bold text-slate-800 mb-2">Genetic Drift</h4>
+                        <p class="text-sm text-slate-600">Random fluctuation of alleles. Dramatic in small populations, leading to <em>Bottleneck Effects</em> (disasters) or <em>Founder Effects</em>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-bold text-teal-800 mb-6">Mechanisms of Speciation</h3>
+                <div class="overflow-x-auto bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="p-3 font-semibold">Type</th>
+                                <th class="p-3 font-semibold">Geographic Barrier</th>
+                                <th class="p-3 font-semibold">Diverging Subpopulation Size</th>
+                                <th class="p-3 font-semibold">Main Evolutionary Drive</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-600">
+                            <tr class="border-b border-slate-100"><td class="p-3 font-bold text-slate-800">Allopatric</td><td class="p-3">Yes (Physical separation)</td><td class="p-3">Large/Moderate</td><td class="p-3">Natural Selection / Drift</td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3 font-bold text-slate-800">Peripatric</td><td class="p-3">Yes (Peripheral isolation)</td><td class="p-3">Very Small</td><td class="p-3">Rapid Genetic Drift (Founder Effect)</td></tr>
+                            <tr class="border-b border-slate-100"><td class="p-3 font-bold text-slate-800">Parapatric</td><td class="p-3">No (Continuous contact)</td><td class="p-3">Large</td><td class="p-3">Selection across environmental gradient</td></tr>
+                            <tr><td class="p-3 font-bold text-slate-800">Sympatric</td><td class="p-3">No (Same space)</td><td class="p-3">N/A (within population)</td><td class="p-3">Polyploidy / Niche Differentiation</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: Reproduction & Genetics -->
+        <section id="reproduction" class="scroll-mt-24 pt-12 border-t border-slate-200 mb-24">
+            
+            <!-- Part A: Developmental Modes -->
+            <div class="mb-16">
+                <div class="border-l-4 border-teal-600 pl-4 mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">6. Reproduction & Development</h2>
+                    <p class="mt-2 text-slate-600 max-w-3xl">
+                        Asexual reproduction ensures rapid growth in stable environments (e.g., parthenogenesis), but sexual reproduction generates crucial genetic variation. Organisms balance offspring size against fecundity.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <!-- Text Descriptions -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <div class="p-4 rounded-lg border-l-4 border-amber-500 bg-slate-50">
+                            <h4 class="font-bold text-slate-800 text-lg flex items-center">&#128035; Oviparity (Egg-laying)</h4>
+                            <p class="text-sm text-slate-600 mt-2">Eggs are laid externally. All embryonic nutrients are in the yolk. <em>Strategy: High Fecundity, Low Investment.</em> Assumes few will survive to maturity (e.g., insects, most fish, birds).</p>
+                        </div>
+                        <div class="p-4 rounded-lg border-l-4 border-sky-500 bg-slate-50">
+                            <h4 class="font-bold text-slate-800 text-lg flex items-center">&#128013; Ovoviviparity</h4>
+                            <p class="text-sm text-slate-600 mt-2">Eggs are retained internally but nourished <strong>exclusively by yolk</strong>, not maternal tissue. Hatch internally, born live. <em>Strategy: Moderate Fecundity, Moderate Investment.</em> (e.g., sharks, many snakes).</p>
+                        </div>
+                        <div class="p-4 rounded-lg border-l-4 border-rose-500 bg-slate-50">
+                            <h4 class="font-bold text-slate-800 text-lg flex items-center">&#128018; Viviparity (Live birth)</h4>
+                            <p class="text-sm text-slate-600 mt-2">Embryo develops internally, receiving <strong>continuous nourishment</strong> from the mother (e.g., placenta). <em>Strategy: Low Fecundity, High Investment.</em> Massive physiological cost. (e.g., Mammals).</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Scatter Plot -->
+                    <div class="lg:col-span-7 flex flex-col">
+                        <h4 class="text-center font-bold text-slate-800 mb-2">The Evolutionary Trade-off</h4>
+                        <p class="text-center text-xs text-slate-500 mb-4">Fecundity vs. Maternal Energy Investment per Offspring</p>
+                        <div class="chart-container">
+                            <canvas id="tradeoffChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Part B: Genetic Sex Determination -->
+            <div>
+                <div class="border-l-4 border-rose-500 pl-4 mb-8">
+                    <h3 class="text-2xl font-bold text-slate-800">Genetic Sex Determination</h3>
+                    <p class="mt-2 text-slate-600 max-w-3xl">
+                        Biological mechanisms determining sex dictate reproductive roles. Select a system below to explore chromosomal evolution, heterogametic states, and unique anomalies.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <!-- Interactive Controls -->
+                    <div class="lg:col-span-4 flex flex-col gap-3">
+                        <button class="sex-btn bg-white border-2 border-slate-200 text-slate-700 rounded-xl p-4 text-left transition-all hover:bg-slate-50 focus:outline-none" data-system="xy">
+                            <h4 class="font-bold text-lg mb-1 text-slate-800">XY System</h4>
+                            <p class="text-xs text-slate-500">Mammals & some insects</p>
+                        </button>
+                        <button class="sex-btn bg-white border-2 border-slate-200 text-slate-700 rounded-xl p-4 text-left transition-all hover:bg-slate-50 focus:outline-none" data-system="zw">
+                            <h4 class="font-bold text-lg mb-1 text-slate-800">ZW System</h4>
+                            <p class="text-xs text-slate-500">Birds, reptiles, certain fish</p>
+                        </button>
+                        <button class="sex-btn bg-white border-2 border-slate-200 text-slate-700 rounded-xl p-4 text-left transition-all hover:bg-slate-50 focus:outline-none" data-system="x0">
+                            <h4 class="font-bold text-lg mb-1 text-slate-800">X0 / Z0 System</h4>
+                            <p class="text-xs text-slate-500">Insects & arachnids</p>
+                        </button>
+                        <button class="sex-btn bg-white border-2 border-slate-200 text-slate-700 rounded-xl p-4 text-left transition-all hover:bg-slate-50 focus:outline-none" data-system="other">
+                            <h4 class="font-bold text-lg mb-1 text-slate-800">Non-Chromosomal</h4>
+                            <p class="text-xs text-slate-500">Polygenic & Environmental</p>
+                        </button>
+                    </div>
+
+                    <!-- Visual Dashboard Area -->
+                    <div class="lg:col-span-8 bg-slate-800 text-slate-100 rounded-xl p-6 md:p-8 shadow-inner flex flex-col justify-center min-h-[400px]">
+                        <div id="sex-determination-content">
+                            <!-- Content injected via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 text-center border-t border-slate-800">
+        <div class="max-w-4xl mx-auto px-4">
+            <h4 class="text-white font-bold mb-4">Pedagogical Resources for Advanced Study</h4>
+            <p class="text-sm mb-2"><em>Foundational Texts:</em> Integrated Principles of Zoology (Hickman et al.), Zoology (Miller & Harley).</p>
+            <p class="text-sm mb-6"><em>Digital Utilities:</em> OpenStax Biology 2e, Animal Diversity Web (ADW).</p>
+            <p class="text-xs mt-8 border-t border-slate-700 pt-8">&copy; General Zoology Interactive Study Guide. Built for exploration and understanding.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Mobile Navigation Logic ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+        mobileLinks.forEach(link => link.addEventListener('click', () => mobileMenu.classList.add('hidden')));
+
+        // --- Chart.js Global Settings ---
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b'; // slate-500
+
+        // --- SECTION 2: Diversity Donut Chart ---
+        const ctxDiversity = document.getElementById('diversityChart').getContext('2d');
+        new Chart(ctxDiversity, {
+            type: 'doughnut',
+            data: {
+                labels: ['Invertebrates', 'Vertebrates'],
+                datasets: [{
+                    data: [95, 5],
+                    backgroundColor: ['#0f766e', '#d97706'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#334155', font: {weight: 'bold'} } }
+                }
+            }
+        });
+
+        // --- SECTION 3: Ecology Chart ---
+        const ctxEcology = document.getElementById('ecologyChart').getContext('2d');
+        new Chart(ctxEcology, {
+            type: 'line',
+            data: {
+                labels: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                datasets: [
+                    { label: 'Exponential', data: [2, 4, 8, 16, 32, 64, 128, 256, 512], borderColor: '#d97706', tension: 0.4 },
+                    { label: 'Logistic', data: [2, 4, 8, 15, 25, 40, 60, 80, 95], borderColor: '#0f766e', tension: 0.4 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 150 } } }
+        });
+
+        // --- SECTION 4: Tabbed Interface Logic ---
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Reset all buttons
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-teal-700', 'text-white', 'active-tab');
+                el.classList.add('bg-slate-50', 'text-slate-600');
+            });
+            // Show selected content
+            document.getElementById(tabId).classList.remove('hidden');
+            // Activate selected button
+            const activeBtn = document.querySelector(`[onclick="switchTab('${tabId}')"]`);
+            activeBtn.classList.remove('bg-slate-50', 'text-slate-600');
+            activeBtn.classList.add('bg-teal-700', 'text-white', 'active-tab');
+        }
+
+        // --- SECTION 6: Reproductive Trade-off Scatter Plot ---
+        const tradeoffData = {
+            datasets: [
+                {
+                    label: 'Oviparous (Egg-layers)',
+                    data: [{ x: 10, y: 90 }, { x: 5, y: 95 }, { x: 15, y: 80 }],
+                    backgroundColor: '#f59e0b', pointRadius: 8, pointHoverRadius: 12
+                },
+                {
+                    label: 'Ovoviviparous',
+                    data: [{ x: 40, y: 50 }, { x: 50, y: 40 }, { x: 60, y: 30 }],
+                    backgroundColor: '#0ea5e9', pointRadius: 8, pointHoverRadius: 12
+                },
+                {
+                    label: 'Viviparous (Live birth)',
+                    data: [{ x: 85, y: 15 }, { x: 95, y: 5 }, { x: 80, y: 20 }],
+                    backgroundColor: '#f43f5e', pointRadius: 8, pointHoverRadius: 12
+                }
+            ]
+        };
+
+        const ctxTradeoff = document.getElementById('tradeoffChart').getContext('2d');
+        new Chart(ctxTradeoff, {
+            type: 'scatter',
+            data: tradeoffData,
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: 'Energy Investment per Offspring (Size/Care) →', font: { weight: 'bold' } }, min: 0, max: 100, ticks: { display: false } },
+                    y: { title: { display: true, text: 'Number of Offspring (Fecundity) →', font: { weight: 'bold' } }, min: 0, max: 100, ticks: { display: false } }
+                },
+                plugins: { tooltip: { callbacks: { label: function(context) { return context.dataset.label; } } } }
+            }
+        });
+
+        // --- SECTION 6: Sex Determination Logic ---
+        const sexData = {
+            xy: {
+                title: "The XY System",
+                subtitle: "Predominant in mammals & some insects",
+                females: { name: "Homogametic (XX)", chroms: ['bg-chrom-x chrom-large', 'bg-chrom-x chrom-large'] },
+                males: { name: "Heterogametic (XY)", chroms: ['bg-chrom-x chrom-large', 'bg-chrom-y chrom-small'] },
+                fact: "<strong>Clinical Note:</strong> The Y chromosome carries critical male-determining genes (like SRY). Because males possess only one X chromosome, they are highly susceptible to X-linked recessive disorders (like red-green colorblindness) as they lack a second, dominant X allele to mask it."
+            },
+            zw: {
+                title: "The ZW System",
+                subtitle: "Birds, some reptiles, and certain fish",
+                females: { name: "Heterogametic (ZW)", chroms: ['bg-chrom-z chrom-large', 'bg-chrom-w chrom-medium'] },
+                males: { name: "Homogametic (ZZ)", chroms: ['bg-chrom-z chrom-large', 'bg-chrom-z chrom-large'] },
+                fact: "<strong>Fascinating Phenomenon:</strong> The paradigm is inverted! In ZW species capable of parthenogenesis (virgin birth, like the Komodo dragon), unfertilized eggs double their chromosomes (ZZ or WW). Since WW embryos are inviable, <em>parthenogenetic reproduction yields exclusively male (ZZ) offspring!</em>"
+            },
+            x0: {
+                title: "The X0 / Z0 System",
+                subtitle: "Common in insects and arachnids",
+                females: { name: "XX", chroms: ['bg-chrom-x chrom-large', 'bg-chrom-x chrom-large'] },
+                males: { name: "X0 (Single X)", chroms: ['bg-chrom-x chrom-large', 'chrom-none'] },
+                fact: "<strong>Evolutionary Loss:</strong> In the X0 system, the Y or W chromosome has been completely lost over evolutionary time. Sex is determined by the number of X chromosomes present (two for females, one for males)."
+            },
+            other: {
+                title: "Complex & Non-Chromosomal Systems",
+                subtitle: "Environmental, Sequential, and Polygenic",
+                content: `
+                    <div class="grid md:grid-cols-2 gap-6 mt-4">
+                        <div class="bg-slate-700 p-4 rounded-lg">
+                            <h4 class="text-amber-400 font-bold mb-2">&#127777;&#65039; Environmental Determination</h4>
+                            <p class="text-sm text-slate-300">In many reptiles (like crocodiles and some turtles), sex is not determined by genes at conception, but by the <strong>incubation temperature</strong> of the eggs during a critical period of embryonic development.</p>
+                        </div>
+                        <div class="bg-slate-700 p-4 rounded-lg">
+                            <h4 class="text-teal-400 font-bold mb-2">&#128032; Sequential Hermaphroditism</h4>
+                            <p class="text-sm text-slate-300">Some animals can change sex during their lifetime. Clownfish exhibit <strong>protandry</strong>: the dominant breeding male physically transforms into a female if the resident female dies.</p>
+                        </div>
+                        <div class="bg-slate-700 p-4 rounded-lg md:col-span-2">
+                            <h4 class="text-rose-400 font-bold mb-2">&#129516; Polygenic Determination</h4>
+                            <p class="text-sm text-slate-300">In complex scenarios like the zebrafish, sex determination relies on the interaction of multiple genes across various chromosomes rather than a distinct pair, allowing juvenile fish to possess both ovarian and testicular tissue before committing to an adult sex.</p>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        const sexBtns = document.querySelectorAll('.sex-btn');
+        const sexContentDiv = document.getElementById('sex-determination-content');
+
+        function renderChromosomes(data) {
+            if(data.content) {
+                return `
+                    <h3 class="text-3xl font-bold text-white mb-1">${data.title}</h3>
+                    <p class="text-slate-400 mb-6 border-b border-slate-600 pb-4">${data.subtitle}</p>
+                    ${data.content}
+                `;
+            }
+
+            return `
+                <h3 class="text-3xl font-bold text-white mb-1">${data.title}</h3>
+                <p class="text-slate-400 mb-8 border-b border-slate-600 pb-4">${data.subtitle}</p>
+                <div class="grid grid-cols-2 gap-8 mb-8">
+                    <div class="flex flex-col items-center">
+                        <div class="flex space-x-2 mb-4 h-16 items-end">
+                            <div class="${data.females.chroms[0]} shadow-md"></div>
+                            <div class="${data.females.chroms[1]} shadow-md"></div>
+                        </div>
+                        <h4 class="font-bold text-rose-300">&#9792;&#65039; Female</h4>
+                        <p class="text-sm text-slate-300">${data.females.name}</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="flex space-x-2 mb-4 h-16 items-end">
+                            <div class="${data.males.chroms[0]} shadow-md"></div>
+                            <div class="${data.males.chroms[1]} shadow-md"></div>
+                        </div>
+                        <h4 class="font-bold text-sky-300">&#9794;&#65039; Male</h4>
+                        <p class="text-sm text-slate-300">${data.males.name}</p>
+                    </div>
+                </div>
+                <div class="bg-slate-700/50 p-4 rounded-lg border border-slate-600">
+                    <p class="text-sm text-slate-200 leading-relaxed">${data.fact}</p>
+                </div>
+            `;
+        }
+
+        function updateSexView(systemId) {
+            sexBtns.forEach(b => b.classList.remove('sex-btn-active'));
+            document.querySelector(`.sex-btn[data-system="${systemId}"]`).classList.add('sex-btn-active');
+            sexContentDiv.style.opacity = 0;
+            setTimeout(() => {
+                sexContentDiv.innerHTML = renderChromosomes(sexData[systemId]);
+                sexContentDiv.style.transition = 'opacity 0.3s ease';
+                sexContentDiv.style.opacity = 1;
+            }, 150);
+        }
+
+        sexBtns.forEach(btn => btn.addEventListener('click', () => updateSexView(btn.getAttribute('data-system'))));
+        updateSexView('xy'); // Init
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Molecular Architecture of Life</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- MathJax for rendering LaTeX formulas -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    colors: {
+                        science: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for a polished look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .math-container {
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-science-100 selection:text-science-900">
+
+    <!-- Sticky Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center text-sm font-medium overflow-x-auto whitespace-nowrap hide-scrollbar">
+                <a href="#top" class="flex items-center gap-2 text-science-700 hover:text-science-900 transition-colors mr-6">
+                    <i data-lucide="dna" class="w-5 h-5"></i>
+                    <span class="font-bold text-base tracking-tight hidden sm:inline">BioChem Notes</span>
+                </a>
+                <div class="flex space-x-6">
+                    <a href="#proteins" class="text-slate-600 hover:text-science-600 transition-colors">Proteins</a>
+                    <a href="#nucleic-acids" class="text-slate-600 hover:text-science-600 transition-colors">Nucleic Acids</a>
+                    <a href="#carbs-lipids" class="text-slate-600 hover:text-science-600 transition-colors">Carbs & Lipids</a>
+                    <a href="#plants" class="text-slate-600 hover:text-science-600 transition-colors">Plant Synergy</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Hero Section -->
+    <header id="top" class="bg-science-900 text-white py-20 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiNmZmYiLz48L3N2Zz4=')]"></div>
+        <div class="max-w-4xl mx-auto relative z-10 text-center">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+                The Molecular Architecture of Life
+            </h1>
+            <p class="text-xl md:text-2xl font-light text-science-100 max-w-3xl mx-auto leading-relaxed">
+                Structure and Function of Biological Macromolecules
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-16">
+
+        <!-- Introduction -->
+        <section class="prose prose-lg prose-slate max-w-none text-slate-700 font-serif leading-relaxed text-lg">
+            <p class="first-letter:text-5xl first-letter:font-bold first-letter:text-science-700 first-letter:mr-3 first-letter:float-left">
+                Biological macromolecules—proteins, nucleic acids, carbohydrates, and lipids—are the fundamental building blocks of all living systems. These large organic molecules are typically polymers assembled from smaller repeating subunits called monomers through dehydration or condensation reactions, where the release of a water molecule facilitates the formation of a covalent bond.
+            </p>
+            <p>
+                Understanding the chemical logic of these structures is a core competency in chemical biology, as the specific three-dimensional arrangement of atoms determines their biological function and regulation.
+            </p>
+        </section>
+
+        <!-- Proteins -->
+        <section id="proteins" class="scroll-mt-24">
+            <div class="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
+                <div class="bg-science-100 p-2 rounded-lg text-science-700">
+                    <i data-lucide="layers" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Proteins: The Versatile Workhorses of the Cell</h2>
+            </div>
+            
+            <p class="text-slate-700 text-lg mb-6 leading-relaxed">
+                Proteins are the most functionally diverse macromolecules, serving as catalysts (enzymes), structural components, and signaling molecules. They are linear polymers of 20 standard amino acids, which are defined by a specific chemical signature: a central alpha-carbon ($C_\alpha$) bonded to a basic amino group ($-NH_2$), an acidic carboxyl group ($-COOH$), a hydrogen atom, and a variable side chain known as the R-group.
+            </p>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-science-50 rounded-bl-full -z-10"></div>
+                <h3 class="text-xl font-bold text-slate-900 mb-4">Amino Acid Properties and Hierarchical Structure</h3>
+                <p class="text-slate-700 mb-4 leading-relaxed">
+                    The R-group dictates the chemical personality of each amino acid, categorizing them as nonpolar (hydrophobic), polar uncharged (hydrophilic), or charged (acidic/basic). In aqueous cellular environments, amino acids exist predominantly as <strong>zwitterions</strong>—dipolar ions with both positive and negative charges but a net charge of zero. Most biological amino acids possess the L-configuration, reflecting the evolutionary specificity of the enzymes involved in protein synthesis.
+                </p>
+                <p class="text-slate-700 font-medium mt-6 mb-3">Protein structure is organized into four hierarchical levels:</p>
+                <ul class="space-y-3 text-slate-700">
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-science-100 text-science-700 flex items-center justify-center text-sm font-bold mt-0.5 mr-3">1</span>
+                        <div><strong>Primary Structure:</strong> The linear sequence of amino acids linked by covalent peptide bonds.</div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-science-100 text-science-700 flex items-center justify-center text-sm font-bold mt-0.5 mr-3">2</span>
+                        <div><strong>Secondary Structure:</strong> Localized folding patterns, such as the alpha-helix and beta-pleated sheet, stabilized by hydrogen bonding within the polypeptide backbone.</div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-science-100 text-science-700 flex items-center justify-center text-sm font-bold mt-0.5 mr-3">3</span>
+                        <div><strong>Tertiary Structure:</strong> The overall 3D shape formed by interactions between R-groups, including hydrophobic collapse, ionic bonds, and covalent disulfide bridges.</div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-science-100 text-science-700 flex items-center justify-center text-sm font-bold mt-0.5 mr-3">4</span>
+                        <div><strong>Quaternary Structure:</strong> The assembly of multiple polypeptide chains into a single functional complex.</div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Nucleic Acids -->
+        <section id="nucleic-acids" class="scroll-mt-24">
+            <div class="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
+                <div class="bg-indigo-100 p-2 rounded-lg text-indigo-700">
+                    <i data-lucide="book-open" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Nucleic Acids: The Blueprint of Genetic Information</h2>
+            </div>
+            
+            <p class="text-slate-700 text-lg mb-6 leading-relaxed">
+                Nucleic acids, specifically DNA (deoxyribonucleic acid) and RNA (ribonucleic acid), are specialized for the storage and transmission of genetic information. Their monomeric units are nucleotides, each consisting of a pentose sugar (2-deoxyribose in DNA, ribose in RNA), a phosphate group, and a nitrogenous base.
+            </p>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 relative">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">The DNA Double Helix</h3>
+                <p class="text-slate-700 mb-4 leading-relaxed">
+                    The chemical stability of DNA arises from its double-helical structure. The two strands of the helix are antiparallel, meaning they run in opposite directions (one $5'$ to $3'$, the other $3'$ to $5'$). The "rungs" of this molecular ladder are formed by complementary base pairing stabilized by hydrogen bonds:
+                </p>
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-5 flex flex-col sm:flex-row gap-4 justify-around">
+                    <div class="flex items-center gap-3 text-slate-800">
+                        <div class="bg-green-100 text-green-700 p-2 rounded-md font-bold text-lg">A = T</div>
+                        <span>Adenine pairs with Thymine<br><span class="text-sm text-slate-500">via 2 hydrogen bonds.</span></span>
+                    </div>
+                    <div class="hidden sm:block w-px bg-slate-200"></div>
+                    <div class="flex items-center gap-3 text-slate-800">
+                        <div class="bg-blue-100 text-blue-700 p-2 rounded-md font-bold text-lg">G ≡ C</div>
+                        <span>Guanine pairs with Cytosine<br><span class="text-sm text-slate-500">via 3 hydrogen bonds.</span></span>
+                    </div>
+                </div>
+                <p class="text-slate-700 leading-relaxed">
+                    The sugar-phosphate backbones run along the outside, while the aromatic bases stack on the interior, further stabilized by base-stacking interactions. This precise geometry allows DNA to maintain a uniform structure regardless of the sequence of bases, which encodes the cell's genetic blueprint.
+                </p>
+            </div>
+        </section>
+
+        <!-- Carbohydrates and Lipids -->
+        <section id="carbs-lipids" class="scroll-mt-24">
+            <div class="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
+                <div class="bg-amber-100 p-2 rounded-lg text-amber-700">
+                    <i data-lucide="hexagon" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Carbohydrates and Lipids: Energy & Boundaries</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Carbohydrates -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+                        <i data-lucide="wheat" class="w-5 h-5 text-amber-600"></i> Carbohydrates
+                    </h3>
+                    <p class="text-slate-700 leading-relaxed">
+                        Carbohydrates serve as the primary energy source and provide structural integrity. They are classified as monosaccharides (simple sugars like glucose), disaccharides (two units), or polysaccharides (long chains). Polysaccharides are linked by glycosidic bonds formed through dehydration reactions.
+                    </p>
+                </div>
+
+                <!-- Lipids -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
+                        <i data-lucide="droplets" class="w-5 h-5 text-teal-600"></i> Lipids
+                    </h3>
+                    <p class="text-slate-700 mb-4 leading-relaxed">
+                        Unlike other macromolecules, lipids are not true polymers but aggregates of nonpolar hydrocarbons held together by weak Van der Waals forces. Major classes include:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-700">
+                        <li><strong>Triacylglycerols (Fats):</strong> The most efficient form of energy storage, yielding twice the energy of carbohydrates per weight.</li>
+                        <li><strong>Phospholipids:</strong> Amphipathic molecules with hydrophilic heads and hydrophobic tails that spontaneously form lipid bilayers.</li>
+                        <li><strong>Steroids:</strong> Lipids characterized by four fused carbon rings, including cholesterol and various hormones.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Micromolecules -->
+        <section id="micromolecules" class="scroll-mt-24">
+            <div class="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
+                <div class="bg-emerald-100 p-2 rounded-lg text-emerald-700">
+                    <i data-lucide="microscope" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Micromolecules: The Small Scale Regulators</h2>
+            </div>
+            
+            <p class="text-slate-700 text-lg mb-6 leading-relaxed">
+                Micromolecules are small molecules with low molecular weight (typically under 1000 Da) that regulate critical biological processes and serve as building blocks for macromolecules. They are categorized into primary and secondary metabolites.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="border-l-4 border-emerald-500 pl-4 py-2">
+                    <h4 class="font-bold text-slate-900 mb-2">Primary Metabolites</h4>
+                    <p class="text-slate-700 text-sm leading-relaxed">
+                        These include amino acids, simple sugars (glucose), fatty acids, and nucleotides that are essential for basic survival and growth. Inorganic micromolecules like water and mineral ions ($Ca^{2+}$, $Mg^{2+}$, $K^+$) are also vital for maintaining osmotic balance and enzymatic function.
+                    </p>
+                </div>
+                <div class="border-l-4 border-purple-500 pl-4 py-2">
+                    <h4 class="font-bold text-slate-900 mb-2">Secondary Metabolites</h4>
+                    <p class="text-slate-700 text-sm leading-relaxed">
+                        These molecules (e.g., alkaloids, terpenoids, and phenolics) are not required for basic survival but play critical roles in environmental interaction, such as defense against herbivores, pathogen resistance, and attracting pollinators.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Molecular Synergy in Plant Cellular Processes -->
+        <section id="plants" class="scroll-mt-24">
+            <div class="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
+                <div class="bg-green-100 p-2 rounded-lg text-green-700">
+                    <i data-lucide="leaf" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Molecular Synergy in Plant Cellular Processes</h2>
+            </div>
+            
+            <p class="text-slate-700 text-lg mb-8 leading-relaxed">
+                In plants, macromolecules and micromolecules work in concert to facilitate complex life processes, from energy capture to structural defense.
+            </p>
+
+            <div class="space-y-8">
+                <!-- Photosynthesis -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                        <h3 class="text-xl font-bold text-slate-900">Photosynthesis and Energy Conversion</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-700 mb-4">The process of photosynthesis transforms light energy into chemical energy:</p>
+                        
+                        <div class="math-container bg-science-50 border border-science-100 rounded-lg text-center mb-6 text-xl text-slate-800">
+                            $$ 6CO_2 + 6H_2O \xrightarrow{\text{light}} C_6H_{12}O_6 + 6O_2 $$
+                        </div>
+                        
+                        <p class="text-slate-700 leading-relaxed">
+                            This reaction is facilitated by the pigment <strong>chlorophyll</strong> (a specialized lipid/micromolecule) and the enzyme <strong>RuBisCO</strong> (the most abundant protein on Earth). The resulting glucose ($C_6H_{12}O_6$) is a micromolecule that can be polymerized into starch for energy storage or cellulose for structural support.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Cell Wall & Signaling -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-bold text-slate-900 mb-3">The Plant Cell Wall</h3>
+                        <p class="text-slate-700 leading-relaxed text-sm">
+                            The cell wall is a complex network where macromolecules like cellulose and hemicellulose provide a rigid scaffold. This structure is reinforced by lignin (a complex phenolic polymer/micromolecule derivative) to provide strength and water resistance. Polysaccharides like pectin act as the "glue" between cells in the middle lamella.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-bold text-slate-900 mb-3">Signaling & Stress Adaptation</h3>
+                        <p class="text-slate-700 leading-relaxed text-sm">
+                            Lipids serve as secondary messengers in plants; for example, jasmonic acid (a fatty acid derivative) integrates nutrient status with defense signaling. During nutrient deprivation, plants can remodel their membranes, replacing phosphorus-containing phospholipids with glycolipids to conserve essential nutrients.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Nutrient Deficiency -->
+        <section id="nutrient-deficiency" class="scroll-mt-24 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-900 px-6 py-5 text-white">
+                <h2 class="text-2xl font-bold tracking-tight">Nutrient Deficiency and Early Detection</h2>
+                <p class="text-slate-300 text-sm mt-1">Plant growth is dependent on 17 essential elements. A deficiency in these results in specific physiological disruptions and detectable chemical signatures.</p>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm uppercase tracking-wider">
+                            <th class="px-6 py-4 font-semibold">Nutrient</th>
+                            <th class="px-6 py-4 font-semibold">Physiological Role</th>
+                            <th class="px-6 py-4 font-semibold">Visual Deficiency Symptoms</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-700 text-sm divide-y divide-slate-100">
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-slate-900 whitespace-nowrap">Nitrogen (N)</td>
+                            <td class="px-6 py-4">Component of proteins, nucleic acids, and chlorophyll</td>
+                            <td class="px-6 py-4">General yellowing (chlorosis) starting in older leaves</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-slate-900 whitespace-nowrap">Phosphorus (P)</td>
+                            <td class="px-6 py-4">Central to ATP, DNA synthesis, and membrane structure</td>
+                            <td class="px-6 py-4">Stunted growth; dark green or purple discoloration on leaves</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-slate-900 whitespace-nowrap">Potassium (K)</td>
+                            <td class="px-6 py-4">Regulates stomatal function and osmoregulation</td>
+                            <td class="px-6 py-4">"Scorch" or marginal leaf burn; crinkling/curling of leaves</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-slate-900 whitespace-nowrap">Magnesium (Mg)</td>
+                            <td class="px-6 py-4">Core element of chlorophyll; enzyme activator</td>
+                            <td class="px-6 py-4">Interveinal chlorosis (yellowing between veins) in older leaves</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-slate-900 whitespace-nowrap">Iron (Fe)</td>
+                            <td class="px-6 py-4">Essential for chlorophyll synthesis and chloroplast function</td>
+                            <td class="px-6 py-4">Interveinal chlorosis in young leaves</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-6 md:p-8 bg-slate-50/50 border-t border-slate-200">
+                <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i data-lucide="satellite" class="w-5 h-5 text-science-600"></i> Early Detection Technologies
+                </h3>
+                <p class="text-slate-700 mb-5 text-sm">To mitigate yield loss, chemical biologists use advanced tools to detect deficiencies before visual symptoms appear:</p>
+                
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <strong class="text-science-700 block mb-1">Spectral Imaging</strong>
+                        <span class="text-slate-600 text-sm">Hyperspectral and multispectral sensors (often mounted on UAVs) detect subtle changes in leaf reflectance and chlorophyll fluorescence triggered by nutrient stress.</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <strong class="text-science-700 block mb-1">Genetically Encoded Biosensors</strong>
+                        <span class="text-slate-600 text-sm">Engineered fluorescent proteins can report real-time dynamics of $Ca^{2+}$, $K^+$, and pH at the subcellular level.</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <strong class="text-science-700 block mb-1">Metabolomics</strong>
+                        <span class="text-slate-600 text-sm">Mass spectrometry analysis (e.g., MALDI-MS) of plant sap identifies metabolic biomarkers, such as altered N-linked glycans, serving as early indicators of nitrogen deficiency.</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <strong class="text-science-700 block mb-1">Raman Spectroscopy</strong>
+                        <span class="text-slate-600 text-sm">The $1046 \text{ cm}^{-1}$ Raman peak provides a specific in planta signature of nitrogen status, allowing for diagnosis before the onset of visual chlorosis.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center mt-12">
+        <div class="max-w-4xl mx-auto px-4">
+            <p class="mb-2"><i data-lucide="microscope" class="w-5 h-5 inline-block mr-2 text-science-500"></i> The Molecular Architecture of Life</p>
+            <p class="text-sm">A study guide for chemical biology and macromolecular structures.</p>
+        </div>
+    </footer>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

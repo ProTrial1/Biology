@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Genesis of Flora: Plant Development Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Earth & Flora (Stone background, Emerald/Teal accents, Slate text for readability, Amber highlights for specific hormones) -->
+    <!-- Application Structure Plan: A dashboard-style SPA divided into thematic, non-linear exploratory sections: "Life Cycle" (interactive timeline), "Cellular Engines" (structural models of meristems and cell fate), "Hormonal Symphony" (interactive radar chart for phytohormones), and "Genetic & Environmental Plasticity" (exploratory grid). This structure prioritizes conceptual grouping over the chronological layout of the report, allowing users to dive directly into specific biological mechanisms while maintaining clear context. -->
+    <!-- Visualization & Content Choices: 
+         1. Life Stages -> Inform/Change -> Interactive Timeline + Dynamic Text Box -> Allows step-by-step exploration of the molecular timeline without overwhelming the user with text. (HTML/CSS/JS)
+         2. Phytohormones -> Compare/Relationships -> Interactive Radar Chart -> Visualizes the overlapping and antagonistic influences of hormones (Auxin, GA, etc.) across different physiological processes. (Chart.js Canvas in constrained div).
+         3. Cellular Fate & Meristems -> Organize/Relationships -> Interactive HTML Flow Diagrams -> Illustrates the WUS-CLV loop and the Differentiation cycle (Totipotency) using structured flex/grid layouts. (HTML/CSS/JS, NO SVG/Mermaid).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            background-color: #f5f5f4;
+            color: #334155;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .nav-btn.active {
+            background-color: #047857;
+            color: white;
+            border-color: #047857;
+        }
+
+        .timeline-node.active {
+            background-color: #047857;
+            transform: scale(1.2);
+            border-color: #10b981;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .diagram-box {
+            transition: all 0.3s ease;
+        }
+        
+        .diagram-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <header class="bg-stone-900 text-stone-50 py-8 px-6 shadow-md z-10">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-emerald-400">The Genesis of Flora</h1>
+                <p class="text-stone-300 mt-2 text-sm md:text-base max-w-2xl">An Advanced Molecular Guide to Plant Development. Explore the indeterminate growth, epigenetic reprogramming, and hormonal symphony that orchestrate plant life.</p>
+            </div>
+            <div class="text-emerald-500 text-5xl">
+                &#10048;
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-sm sticky top-0 z-20 overflow-x-auto">
+        <div class="max-w-6xl mx-auto px-6 py-3 flex gap-2 md:gap-4 min-w-max">
+            <button onclick="switchTab('lifecycle')" id="btn-lifecycle" class="nav-btn active px-4 py-2 rounded-full border border-stone-300 text-stone-600 font-medium hover:bg-stone-100 transition-colors text-sm md:text-base">Life Cycle Stages</button>
+            <button onclick="switchTab('cellular')" id="btn-cellular" class="nav-btn px-4 py-2 rounded-full border border-stone-300 text-stone-600 font-medium hover:bg-stone-100 transition-colors text-sm md:text-base">Cellular Journey</button>
+            <button onclick="switchTab('engines')" id="btn-engines" class="nav-btn px-4 py-2 rounded-full border border-stone-300 text-stone-600 font-medium hover:bg-stone-100 transition-colors text-sm md:text-base">Cellular Engines</button>
+            <button onclick="switchTab('hormones')" id="btn-hormones" class="nav-btn px-4 py-2 rounded-full border border-stone-300 text-stone-600 font-medium hover:bg-stone-100 transition-colors text-sm md:text-base">Phytohormones</button>
+            <button onclick="switchTab('plasticity')" id="btn-plasticity" class="nav-btn px-4 py-2 rounded-full border border-stone-300 text-stone-600 font-medium hover:bg-stone-100 transition-colors text-sm md:text-base">Environmental Plasticity</button>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-6xl mx-auto w-full px-6 py-8">
+
+        <section id="sec-lifecycle" class="fade-in block">
+            <div class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <h2 class="text-2xl font-bold text-stone-800 mb-3">Molecular Timeline of Development</h2>
+                <p class="text-stone-600">The plant life cycle is a continuous, post-embryonic progression governed by precise spatiotemporal shifts in gene expression. This section allows you to trace the journey from a single zygote to eventual senescence. Click on the nodes below to explore the molecular drivers associated with each critical life stage.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 md:p-10">
+                <div class="relative flex justify-between items-center mb-12 max-w-4xl mx-auto">
+                    <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div class="h-1 w-full bg-stone-200 rounded-full"></div>
+                    </div>
+                    <button onclick="updateTimeline('embryo')" id="node-embryo" class="timeline-node active relative z-10 w-8 h-8 bg-stone-300 border-4 border-white rounded-full transition-transform focus:outline-none" title="Embryogenesis"></button>
+                    <button onclick="updateTimeline('germination')" id="node-germination" class="timeline-node relative z-10 w-8 h-8 bg-stone-300 border-4 border-white rounded-full transition-transform focus:outline-none" title="Germination"></button>
+                    <button onclick="updateTimeline('vegetative')" id="node-vegetative" class="timeline-node relative z-10 w-8 h-8 bg-stone-300 border-4 border-white rounded-full transition-transform focus:outline-none" title="Vegetative Phase"></button>
+                    <button onclick="updateTimeline('reproductive')" id="node-reproductive" class="timeline-node relative z-10 w-8 h-8 bg-stone-300 border-4 border-white rounded-full transition-transform focus:outline-none" title="Reproductive Phase"></button>
+                    <button onclick="updateTimeline('senescence')" id="node-senescence" class="timeline-node relative z-10 w-8 h-8 bg-stone-300 border-4 border-white rounded-full transition-transform focus:outline-none" title="Senescence"></button>
+                </div>
+                
+                <div class="flex justify-between text-xs font-semibold text-stone-400 mb-10 max-w-4xl mx-auto px-1 uppercase tracking-wider">
+                    <span>Embryo</span>
+                    <span>Germination</span>
+                    <span>Vegetative</span>
+                    <span>Reproductive</span>
+                    <span>Senescence</span>
+                </div>
+
+                <div id="timeline-content" class="bg-stone-50 p-6 md:p-8 rounded-xl border border-stone-200 min-h-[250px]">
+                    <h3 id="tl-title" class="text-xl font-bold text-emerald-700 mb-4">Embryogenesis</h3>
+                    <p id="tl-desc" class="text-stone-700 mb-4 leading-relaxed">Development begins with an asymmetric division of the zygote, establishing the apical-basal axis. This polarity is strictly dependent on the directional flow of auxin, mediated by PIN-FORMED (PIN) efflux carrier proteins. The embryo progresses through the globular, heart, and torpedo stages, establishing the protoderm, ground meristem, and procambium.</p>
+                    <div class="inline-block bg-emerald-100 text-emerald-800 text-sm px-3 py-1 rounded-full font-medium shadow-sm">
+                        Key Factor: <span id="tl-key">PIN Proteins & Auxin Gradients</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-cellular" class="fade-in hidden">
+            <div class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <h2 class="text-2xl font-bold text-stone-800 mb-3">The Cellular Journey: From Zygote to Complex Structure</h2>
+                <p class="text-stone-600">A plant's architecture is the sum of countless individual cellular journeys. Starting from a single fertilized egg, cells must divide, determine their spatial position, and execute highly specific genetic programs. This section outlines the comprehensive pathway of how a single cell builds a fully structured plant through continuous cycles of differentiation, specialization, and uniquely in plants, dedifferentiation.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 md:p-10 relative">
+                <div class="absolute left-10 md:left-11 top-10 bottom-10 w-1 bg-stone-200 rounded-full z-0"></div>
+
+                <div class="relative z-10 flex items-start gap-6 mb-10">
+                    <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-md border-4 border-white">1</div>
+                    <div class="bg-stone-50 border border-stone-200 rounded-xl p-6 flex-grow hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-bold text-emerald-800 mb-2">Key Stages of Plant Embryogenesis</h3>
+                        <p class="text-stone-700 text-sm mb-4">The journey to a complex plant begins with a single diploid cell. This foundational phase undergoes a highly orchestrated series of morphological stages to establish the plant's core body plan before general maturation begins.</p>
+                        
+                        <!-- Legend for CSS Illustrations -->
+                        <div class="flex flex-wrap gap-3 mb-6 p-3 bg-white border border-stone-200 rounded-lg text-xs font-medium text-stone-600 justify-center">
+                            <span class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-emerald-400"></div> Protoderm (Epidermis)</span>
+                            <span class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-amber-200"></div> Ground Meristem (Cortex/Pith)</span>
+                            <span class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-blue-300"></div> Procambium (Vascular)</span>
+                            <span class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-red-500 border border-red-700"></div> SAM / RAM (Stem Cells)</span>
+                            <span class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-stone-300"></div> Suspensor</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-4">
+                            
+                            <!-- 1. Zygote / 2-Cell -->
+                            <div class="bg-white p-4 rounded-lg border border-stone-100 shadow-sm relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-400"></div>
+                                <div class="h-32 mb-4 bg-stone-50 rounded flex items-end justify-center pb-2 border border-stone-100">
+                                    <!-- Graphic -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-6 h-6 rounded-full bg-emerald-200 border border-emerald-400 z-10" title="Apical Cell"></div>
+                                        <div class="w-10 h-14 rounded-full bg-stone-300 border border-stone-400 -mt-1" title="Basal Cell"></div>
+                                    </div>
+                                </div>
+                                <strong class="text-emerald-700 block mb-1 text-sm">1. Zygote/Two-Cell Stage</strong>
+                                <p class="text-xs text-stone-600 mb-2">Fertilization creates a zygote, which divides asymmetrically.</p>
+                                <div class="mt-auto pt-2 border-t border-stone-100">
+                                    <strong class="text-[10px] uppercase tracking-wider text-stone-400 block mb-1">Tissue / Meristem Structure</strong>
+                                    <ul class="text-[11px] text-stone-600 leading-tight space-y-1">
+                                        <li><span class="font-semibold text-emerald-600">Apical Cell:</span> Small, dense. Destined to become the entire embryo proper.</li>
+                                        <li><span class="font-semibold text-stone-600">Basal Cell:</span> Large, vacuolated. Develops into the suspensor (anchors/feeds embryo). No true meristems yet.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- 2. Proembryo -->
+                            <div class="bg-white p-4 rounded-lg border border-stone-100 shadow-sm relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                                <div class="h-32 mb-4 bg-stone-50 rounded flex items-end justify-center pb-2 border border-stone-100">
+                                    <!-- Graphic -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="grid grid-cols-2 gap-px bg-emerald-400 border border-emerald-500 p-px rounded-full overflow-hidden w-8 h-8 z-10" title="Octant">
+                                            <div class="bg-emerald-200"></div><div class="bg-emerald-200"></div>
+                                            <div class="bg-emerald-200"></div><div class="bg-emerald-200"></div>
+                                        </div>
+                                        <div class="flex flex-col gap-px -mt-1">
+                                            <div class="w-3 h-3 bg-stone-300 rounded-full border border-stone-400"></div>
+                                            <div class="w-3 h-3 bg-stone-300 rounded-full border border-stone-400"></div>
+                                            <div class="w-4 h-4 bg-stone-300 rounded-full border border-stone-400"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <strong class="text-emerald-700 block mb-1 text-sm">2. Proembryo (Octant)</strong>
+                                <p class="text-xs text-stone-600 mb-2">Early divisions create an 8-cell (octant) stage from the apical cell.</p>
+                                <div class="mt-auto pt-2 border-t border-stone-100">
+                                    <strong class="text-[10px] uppercase tracking-wider text-stone-400 block mb-1">Tissue / Meristem Structure</strong>
+                                    <ul class="text-[11px] text-stone-600 leading-tight space-y-1">
+                                        <li><span class="font-semibold text-emerald-600">Pre-Protoderm:</span> Outer cells begin to commit to an epidermal fate.</li>
+                                        <li><span class="font-semibold text-stone-600">Suspensor Elongation:</span> Pushes the proembryo deep into the nutrient-rich endosperm.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- 3. Globular -->
+                            <div class="bg-white p-4 rounded-lg border border-stone-100 shadow-sm relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-600"></div>
+                                <div class="h-32 mb-4 bg-stone-50 rounded flex items-end justify-center pb-2 border border-stone-100">
+                                    <!-- Graphic -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-12 h-12 rounded-full border-4 border-emerald-400 bg-amber-200 flex items-center justify-center z-10" title="Globular Embryo">
+                                            <div class="w-6 h-6 rounded-full bg-blue-300 border border-blue-400"></div>
+                                        </div>
+                                        <div class="flex flex-col gap-px -mt-1">
+                                            <div class="w-2 h-2 bg-stone-300 rounded-full"></div>
+                                            <div class="w-2 h-2 bg-stone-300 rounded-full"></div>
+                                            <div class="w-3 h-3 bg-stone-300 rounded-full"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <strong class="text-emerald-700 block mb-1 text-sm">3. Globular Stage</strong>
+                                <p class="text-xs text-stone-600 mb-2">The embryo becomes a spherical cluster. Radial patterning is established.</p>
+                                <div class="mt-auto pt-2 border-t border-stone-100">
+                                    <strong class="text-[10px] uppercase tracking-wider text-stone-400 block mb-1">Tissue / Meristem Structure</strong>
+                                    <ul class="text-[11px] text-stone-600 leading-tight space-y-1">
+                                        <li><span class="font-semibold text-emerald-600">Protoderm:</span> Distinct outer layer (future epidermis).</li>
+                                        <li><span class="font-semibold text-amber-500">Ground Meristem:</span> Middle layer (future cortex/pith).</li>
+                                        <li><span class="font-semibold text-blue-500">Procambium:</span> Core layer (future vascular tissue).</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- 4. Heart -->
+                            <div class="bg-white p-4 rounded-lg border border-stone-100 shadow-sm relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-700"></div>
+                                <div class="h-32 mb-4 bg-stone-50 rounded flex items-end justify-center pb-2 border border-stone-100">
+                                    <!-- Graphic -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="flex items-end justify-center gap-1 z-10">
+                                            <div class="w-5 h-8 bg-emerald-400 rounded-t-full border border-emerald-500 border-b-0"></div>
+                                            <div class="w-3 h-3 bg-red-500 rounded-full border-2 border-white -mx-2 z-20" title="SAM Initiating"></div>
+                                            <div class="w-5 h-8 bg-emerald-400 rounded-t-full border border-emerald-500 border-b-0"></div>
+                                        </div>
+                                        <div class="w-12 h-6 bg-amber-200 border border-amber-300 rounded-b-full -mt-2 flex items-start justify-center overflow-hidden z-10">
+                                            <div class="w-6 h-6 bg-blue-300 rounded-b-full"></div>
+                                        </div>
+                                        <div class="flex flex-col gap-px">
+                                            <div class="w-2 h-2 bg-stone-300 rounded-full"></div>
+                                            <div class="w-2 h-2 bg-stone-300 rounded-full"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <strong class="text-emerald-700 block mb-1 text-sm">4. Heart Stage (Dicots)</strong>
+                                <p class="text-xs text-stone-600 mb-2">Bilateral symmetry emerges due to localized cell division.</p>
+                                <div class="mt-auto pt-2 border-t border-stone-100">
+                                    <strong class="text-[10px] uppercase tracking-wider text-stone-400 block mb-1">Tissue / Meristem Structure</strong>
+                                    <ul class="text-[11px] text-stone-600 leading-tight space-y-1">
+                                        <li><span class="font-semibold text-emerald-600">Cotyledons:</span> Seed leaves begin to form the "lobes" of the heart.</li>
+                                        <li><span class="font-semibold text-red-500">SAM Initiation:</span> The Shoot Apical Meristem begins forming in the cleft between cotyledons.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- 5. Torpedo -->
+                            <div class="bg-white p-4 rounded-lg border border-stone-100 shadow-sm relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-800"></div>
+                                <div class="h-32 mb-4 bg-stone-50 rounded flex items-end justify-center pb-2 border border-stone-100">
+                                    <!-- Graphic -->
+                                    <div class="flex flex-col items-center">
+                                        <div class="flex items-end justify-center gap-2 z-10 relative">
+                                            <div class="w-3 h-12 bg-emerald-400 border border-emerald-500 rounded-t-full"></div>
+                                            <div class="absolute top-8 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full border-2 border-white z-20" title="SAM"></div>
+                                            <div class="w-3 h-12 bg-emerald-400 border border-emerald-500 rounded-t-full"></div>
+                                        </div>
+                                        <div class="w-8 h-10 bg-amber-200 border-x border-amber-300 -mt-2 flex items-center justify-center z-10">
+                                            <div class="w-4 h-full bg-blue-300 border-x border-blue-400"></div>
+                                        </div>
+                                        <div class="w-8 h-4 bg-amber-200 rounded-b-full border border-amber-300 border-t-0 flex items-start justify-center relative z-10">
+                                            <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-red-500 rounded-full border border-white z-20" title="RAM"></div>
+                                        </div>
+                                        <div class="w-1 h-3 bg-stone-300 mt-1 rounded"></div>
+                                    </div>
+                                </div>
+                                <strong class="text-emerald-700 block mb-1 text-sm">5. Torpedo Stage</strong>
+                                <p class="text-xs text-stone-600 mb-2">Rapid elongation of the embryonic axis and cotyledons.</p>
+                                <div class="mt-auto pt-2 border-t border-stone-100">
+                                    <strong class="text-[10px] uppercase tracking-wider text-stone-400 block mb-1">Tissue / Meristem Structure</strong>
+                                    <ul class="text-[11px] text-stone-600 leading-tight space-y-1">
+                                        <li><span class="font-semibold text-red-500">Defined Meristems:</span> Both SAM (shoot) and RAM (root) are fully distinct and active.</li>
+                                        <li><span class="font-semibold text-blue-500">Vascular Traces:</span> Procambium clearly defines the hypocotyl (stem) and radicle (root) axis.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- 6. Mature -->
+                            <div class="bg-white p-4 rounded-lg border border-stone-100 shadow-sm relative overflow-hidden flex flex-col h-full">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-stone-800"></div>
+                                <div class="h-32 mb-4 bg-stone-50 rounded flex items-center justify-center border border-stone-100 p-2">
+                                    <!-- Graphic -->
+                                    <div class="w-16 h-24 rounded-[2rem] border-4 border-amber-800 bg-amber-100 flex items-center justify-center relative" title="Seed/Seed Coat">
+                                        <div class="flex flex-col items-center rotate-45 transform scale-75">
+                                            <div class="flex items-end justify-center gap-1 z-10 relative">
+                                                <div class="w-4 h-12 bg-emerald-600 rounded-t-full"></div>
+                                                <div class="absolute top-10 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-red-600 rounded-full border border-white z-20"></div>
+                                                <div class="w-4 h-12 bg-emerald-600 rounded-t-full"></div>
+                                            </div>
+                                            <div class="w-10 h-12 bg-amber-300 border-x border-amber-400 -mt-2 flex items-center justify-center z-10">
+                                                <div class="w-4 h-full bg-blue-400"></div>
+                                            </div>
+                                            <div class="w-10 h-6 bg-amber-300 rounded-b-full flex items-start justify-center relative z-10">
+                                                <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-red-600 rounded-full border border-white z-20"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <strong class="text-stone-800 block mb-1 text-sm">6. Mature Embryo / Dormancy</strong>
+                                <p class="text-xs text-stone-600 mb-2">Growth arrests as the seed dehydrates and builds reserves.</p>
+                                <div class="mt-auto pt-2 border-t border-stone-100">
+                                    <strong class="text-[10px] uppercase tracking-wider text-stone-400 block mb-1">Tissue / Meristem Structure</strong>
+                                    <ul class="text-[11px] text-stone-600 leading-tight space-y-1">
+                                        <li><span class="font-semibold text-amber-800">Storage Tissues:</span> Cotyledons or endosperm packed with starch/lipids.</li>
+                                        <li><span class="font-semibold text-red-500">Quiescent Meristems:</span> SAM and RAM are structurally complete but metabolically dormant (regulated by ABA).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100 text-xs text-stone-700 mt-2">
+                            <strong class="text-emerald-800">Molecular Driver:</strong> Localized accumulation of the hormone Auxin directs the initial zygotic polarity, giving the single cell a "compass" for all subsequent cellular spatial organization shown above.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative z-10 flex items-start gap-6 mb-10">
+                    <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-md border-4 border-white">2</div>
+                    <div class="bg-stone-50 border border-stone-200 rounded-xl p-6 flex-grow hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-bold text-emerald-800 mb-2">Cellular Differentiation & Specialization</h3>
+                        <p class="text-stone-700 text-sm mb-3">As undifferentiated stem cells are continuously produced and pushed out of the meristems, they undergo differentiation. This is the execution of a specific genetic program where cells acquire highly specialized structural and physiological functions to form the functional tissues of the mature plant body.</p>
+                        <ul class="list-disc pl-5 text-sm text-stone-600 space-y-2 mb-3">
+                            <li><strong class="text-stone-800">Vascular Conduits (Xylem):</strong> Procambium cells undergo heavily regulated Programmed Cell Death (PCD). They deposit thick, rigid secondary cell walls reinforced with lignin, then actively degrade their own nucleus and protoplasm to form hollow pipes for water transport.</li>
+                            <li><strong class="text-stone-800">Absorption Specialists (Root Hairs):</strong> Driven by the <em>GLABRA2</em> gene, specific epidermal cells project outward, exponentially increasing their surface area for maximum nutrient absorption.</li>
+                            <li><strong class="text-stone-800">Energy Factories (Palisade Cells):</strong> Ground tissue cells in leaves elongate and become tightly packed with chloroplasts to maximize photosynthetic yield.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="relative z-10 flex items-start gap-6 mb-10">
+                    <div class="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-md border-4 border-white">3</div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 flex-grow hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-bold text-amber-800 mb-2">Dedifferentiation (Reversing the Clock)</h3>
+                        <p class="text-stone-700 text-sm mb-3">Unlike animal cells, mature, fully specialized plant cells often retain an extraordinary trait: <em>totipotency</em>. Dedifferentiation is the process by which a living, fully mature cell (usually parenchyma) regresses back into a proliferative, embryonic (meristematic) state, regaining the ability to divide rapidly.</p>
+                        <div class="bg-white p-3 rounded-lg border border-amber-100 text-xs text-stone-600 mb-2">
+                            <strong class="text-stone-800">Epigenetic Reprogramming:</strong> To achieve this, the cell must "forget" its identity. It undergoes massive chromatin remodeling, including DNA demethylation and histone modifications, allowing previously silenced developmental genes to be transcribed again.
+                        </div>
+                        <p class="text-stone-600 text-xs"><strong class="text-stone-800">Real-World Purpose:</strong> This is the primary mechanism for wound healing (creating an unorganized mass of protective cells called a <em>callus</em>) and is strictly required for secondary growth (forming the cork cambium to create bark).</p>
+                    </div>
+                </div>
+
+                <div class="relative z-10 flex items-start gap-6">
+                    <div class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-md border-4 border-white">4</div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 flex-grow hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-bold text-blue-800 mb-2">Redifferentiation (Organogenesis)</h3>
+                        <p class="text-stone-700 text-sm mb-3">Once a cell has dedifferentiated and multiplied (e.g., within a callus), those new cells can exit the cell cycle and specialize once again. They adopt a completely <em>new</em>, distinct cellular identity to rebuild structured, functional plant parts.</p>
+                        <div class="bg-white p-3 rounded-lg border border-blue-100 text-xs text-stone-600">
+                            <strong class="text-stone-800">Hormonal Control (Skoog-Miller Model):</strong> In a laboratory tissue culture, scientists can control redifferentiation perfectly using hormones. Applying a ratio of high Auxin to low Cytokinin forces the unorganized cells to redifferentiate into roots (rhizogenesis). Reversing the ratio (low Auxin/high Cytokinin) forces them to form shoots. This proves that a single differentiated leaf cell contains all the necessary instructions to rebuild an entire plant.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-engines" class="fade-in hidden">
+            <div class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <h2 class="text-2xl font-bold text-stone-800 mb-3">Cellular Engines: Meristems & Cellular Fate</h2>
+                <p class="text-stone-600">Unlike animals, which largely undergo determinate growth, plants possess indeterminate growth driven by <strong>meristems</strong>—highly organized, localized niches of pluripotent stem cells. This section unpacks the strict genetic feedback loops that maintain these stem cell populations and the remarkable cycle of cellular differentiation, epigenetic dedifferentiation, and redifferentiation (totipotency) that grants plants their extraordinary regenerative capacity.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 md:p-8 flex flex-col">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+                        <span class="text-2xl text-emerald-600">&#9881;</span> Stem Cell Maintenance Niches
+                    </h3>
+                    <p class="text-sm text-stone-600 mb-6">Meristems must perfectly balance stem cell renewal with the exit of cells for differentiation. This homeostasis is maintained by spatial negative feedback loops involving secreted peptides and receptor kinases.</p>
+                    
+                    <div class="flex flex-col items-center justify-center p-4 bg-stone-50 rounded-xl border border-stone-200 mb-4 relative">
+                        <strong class="absolute top-2 left-3 text-xs text-stone-400 uppercase tracking-widest">SAM: Shoot Apical Meristem</strong>
+                        <div class="bg-amber-100 border border-amber-300 text-amber-900 px-4 py-2 mt-4 rounded-lg text-center font-medium w-64 shadow-sm z-10">
+                            Central Zone (Stem Cells)
+                            <div class="text-[10px] font-normal mt-1 opacity-90 leading-tight">Secretes CLV3 peptide, which binds to CLV1/CLV2 receptors in the layers below.</div>
+                        </div>
+                        <div class="flex gap-16 my-2 text-stone-400 font-bold text-xl relative w-full justify-center">
+                            <span class="absolute right-[10%] top-1 text-emerald-600 text-[10px] sm:text-xs font-semibold flex flex-col items-center text-center leading-tight"><span>&#8593;</span> <span>WUS Protein<br>Migrates Up</span></span>
+                            <span class="absolute left-[10%] top-1 text-red-500 text-[10px] sm:text-xs font-semibold flex flex-col items-center text-center leading-tight"><span>&#8595;</span> <span>CLV3 Represses<br>WUS Gene</span></span>
+                            <div class="opacity-0">Spacer</div>
+                        </div>
+                        <div class="bg-emerald-100 border border-emerald-300 text-emerald-900 px-4 py-2 rounded-lg text-center font-medium w-64 shadow-sm z-10">
+                            Organizing Center (OC)
+                            <div class="text-[10px] font-normal mt-1 opacity-90 leading-tight">Expresses WUSCHEL (WUS) transcription factor to maintain stemness above.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 relative flex-grow">
+                        <strong class="absolute top-2 left-3 text-xs text-stone-400 uppercase tracking-widest">RAM: Root Apical Meristem</strong>
+                        <p class="text-xs text-stone-600 mt-5 leading-relaxed">The root operates on a parallel but distinct system. The <strong>Quiescent Center (QC)</strong> acts as the organizer, dividing very slowly and secreting the <em>WOX5</em> transcription factor (a WUS homolog) to prevent the differentiation of surrounding initial (stem) cells. Additionally, the <em>SHR/SCR</em> genetic pathway dictates the radial endodermis patterning.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 md:p-8 flex flex-col">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+                        <span class="text-2xl text-emerald-600">&#8635;</span> The Cycle of Cellular Fate
+                    </h3>
+                    <p class="text-sm text-stone-600 mb-6">A defining feature of higher plant biology is profound epigenetic flexibility. Differentiated somatic cells retain the complete genome and can traverse forward and backward through developmental states.</p>
+                    
+                    <div class="flex flex-col gap-3 flex-grow">
+                        <div onclick="toggleFate('diff')" class="diagram-box cursor-pointer bg-stone-50 border border-stone-200 p-4 rounded-xl">
+                            <h4 class="font-bold text-stone-800 flex justify-between items-center text-sm md:text-base">
+                                1. Differentiation & Specialization 
+                                <span class="text-stone-400 text-xl">&#43;</span>
+                            </h4>
+                            <div id="fate-diff" class="text-sm text-stone-600 mt-3 hidden space-y-2">
+                                <p>The terminal execution of a highly specific genetic program. As cells are displaced from the meristem's expansion zone, transcription factors lock in their final structural and physiological identities.</p>
+                                <p class="text-[11px] sm:text-xs bg-white p-2 border border-stone-100 rounded text-stone-600"><strong>Mechanism:</strong> This frequently involves profound structural alterations, including secondary cell wall thickening (lignification), altered organelle density (e.g., chloroplasts in palisade mesophyll), or extreme outcomes like strictly regulated <strong>Programmed Cell Death (PCD)</strong> to form hollow xylem tracheids for water transport.</p>
+                            </div>
+                        </div>
+                        <div class="text-center text-stone-300 font-bold text-xl py-1">&#8595;</div>
+                        <div onclick="toggleFate('dediff')" class="diagram-box cursor-pointer bg-stone-50 border border-stone-200 p-4 rounded-xl">
+                            <h4 class="font-bold text-stone-800 flex justify-between items-center text-sm md:text-base">
+                                2. Dedifferentiation (Epigenetic Reversal)
+                                <span class="text-stone-400 text-xl">&#43;</span>
+                            </h4>
+                            <div id="fate-dediff" class="text-sm text-stone-600 mt-3 hidden space-y-2">
+                                <p>The extraordinary regression of a living, fully mature cell (typically parenchyma) back into a proliferative, embryonic state, regaining the ability to divide. This allows plants to survive severe trauma and initiate secondary growth.</p>
+                                <p class="text-[11px] sm:text-xs bg-white p-2 border border-stone-100 rounded text-stone-600"><strong>Mechanism:</strong> Requires massive epigenetic reprogramming. Chromatin remodeling complexes execute DNA demethylation and histone acetylation to "erase" the cell's specialized memory, re-activating silenced cell-cycle and pluripotency genes to form a rapidly dividing, unorganized mass known as a <strong>callus</strong>.</p>
+                            </div>
+                        </div>
+                        <div class="text-center text-stone-300 font-bold text-xl py-1">&#8595;</div>
+                        <div onclick="toggleFate('rediff')" class="diagram-box cursor-pointer bg-stone-50 border border-stone-200 p-4 rounded-xl">
+                            <h4 class="font-bold text-stone-800 flex justify-between items-center text-sm md:text-base">
+                                3. Redifferentiation (De Novo Organogenesis)
+                                <span class="text-stone-400 text-xl">&#43;</span>
+                            </h4>
+                            <div id="fate-rediff" class="text-sm text-stone-600 mt-3 hidden space-y-2">
+                                <p>Previously dedifferentiated, dividing cells exit the cell cycle and specialize once again to adopt a completely new, distinct cellular identity. This represents the ultimate proof of plant <strong>totipotency</strong>.</p>
+                                <p class="text-[11px] sm:text-xs bg-white p-2 border border-stone-100 rounded text-stone-600"><strong>Mechanism:</strong> Governed by shifting morphogen gradients, primarily explained by the <strong>Skoog-Miller model</strong>. In tissue culture, applying a high Auxin to low Cytokinin ratio forces the unorganized callus to redifferentiate into roots (rhizogenesis). A low Auxin to high Cytokinin ratio forces shoot formation (caulogenesis), allowing entire plants to be cloned from a single somatic cell.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-hormones" class="fade-in hidden">
+            <div class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <h2 class="text-2xl font-bold text-stone-800 mb-3">The Hormonal Symphony (Phytohormones)</h2>
+                <p class="text-stone-600">Phytohormones orchestrate nearly every developmental process in trace amounts. Many of these pathways operate via a unique "derepression" mechanism using the Ubiquitin-Proteasome System (UPS), where the hormone triggers the destruction of a repressor protein. The radar chart below provides a comparative conceptual visualization of how different hormones exert influence across various developmental domains.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-stone-100 p-6 flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 w-full text-center">Hormonal Influence Across Developmental Domains</h3>
+                    <div class="text-xs text-stone-500 mb-4 text-center max-w-lg">This interactive radar chart maps the relative, comparative influence of major phytohormones on specific plant processes based on biological consensus.</div>
+                    
+                    <div class="chart-container">
+                        <canvas id="hormoneRadarChart"></canvas>
+                    </div>
+
+                    <div class="mt-6 flex flex-wrap justify-center gap-2">
+                        <button onclick="highlightHormone(0)" class="px-3 py-1 text-xs font-semibold rounded-full border border-stone-300 hover:bg-stone-100">Focus Auxin</button>
+                        <button onclick="highlightHormone(1)" class="px-3 py-1 text-xs font-semibold rounded-full border border-stone-300 hover:bg-stone-100">Focus GA</button>
+                        <button onclick="highlightHormone(2)" class="px-3 py-1 text-xs font-semibold rounded-full border border-stone-300 hover:bg-stone-100">Focus Cytokinin</button>
+                        <button onclick="highlightHormone(3)" class="px-3 py-1 text-xs font-semibold rounded-full border border-stone-300 hover:bg-stone-100">Focus ABA</button>
+                        <button onclick="highlightHormone(4)" class="px-3 py-1 text-xs font-semibold rounded-full border border-stone-300 hover:bg-stone-100">Focus Ethylene</button>
+                        <button onclick="resetHormoneChart()" class="px-3 py-1 text-xs font-bold rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700">Reset View</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 flex flex-col h-full">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 border-b pb-2">Molecular Mechanism: The UPS</h3>
+                    <div class="flex-grow space-y-4 overflow-y-auto pr-2 text-sm text-stone-700">
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-200">
+                            <strong class="text-emerald-700 block mb-1">Auxin (IAA) - The Glue</strong>
+                            Binds the TIR1 ubiquitin ligase, triggering degradation of Aux/IAA repressor proteins, freeing ARF transcription factors. Induces acid growth via H+-ATPase.
+                        </div>
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-200">
+                            <strong class="text-emerald-700 block mb-1">Gibberellins (GAs)</strong>
+                            Binds the GID1 receptor, triggering ubiquitination and degradation of DELLA repressor proteins, mobilizing endosperm and driving elongation.
+                        </div>
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-200">
+                            <strong class="text-emerald-700 block mb-1">Cytokinins</strong>
+                            Utilize a bacterial-like Two-Component System (TCS) to activate Type-B ARR transcription factors, promoting cell division and countering apical dominance.
+                        </div>
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-200">
+                            <strong class="text-emerald-700 block mb-1">Abscisic Acid (ABA)</strong>
+                            The primary stress hormone. High levels maintain seed dormancy and rapidly induce stomatal closure during drought. Antagonizes GA.
+                        </div>
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-200">
+                            <strong class="text-emerald-700 block mb-1">Ethylene</strong>
+                            Operates via active repression. Without it, CTR1 kinase blocks the pathway. Ethylene turns off CTR1, stabilizing EIN2/EIN3 to execute ripening and senescence.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-plasticity" class="fade-in hidden">
+            <div class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <h2 class="text-2xl font-bold text-stone-800 mb-3">Genetic & Environmental Plasticity</h2>
+                <p class="text-stone-600">Sessile organisms must dynamically integrate environmental data to alter their body plan. This section details how light, temperature, metabolic state, and intrinsic genetic codes interact to shape the final architecture of the plant through mechanisms like chromatin remodeling, photoreceptor signaling, and metabolic sensing.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div class="diagram-box bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col h-full">
+                    <div class="text-3xl mb-3">&#127774;</div>
+                    <h3 class="text-lg font-bold text-stone-800 mb-2">Photomorphogenesis</h3>
+                    <p class="text-sm text-stone-600 flex-grow">Plants use phytochromes to sense Red (Pr) and Far-Red (Pfr) light. Pfr promotes degradation of PIFs and inactivates COP1 (an E3 ligase), resulting in massive transcriptional reprogramming (de-etiolation, greening).</p>
+                    <div class="mt-4 pt-3 border-t border-stone-100 text-xs font-semibold text-stone-500">
+                        Concept: Shade Avoidance (Low R:FR ratio stabilizes PIFs for rapid elongation).
+                    </div>
+                </div>
+
+                <div class="diagram-box bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col h-full">
+                    <div class="text-3xl mb-3">&#10052;</div>
+                    <h3 class="text-lg font-bold text-stone-800 mb-2">Vernalization (Epigenetics)</h3>
+                    <p class="text-sm text-stone-600 flex-grow">Plants use DNA methylation and histone modifications to "remember" conditions. Prolonged cold induces the Polycomb Repressive Complex 2 (PRC2) to add repressive marks to the FLC gene, permanently silencing this flowering repressor.</p>
+                    <div class="mt-4 pt-3 border-t border-stone-100 text-xs font-semibold text-stone-500">
+                        Concept: Epigenetic Memory & Chromatin Remodeling.
+                    </div>
+                </div>
+
+                <div class="diagram-box bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col h-full">
+                    <div class="text-3xl mb-3">&#127804;</div>
+                    <h3 class="text-lg font-bold text-stone-800 mb-2">The ABCDE Model</h3>
+                    <p class="text-sm text-stone-600 flex-grow">Floral organ identity is determined by combinatorial codes of MADS-box transcription factors. The spatial overlap of A, B, C, D, and E class genes dictates specific whorls (sepals, petals, stamens, carpels).</p>
+                    <div class="mt-4 pt-3 border-t border-stone-100 text-xs font-semibold text-stone-500">
+                        Concept: Homeotic Genes & Organ Identity.
+                    </div>
+                </div>
+
+                <div class="diagram-box bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col h-full">
+                    <div class="text-3xl mb-3">&#9878;</div>
+                    <h3 class="text-lg font-bold text-stone-800 mb-2">Metabolic Sensing</h3>
+                    <p class="text-sm text-stone-600 flex-grow">SnRK1 kinase is activated by starvation/stress and represses growth. TOR kinase is activated by abundant sugars and promotes rapid meristematic proliferation.</p>
+                    <div class="mt-4 pt-3 border-t border-stone-100 text-xs font-semibold text-stone-500">
+                        Concept: Trehalose-6-Phosphate (T6P) acts as a sucrose proxy signal.
+                    </div>
+                </div>
+
+                <div class="diagram-box bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex flex-col h-full lg:col-span-2">
+                    <div class="text-3xl mb-3">&#128208;</div>
+                    <h3 class="text-lg font-bold text-stone-800 mb-2">The Acid Growth Hypothesis & Anisotropy</h3>
+                    <p class="text-sm text-stone-600 flex-grow">Auxin induces the plasma membrane H+-ATPase to pump protons into the apoplast. The low pH activates expansins, which disrupt bonds between cellulose microfibrils. Driven by high internal turgor pressure, the loosened wall yields. The direction of expansion (anisotropy) is dictated by underlying cortical microtubules.</p>
+                    <div class="mt-4 pt-3 border-t border-stone-100 text-xs font-semibold text-stone-500">
+                        Concept: Physiological Biomechanics & Cell Wall Yielding.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-6 text-center text-sm">
+        <p>Interactive synthesis based on "Comprehensive Plant Development: An Advanced Molecular Guide"</p>
+    </footer>
+
+    <script>
+        const timelineData = {
+            embryo: {
+                title: "Embryogenesis",
+                desc: `Development begins with fertilization, creating a zygote that undergoes a highly orchestrated series of morphological stages:
+                <ul class="list-disc pl-5 mt-3 space-y-2 text-sm text-stone-600">
+                    <li><strong class="text-stone-800">Zygote/Two-Cell Stage:</strong> Divides asymmetrically into a small apical cell (develops into the embryo proper) and a large basal cell (develops into the suspensor, which anchors and feeds the embryo).</li>
+                    <li><strong class="text-stone-800">Proembryo:</strong> Early cell divisions (longitudinal and transverse) create an octant stage (8 cells) from the apical cell.</li>
+                    <li><strong class="text-stone-800">Globular Stage:</strong> The embryo becomes a spherical cluster of cells. The protoderm (future epidermis) is established, and differentiation begins.</li>
+                    <li><strong class="text-stone-800">Heart Stage (Dicots):</strong> Cell division on the sides results in a heart-shaped structure, marking the emergence of the cotyledons (seed leaves).</li>
+                    <li><strong class="text-stone-800">Torpedo Stage:</strong> Rapid elongation of the embryonic axis and cotyledons gives a torpedo-like shape. The shoot and root apical meristems are established.</li>
+                    <li><strong class="text-stone-800">Mature Embryo:</strong> The embryo matures, stops growing, and enters dormancy, accompanied by the accumulation of food reserves and seed dehydration.</li>
+                </ul>`,
+                key: "PIN Proteins & Auxin Gradients"
+            },
+            germination: {
+                title: "Germination",
+                desc: "The break of dormancy requires a shift in the antagonistic balance between Abscisic Acid (ABA) and Gibberellins (GA). GA induces the expression of hydrolytic enzymes (e.g., α-amylase) via the degradation of DELLA repressor proteins, mobilizing endosperm reserves.",
+                key: "DELLA Degradation & GA/ABA Antagonism"
+            },
+            vegetative: {
+                title: "Vegetative Phase",
+                desc: "The Shoot Apical Meristem (SAM) recursively produces phytomeres (consisting of a node, internode, leaf, and axillary bud). Leaf primordia initiation at the meristem periphery is driven by local auxin maxima and the suppression of meristem-identity genes by ASYMMETRIC LEAVES1 (AS1).",
+                key: "Phytomeres & Auxin Depletion Zones"
+            },
+            reproductive: {
+                title: "Reproductive Phase",
+                desc: "An intricate systemic signaling event. Under inductive photoperiods, leaves produce the florigen signal—specifically the FLOWERING LOCUS T (FT) protein. FT travels through the phloem to the SAM, interacts with the transcription factor FD, and upregulates meristem identity genes like LEAFY (LFY) and APETALA1 (AP1) to convert the SAM into an inflorescence meristem.",
+                key: "Florigen (FT Protein) & Meristem Transition"
+            },
+            senescence: {
+                title: "Senescence and Abscission",
+                desc: "A highly orchestrated cascade of Programmed Cell Death (PCD) and nutrient remobilization, driven heavily by Ethylene and Jasmonic Acid, culminating in the enzymatic breakdown of the middle lamella at the abscission zone.",
+                key: "Ethylene, PCD & Middle Lamella Breakdown"
+            }
+        };
+
+        function switchTab(tabId) {
+            ['lifecycle', 'cellular', 'engines', 'hormones', 'plasticity'].forEach(id => {
+                document.getElementById(`sec-${id}`).classList.add('hidden');
+                document.getElementById(`btn-${id}`).classList.remove('active', 'bg-emerald-700', 'text-white');
+                document.getElementById(`btn-${id}`).classList.add('bg-white', 'text-stone-600');
+            });
+
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.remove('bg-white', 'text-stone-600');
+            activeBtn.classList.add('active', 'bg-emerald-700', 'text-white');
+
+            if(tabId === 'hormones' && !window.radarChartInit) {
+                initRadarChart();
+                window.radarChartInit = true;
+            }
+        }
+
+        function updateTimeline(stageId) {
+            Object.keys(timelineData).forEach(id => {
+                document.getElementById(`node-${id}`).classList.remove('active', 'bg-emerald-600', 'scale-125');
+                document.getElementById(`node-${id}`).classList.add('bg-stone-300');
+            });
+
+            const activeNode = document.getElementById(`node-${stageId}`);
+            activeNode.classList.remove('bg-stone-300');
+            activeNode.classList.add('active', 'bg-emerald-600', 'scale-125');
+
+            const content = timelineData[stageId];
+            const contentDiv = document.getElementById('timeline-content');
+            
+            contentDiv.style.opacity = 0;
+            setTimeout(() => {
+                document.getElementById('tl-title').innerText = content.title;
+                document.getElementById('tl-desc').innerHTML = content.desc;
+                document.getElementById('tl-key').innerText = content.key;
+                contentDiv.style.opacity = 1;
+                contentDiv.style.transition = "opacity 0.3s ease";
+            }, 150);
+        }
+
+        function toggleFate(fateId) {
+            const el = document.getElementById(`fate-${fateId}`);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                el.parentElement.querySelector('span').innerHTML = '&#8722;';
+            } else {
+                el.classList.add('hidden');
+                el.parentElement.querySelector('span').innerHTML = '&#43;';
+            }
+        }
+
+        let myRadarChart = null;
+        
+        const chartData = {
+            labels: ['Cell Division', 'Elongation', 'Dormancy/Stress', 'Ripening/Senescence', 'Meristem Maintenance'],
+            datasets: [
+                {
+                    label: 'Auxin',
+                    data: [80, 90, 10, 20, 95],
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Gibberellin (GA)',
+                    data: [60, 95, 5, 10, 40],
+                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    pointBackgroundColor: 'rgba(245, 158, 11, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Cytokinin',
+                    data: [95, 30, 20, 10, 85],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Abscisic Acid (ABA)',
+                    data: [10, 5, 95, 40, 20],
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Ethylene',
+                    data: [10, 10, 50, 95, 10],
+                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                    borderColor: 'rgba(168, 85, 247, 1)',
+                    pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                    borderWidth: 2
+                }
+            ]
+        };
+
+        function initRadarChart() {
+            const ctx = document.getElementById('hormoneRadarChart').getContext('2d');
+            myRadarChart = new Chart(ctx, {
+                type: 'radar',
+                data: JSON.parse(JSON.stringify(chartData)),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: { display: false },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            pointLabels: {
+                                font: { size: 11, family: 'ui-sans-serif' },
+                                color: '#57534e'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: {size: 11} } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': Relative Influence';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function highlightHormone(index) {
+            if(!myRadarChart) return;
+            
+            const newData = JSON.parse(JSON.stringify(chartData));
+            newData.datasets.forEach((ds, i) => {
+                if(i !== index) {
+                    ds.backgroundColor = 'transparent';
+                    ds.borderColor = 'rgba(200, 200, 200, 0.3)';
+                    ds.pointBackgroundColor = 'rgba(200, 200, 200, 0.3)';
+                    ds.borderWidth = 1;
+                } else {
+                    ds.borderWidth = 3;
+                }
+            });
+            
+            myRadarChart.data = newData;
+            myRadarChart.update();
+        }
+
+        function resetHormoneChart() {
+            if(!myRadarChart) return;
+            myRadarChart.data = JSON.parse(JSON.stringify(chartData));
+            myRadarChart.update();
+        }
+
+        window.onload = function() {
+            document.getElementById('btn-lifecycle').classList.add('bg-emerald-700', 'text-white');
+            document.getElementById('btn-lifecycle').classList.remove('bg-white', 'text-stone-600');
+        };
+
+    </script>
+</body>
+</html>

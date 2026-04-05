@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Genesis of Form: Animal Development Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Ocean & Coral (Slate background, Indigo/Blue primary themes, Coral/Rose accents representing biological tissues, white cards for clarity) -->
+    <!-- Application Structure Plan: The SPA is structured into four thematic tabs: "Foundations", "Embryonic Journey", "Tissue Architecture", and "Molecular Code". This breaks away from a linear text document, allowing users to first understand core concepts (Determinate growth, Morphogenesis), chronologically trace development (Timeline), explore spatial/structural outcomes (Germ Layers), and finally decode the complex chemical rules governing it all (Morphogens, Hox). This task-oriented layout enhances cognitive absorption. -->
+    <!-- Visualization & Content Choices: 
+         1. Foundations -> Inform -> Interactive Flip Cards -> Engages user immediately with the two core pillars (Morphogenesis/Differentiation). HTML/CSS only.
+         2. Embryonic Journey -> Change -> Interactive Stepped Timeline -> Allows pacing through phases 1-5 without text overload. Uses CSS-shapes (circles, flexboxes) to simulate cells dividing/folding instead of SVGs.
+         3. Tissue Architecture -> Organize -> Three-Column Interactive Grid -> Visually separates Ecto/Meso/Endoderm derivatives, allowing users to see parallel differentiation.
+         4. Molecular Code (Morphogens) -> Relationships -> Chart.js Line Chart -> A visual gradient of Sonic Hedgehog (Shh) concentration perfectly illustrates how distance dictates cell fate (Thumb vs Pinky). Placed in strict container.
+         5. Molecular Code (Apoptosis) -> Change -> Interactive CSS Demo -> Clicking removes "webbing" (HTML elements) between "digits" to tangibly demonstrate Programmed Cell Death. 
+         All choices avoid SVG/Mermaid, relying on HTML/CSS DOM manipulation and Canvas. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #334155;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .nav-btn {
+            transition: all 0.2s ease;
+        }
+        .nav-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .flip-card {
+            background-color: transparent;
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .flip-card-front {
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .flip-card-back {
+            background-color: #e0e7ff;
+            color: #312e81;
+            transform: rotateY(180deg);
+            border: 1px solid #c7d2fe;
+        }
+
+        .timeline-step.active-step {
+            border-color: #4f46e5;
+            background-color: #e0e7ff;
+        }
+        
+        .css-cell {
+            border-radius: 50%;
+            background-color: #cbd5e1;
+            border: 2px solid #94a3b8;
+            transition: all 0.5s ease;
+        }
+        .css-sperm {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4f46e5;
+            position: relative;
+        }
+        .css-sperm::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 8px;
+            width: 12px;
+            height: 2px;
+            background-color: #4f46e5;
+            transform: translateY(-50%);
+        }
+
+        .webbing {
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .webbing.apoptotic {
+            opacity: 0;
+            transform: scale(0);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="bg-slate-900 text-slate-50 py-8 px-6 shadow-lg z-10">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex-1">
+                <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-indigo-400">The Genesis of Form</h1>
+                <p class="text-slate-300 mt-2 text-sm md:text-base max-w-2xl leading-relaxed">A comprehensive interactive guide to Animal Embryogenesis. Explore how a single fertilized cell undergoes determinate growth, reshaping itself through precise physical movements and molecular codes to build a complex organism.</p>
+            </div>
+            <div class="flex gap-2">
+                <div class="w-12 h-12 rounded-full border-4 border-indigo-500 bg-indigo-900 flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+                    <div class="w-4 h-4 rounded-full bg-rose-400"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-sm sticky top-0 z-20 overflow-x-auto border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex gap-3 min-w-max">
+            <button onclick="appState.setTab('foundations')" id="tab-foundations" class="nav-btn active px-5 py-2.5 rounded-full border border-slate-300 text-slate-600 font-semibold hover:bg-slate-50 text-sm md:text-base">Foundations</button>
+            <button onclick="appState.setTab('timeline')" id="tab-timeline" class="nav-btn px-5 py-2.5 rounded-full border border-slate-300 text-slate-600 font-semibold hover:bg-slate-50 text-sm md:text-base">Embryonic Journey</button>
+            <button onclick="appState.setTab('tissues')" id="tab-tissues" class="nav-btn px-5 py-2.5 rounded-full border border-slate-300 text-slate-600 font-semibold hover:bg-slate-50 text-sm md:text-base">Tissue Architecture</button>
+            <button onclick="appState.setTab('molecular')" id="tab-molecular" class="nav-btn px-5 py-2.5 rounded-full border border-slate-300 text-slate-600 font-semibold hover:bg-slate-50 text-sm md:text-base">Molecular Code</button>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-6xl mx-auto px-6 py-8">
+
+        <section id="sec-foundations" class="fade-in block">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3">Core Developmental Concepts</h2>
+                <p class="text-slate-600 leading-relaxed max-w-4xl">Welcome to the foundations of animal development. Unlike plants, which grow continuously via meristems, animal development is generally <strong>determinate</strong>. Most organs and fundamental body plans are firmly established during a highly orchestrated embryonic window. This entire journey is a masterclass driven by two overarching pillars. Hover over the cards below to explore them.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-80">
+                <div class="flip-card h-full cursor-pointer">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="text-indigo-600 text-5xl mb-4 font-bold">&#8635;</div>
+                            <h3 class="text-2xl font-bold text-slate-800 mb-2">Morphogenesis</h3>
+                            <p class="text-slate-500 font-medium">The Development of Shape</p>
+                            <p class="text-xs text-slate-400 mt-4 uppercase tracking-wider">Hover to reveal</p>
+                        </div>
+                        <div class="flip-card-back">
+                            <h3 class="text-xl font-bold mb-3 border-b border-indigo-200 pb-2">Structural Organization</h3>
+                            <p class="text-sm leading-relaxed">Morphogenesis is the physical process that gives an organism its shape. It involves precise physical cell movements, migrations, and complex tissue folding. It answers the question of <em>where</em> cells go to build the 3D architecture of the body.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card h-full cursor-pointer">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="text-rose-500 text-5xl mb-4 font-bold">&#8862;</div>
+                            <h3 class="text-2xl font-bold text-slate-800 mb-2">Differentiation</h3>
+                            <p class="text-slate-500 font-medium">The Acquisition of Identity</p>
+                            <p class="text-xs text-slate-400 mt-4 uppercase tracking-wider">Hover to reveal</p>
+                        </div>
+                        <div class="flip-card-back" style="background-color: #fff1f2; color: #881337; border-color: #fecdd3;">
+                            <h3 class="text-xl font-bold mb-3 border-b border-rose-200 pb-2">Cellular Specialization</h3>
+                            <p class="text-sm leading-relaxed">Differentiation is the process where unspecialized stem cells become highly specialized functional types (e.g., muscle fibers, intricate neurons, or oxygen-carrying blood cells). It is achieved by selectively activating or silencing specific parts of the cell's DNA based on molecular signals.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-timeline" class="fade-in hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3">The Embryonic Journey</h2>
+                <p class="text-slate-600 leading-relaxed max-w-4xl">Follow the rapid progression of animal development from a single cell. This interactive timeline breaks down the chronological phases: Fertilization, Cleavage, Gastrulation, Organogenesis, and Post-Embryonic maturation. Select a phase below to observe the physical and biological transformations occurring at each step.</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3 flex flex-col gap-3">
+                    <button onclick="appState.setTimeline(1)" id="step-1" class="timeline-step active-step text-left px-5 py-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-bold text-indigo-500 uppercase tracking-wider block mb-1">Phase 1</span>
+                        <span class="font-bold text-slate-800">Fertilization & Zygote</span>
+                    </button>
+                    <button onclick="appState.setTimeline(2)" id="step-2" class="timeline-step text-left px-5 py-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-bold text-indigo-500 uppercase tracking-wider block mb-1">Phase 2</span>
+                        <span class="font-bold text-slate-800">Cleavage & Blastula</span>
+                    </button>
+                    <button onclick="appState.setTimeline(3)" id="step-3" class="timeline-step text-left px-5 py-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-bold text-indigo-500 uppercase tracking-wider block mb-1">Phase 3</span>
+                        <span class="font-bold text-slate-800">Gastrulation</span>
+                    </button>
+                    <button onclick="appState.setTimeline(4)" id="step-4" class="timeline-step text-left px-5 py-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-bold text-indigo-500 uppercase tracking-wider block mb-1">Phase 4</span>
+                        <span class="font-bold text-slate-800">Organogenesis</span>
+                    </button>
+                    <button onclick="appState.setTimeline(5)" id="step-5" class="timeline-step text-left px-5 py-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-bold text-indigo-500 uppercase tracking-wider block mb-1">Phase 5</span>
+                        <span class="font-bold text-slate-800">Post-Embryonic</span>
+                    </button>
+                </div>
+
+                <div class="lg:w-2/3 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col min-h-[400px]">
+                    <div id="visual-stage" class="w-full h-48 bg-slate-100 rounded-xl mb-6 flex items-center justify-center border border-slate-200 overflow-hidden relative">
+                    </div>
+                    
+                    <div class="flex-grow">
+                        <h3 id="stage-title" class="text-2xl font-bold text-slate-800 mb-4 border-b pb-2">Fertilization</h3>
+                        <div id="stage-content" class="text-slate-600 text-sm md:text-base space-y-3 leading-relaxed">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-tissues" class="fade-in hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3">Tissue Architecture: The Three Germ Layers</h2>
+                <p class="text-slate-600 leading-relaxed max-w-4xl">During Gastrulation, cells migrate to establish three fundamental tissue layers. This is the blueprint for differentiation. Every organ in the animal body maps back to one of these three embryonic origins. Review the columns below to understand how the Ectoderm, Mesoderm, and Endoderm establish the body's functional systems.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 flex flex-col">
+                    <div class="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xl mb-4 shadow-sm">Ec</div>
+                    <h3 class="text-xl font-bold text-blue-900 mb-2">Ectoderm (Outer Layer)</h3>
+                    <p class="text-sm text-blue-700 mb-6 flex-grow">The outermost layer established during gastrulation. It is responsible for the body's external covering and its primary communication network.</p>
+                    <div class="bg-white rounded-xl p-4 border border-blue-100 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-sm mb-2 uppercase tracking-wide">Derivatives:</h4>
+                        <ul class="space-y-2 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">&#10003;</span> Epidermis (Skin, hair, nails)</li>
+                            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">&#10003;</span> <strong>Central Nervous System</strong> (Brain & spinal cord, formed via the neural tube)</li>
+                            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5">&#10003;</span> Neural Crest cells (Peripheral nerves, melanocytes, facial bones)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-rose-50 border border-rose-200 rounded-2xl p-6 flex flex-col">
+                    <div class="w-12 h-12 rounded-full bg-rose-500 text-white flex items-center justify-center font-bold text-xl mb-4 shadow-sm">Me</div>
+                    <h3 class="text-xl font-bold text-rose-900 mb-2">Mesoderm (Middle Layer)</h3>
+                    <p class="text-sm text-rose-700 mb-6 flex-grow">The middle layer that provides structural support, movement, and complex internal transport systems for the organism.</p>
+                    <div class="bg-white rounded-xl p-4 border border-rose-100 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-sm mb-2 uppercase tracking-wide">Derivatives:</h4>
+                        <ul class="space-y-2 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><span class="text-rose-500 mt-0.5">&#10003;</span> Skeletal system (Bones, cartilage from somites)</li>
+                            <li class="flex items-start gap-2"><span class="text-rose-500 mt-0.5">&#10003;</span> Muscular system (Including cardiac muscle)</li>
+                            <li class="flex items-start gap-2"><span class="text-rose-500 mt-0.5">&#10003;</span> Circulatory & Lymphatic systems</li>
+                            <li class="flex items-start gap-2"><span class="text-rose-500 mt-0.5">&#10003;</span> Kidneys and reproductive organs</li>
+                            <li class="flex items-start gap-2"><span class="text-rose-500 mt-0.5">&#10003;</span> Notochord (Crucial for neural induction)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex flex-col">
+                    <div class="w-12 h-12 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xl mb-4 shadow-sm">En</div>
+                    <h3 class="text-xl font-bold text-amber-900 mb-2">Endoderm (Inner Layer)</h3>
+                    <p class="text-sm text-amber-700 mb-6 flex-grow">The innermost layer, primarily forming the primitive gut tube (archenteron) and differentiating into internal metabolic and respiratory linings.</p>
+                    <div class="bg-white rounded-xl p-4 border border-amber-100 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-sm mb-2 uppercase tracking-wide">Derivatives:</h4>
+                        <ul class="space-y-2 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#10003;</span> Epithelial lining of the digestive tract</li>
+                            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#10003;</span> Epithelial lining of the respiratory system (Lungs)</li>
+                            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#10003;</span> Liver</li>
+                            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#10003;</span> Pancreas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-molecular" class="fade-in hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-3">The Molecular Code of Cell Fate</h2>
+                <p class="text-slate-600 leading-relaxed max-w-4xl">How does a stem cell "know" what to become? Cell fate is governed by precise molecular mechanisms, including maternal cytoplasmic determinants, cell-to-cell induction, chemical gradients, and master regulatory genes. Explore the interactive visualizations below to understand how chemical concentrations and programmed cell death sculpt the final body plan.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Morphogen Gradients</h3>
+                            <p class="text-sm text-slate-500 mt-1">Cells "read" their position based on chemical concentration.</p>
+                        </div>
+                        <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full border border-indigo-200">Induction</span>
+                    </div>
+                    
+                    <p class="text-sm text-slate-600 mb-4">The <strong>Sonic Hedgehog (Shh)</strong> protein is a vital morphogen. In a developing limb bud, the Zone of Polarizing Activity (ZPA) secretes Shh. The distance a cell is from the ZPA determines its fate based strictly on the concentration of Shh it receives.</p>
+
+                    <div class="chart-container bg-slate-50 border border-slate-100 rounded-xl p-2 mt-auto">
+                        <canvas id="shhChart"></canvas>
+                    </div>
+                    <div class="text-center text-xs text-slate-400 mt-3 font-medium">Interactive Chart: Hover over data points.</div>
+                </div>
+
+                <div class="flex flex-col gap-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Homeotic (Hox) Genes</h3>
+                        <p class="text-sm text-slate-600 mb-4">Once basic axes are set, Hox genes act as master switches for segment anatomical identity. They exhibit <strong>colinearity</strong>: their order on the DNA perfectly matches the anterior-to-posterior order of the body segments they control.</p>
+                        
+                        <div class="flex flex-col gap-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <div class="flex items-center gap-4">
+                                <span class="text-xs font-bold text-slate-400 w-16 text-right">DNA:</span>
+                                <div class="flex w-full h-6 rounded-md overflow-hidden shadow-inner">
+                                    <div class="w-1/4 bg-red-400"></div>
+                                    <div class="w-1/4 bg-amber-400"></div>
+                                    <div class="w-1/4 bg-green-400"></div>
+                                    <div class="w-1/4 bg-blue-400"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="text-xs font-bold text-slate-400 w-16 text-right">Body:</span>
+                                <div class="flex w-full justify-between px-2">
+                                    <div class="text-xs font-bold text-red-600">Head</div>
+                                    <div class="text-xs font-bold text-amber-600">Thorax</div>
+                                    <div class="text-xs font-bold text-green-600">Lumbar</div>
+                                    <div class="text-xs font-bold text-blue-600">Tail</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex-grow flex flex-col">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Apoptosis (Programmed Cell Death)</h3>
+                        <p class="text-sm text-slate-600 mb-4">Development requires selectively destroying tissues to sculpt forms. Mammals develop webbed hands initially; apoptosis removes the tissue between digits. It also removes excess neurons to refine brain circuits.</p>
+                        
+                        <div class="mt-auto flex flex-col items-center">
+                            <div class="relative flex items-end justify-center w-48 h-32 bg-rose-50 border border-rose-200 rounded-xl overflow-hidden mb-4">
+                                <div class="w-6 h-24 bg-rose-400 rounded-t-full mx-1 z-10"></div>
+                                <div class="webbing w-6 h-16 bg-rose-200 mx-[-4px] mb-4 z-0 opacity-80 rounded"></div>
+                                <div class="w-6 h-28 bg-rose-400 rounded-t-full mx-1 z-10"></div>
+                                <div class="webbing w-6 h-16 bg-rose-200 mx-[-4px] mb-4 z-0 opacity-80 rounded"></div>
+                                <div class="w-6 h-24 bg-rose-400 rounded-t-full mx-1 z-10"></div>
+                            </div>
+                            <button onclick="appState.triggerApoptosis()" id="btn-apoptosis" class="px-4 py-2 bg-rose-100 text-rose-700 hover:bg-rose-200 font-bold rounded-full text-sm transition-colors border border-rose-300">Trigger Apoptosis</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-6 text-center text-sm">
+        <p>Interactive synthesis based on "Comprehensive Animal Development"</p>
+    </footer>
+
+    <script>
+        const appState = {
+            currentTab: 'foundations',
+            chartInstance: null,
+            apoptosisTriggered: false,
+
+            setTab: function(tabId) {
+                const tabs = ['foundations', 'timeline', 'tissues', 'molecular'];
+                tabs.forEach(id => {
+                    document.getElementById(`sec-${id}`).classList.add('hidden');
+                    document.getElementById(`tab-${id}`).classList.remove('active');
+                });
+                
+                document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+
+                if (tabId === 'timeline') {
+                    this.setTimeline(1);
+                }
+                
+                if (tabId === 'molecular' && !this.chartInstance) {
+                    this.initChart();
+                }
+            },
+
+            setTimeline: function(step) {
+                for(let i=1; i<=5; i++) {
+                    document.getElementById(`step-${i}`).classList.remove('active-step');
+                }
+                document.getElementById(`step-${step}`).classList.add('active-step');
+                this.renderTimelineStage(step);
+            },
+
+            triggerApoptosis: function() {
+                const webbings = document.querySelectorAll('.webbing');
+                const btn = document.getElementById('btn-apoptosis');
+                
+                if(!this.apoptosisTriggered) {
+                    webbings.forEach(w => w.classList.add('apoptotic'));
+                    btn.innerText = "Reset Tissue";
+                    btn.classList.replace('bg-rose-100', 'bg-slate-100');
+                    btn.classList.replace('text-rose-700', 'text-slate-700');
+                    btn.classList.replace('border-rose-300', 'border-slate-300');
+                } else {
+                    webbings.forEach(w => w.classList.remove('apoptotic'));
+                    btn.innerText = "Trigger Apoptosis";
+                    btn.classList.replace('bg-slate-100', 'bg-rose-100');
+                    btn.classList.replace('text-slate-700', 'text-rose-700');
+                    btn.classList.replace('border-slate-300', 'border-rose-300');
+                }
+                this.apoptosisTriggered = !this.apoptosisTriggered;
+            },
+
+            initChart: function() {
+                const ctx = document.getElementById('shhChart').getContext('2d');
+                this.chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Zone of Polarizing Activity', 'Proximal Area', 'Mid Area', 'Distal Area', 'Far Edge'],
+                        datasets: [{
+                            label: 'Sonic Hedgehog (Shh) Concentration',
+                            data: [100, 75, 45, 15, 2],
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#4f46e5',
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        let val = context.raw;
+                                        if(val > 80) return "Fate: Pinky Finger";
+                                        if(val > 40) return "Fate: Middle Fingers";
+                                        if(val < 10) return "Fate: Thumb";
+                                        return "Fate: Index Finger";
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                title: { display: true, text: 'Concentration Level' },
+                                min: 0,
+                                max: 110,
+                                ticks: { display: false }
+                            },
+                            x: {
+                                title: { display: true, text: 'Distance from ZPA Secretion Source' },
+                                ticks: { font: { size: 10 } }
+                            }
+                        }
+                    }
+                });
+            },
+
+            renderTimelineStage: function(step) {
+                const titleEl = document.getElementById('stage-title');
+                const contentEl = document.getElementById('stage-content');
+                const visualEl = document.getElementById('visual-stage');
+                
+                let title, content, visualHTML;
+
+                switch(step) {
+                    case 1:
+                        title = "Phase 1: Fertilization & Zygote";
+                        content = `
+                            <p>Development initiates with the fusion of highly specialized haploid gametes to form a diploid <strong>zygote</strong>. This is a critical signaling event.</p>
+                            <ul class="list-disc pl-5 space-y-2 mt-3">
+                                <li><strong>Acrosomal Reaction:</strong> Sperm releases enzymes to digest a path to the egg membrane.</li>
+                                <li><strong>Cortical Reaction:</strong> Prevents lethal polyspermy via a fast block (depolarization) and a slow block (calcium wave hardening the envelope).</li>
+                                <li><strong>Egg Activation:</strong> The calcium wave spikes cellular respiration and protein synthesis, initiating the first division.</li>
+                            </ul>
+                        `;
+                        visualHTML = `
+                            <div class="relative w-32 h-32">
+                                <div class="absolute inset-0 css-cell flex items-center justify-center bg-indigo-100 border-indigo-300">
+                                    <span class="text-indigo-800 font-bold text-sm">Zygote</span>
+                                </div>
+                                <div class="css-sperm absolute top-2 right-[-20px] transform -rotate-45"></div>
+                                <div class="css-sperm absolute bottom-4 left-[-25px] transform rotate-[120deg]"></div>
+                            </div>
+                        `;
+                        break;
+                    case 2:
+                        title = "Phase 2: Cleavage & Blastula";
+                        content = `
+                            <p>The zygote undergoes rapid, synchronous mitotic divisions known as <strong>cleavage</strong>, crucially skipping the G1 and G2 growth phases. The overall volume does not increase.</p>
+                            <ul class="list-disc pl-5 space-y-2 mt-3">
+                                <li><strong>Morula:</strong> The giant zygote partitions into many smaller cells (blastomeres), forming a solid ball.</li>
+                                <li><strong>Blastula/Blastocyst:</strong> The morula secretes fluid to create a hollow cavity (blastocoel).</li>
+                                <li><strong>Mammalian Distinction:</strong> Separates into Trophoblast (placenta) and Inner Cell Mass (embryo).</li>
+                            </ul>
+                        `;
+                        visualHTML = `
+                            <div class="flex gap-4 items-center">
+                                <div class="w-16 h-16 css-cell bg-indigo-200 border-indigo-400 relative overflow-hidden flex flex-wrap">
+                                    <div class="w-1/2 h-1/2 border-r border-b border-indigo-400"></div>
+                                    <div class="w-1/2 h-1/2 border-b border-indigo-400"></div>
+                                    <div class="w-1/2 h-1/2 border-r border-indigo-400"></div>
+                                    <div class="w-1/2 h-1/2"></div>
+                                </div>
+                                <span class="text-slate-400 font-bold">&#8594;</span>
+                                <div class="w-24 h-24 css-cell bg-white border-4 border-indigo-400 flex items-center justify-center shadow-inner">
+                                    <div class="text-xs font-bold text-indigo-400">Blastocoel<br>(Hollow)</div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 3:
+                        title = "Phase 3: Gastrulation (The Great Migration)";
+                        content = `
+                            <p>A massive reorganization transforms the hollow blastula into a complex, 3D <strong>gastrula</strong>. As Lewis Wolpert said, this is "truly the most important time in your life."</p>
+                            <ul class="list-disc pl-5 space-y-2 mt-3">
+                                <li><strong>Invagination:</strong> Surface cells buckle inward at the <em>blastopore</em>, creating the primitive gut (archenteron).</li>
+                                <li><strong>Blastopore Fate:</strong> Dictates Protostomes (mouth first) vs. Deuterostomes (anus first).</li>
+                                <li><strong>Three Germ Layers established:</strong> Ectoderm (outer), Mesoderm (middle), Endoderm (inner).</li>
+                            </ul>
+                        `;
+                        visualHTML = `
+                            <div class="w-28 h-28 rounded-full border-4 border-blue-400 bg-white relative overflow-hidden flex items-end justify-center">
+                                <div class="w-16 h-12 border-4 border-amber-400 border-b-0 rounded-t-[2rem] bg-rose-100 flex items-center justify-center -mb-1">
+                                    <span class="text-[10px] font-bold text-rose-600 mt-2">Gut Tube</span>
+                                </div>
+                                <div class="absolute bottom-1 w-full text-center text-[10px] font-bold text-slate-500 bg-white leading-none">Blastopore</div>
+                            </div>
+                        `;
+                        break;
+                    case 4:
+                        title = "Phase 4: Organogenesis & Neurulation";
+                        content = `
+                            <p>Specialized cells from the germ layers differentiate and interact to form rudimentary organs. In vertebrates, the defining early event is <strong>neurulation</strong>.</p>
+                            <ul class="list-disc pl-5 space-y-2 mt-3">
+                                <li><strong>Neural Induction:</strong> The mesoderm <em>notochord</em> signals the overlying ectoderm to thicken into a neural plate.</li>
+                                <li><strong>Neural Tube:</strong> The plate folds upward and fuses, pinching off to form the brain and spinal cord.</li>
+                                <li><strong>Neural Crest & Somites:</strong> Migratory crest cells form peripheral structures, while mesoderm somites dictate segmented body plans (vertebrae, ribs).</li>
+                            </ul>
+                        `;
+                        visualHTML = `
+                            <div class="flex flex-col items-center">
+                                <div class="w-24 h-6 border-t-4 border-blue-500 rounded-t-[50%] mb-1 flex justify-between px-2">
+                                    <div class="w-2 h-2 rounded-full bg-indigo-600 mt-1"></div>
+                                    <div class="w-2 h-2 rounded-full bg-indigo-600 mt-1"></div>
+                                </div>
+                                <div class="w-12 h-12 rounded-full border-4 border-blue-500 bg-blue-100 mb-2 flex items-center justify-center">
+                                    <span class="text-[10px] font-bold text-blue-700 text-center leading-tight">Neural<br>Tube</span>
+                                </div>
+                                <div class="w-6 h-6 rounded-full bg-rose-400 text-[10px] text-white flex items-center justify-center font-bold">Notoc</div>
+                            </div>
+                        `;
+                        break;
+                    case 5:
+                        title = "Phase 5: Post-Embryonic Development";
+                        content = `
+                            <p>Many animals experience indirect development characterized by distinct post-embryonic stages rather than direct birth as a miniature adult.</p>
+                            <ul class="list-disc pl-5 space-y-2 mt-3">
+                                <li><strong>Larval Stage:</strong> Functionally/morphologically distinct forms (e.g., caterpillars, tadpoles) that occupy different ecological niches to reduce resource competition with adults.</li>
+                                <li><strong>Metamorphosis:</strong> A hormonally driven, radical biological transformation. Requires intense morphogenesis and apoptosis to rebuild the organism for its sexually mature adult stage.</li>
+                            </ul>
+                        `;
+                        visualHTML = `
+                            <div class="flex items-center gap-6">
+                                <div class="flex gap-1">
+                                    <div class="w-6 h-6 rounded-full bg-emerald-400"></div>
+                                    <div class="w-6 h-6 rounded-full bg-emerald-500"></div>
+                                    <div class="w-6 h-6 rounded-full bg-emerald-600"></div>
+                                </div>
+                                <span class="text-slate-400 font-bold">&#8594;</span>
+                                <div class="relative w-16 h-16">
+                                    <div class="absolute inset-2 bg-indigo-600 rounded-full z-10 border border-indigo-800"></div>
+                                    <div class="absolute top-1 left-[-10px] w-12 h-10 bg-indigo-300 rounded-full transform -rotate-45 z-0 opacity-80 border border-indigo-400"></div>
+                                    <div class="absolute top-1 right-[-10px] w-12 h-10 bg-indigo-300 rounded-full transform rotate-45 z-0 opacity-80 border border-indigo-400"></div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                }
+
+                visualEl.innerHTML = visualHTML;
+                titleEl.innerHTML = title;
+                contentEl.innerHTML = content;
+                
+                contentEl.classList.remove('fade-in');
+                void contentEl.offsetWidth; 
+                contentEl.classList.add('fade-in');
+                visualEl.classList.remove('fade-in');
+                void visualEl.offsetWidth;
+                visualEl.classList.add('fade-in');
+            }
+        };
+
+        window.onload = function() {
+            appState.setTimeline(1);
+        };
+    </script>
+</body>
+</html>

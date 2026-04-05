@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Framework of Evolutionary Biology</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet">
+    <!-- MathJax for rendering equations -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                            950: '#052e16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Reading Progress Bar */
+        #progress-bar {
+            transform-origin: 0% 50%;
+            transform: scaleX(0);
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Typography tweaks */
+        .prose p { margin-bottom: 1.25em; line-height: 1.8; }
+        .prose h2 { margin-top: 2em; margin-bottom: 0.75em; }
+        .prose h3 { margin-top: 1.5em; margin-bottom: 0.5em; }
+        .prose li { margin-bottom: 0.5em; }
+        
+        /* Accordion transition */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-300 font-serif antialiased transition-colors duration-300">
+
+    <!-- Progress Bar -->
+    <div class="fixed top-0 left-0 w-full h-1 bg-slate-200 dark:bg-slate-800 z-50">
+        <div id="progress-bar" class="h-full bg-brand-500 w-full"></div>
+    </div>
+
+    <!-- Mobile Header -->
+    <header class="lg:hidden fixed top-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 z-40 px-4 py-3 flex justify-between items-center">
+        <span class="font-sans font-bold text-lg text-slate-900 dark:text-white truncate">Evolutionary Biology</span>
+        <div class="flex items-center gap-4">
+            <button id="mobile-theme-toggle" class="text-slate-500 dark:text-slate-400 p-1">
+                <i class="ph ph-moon text-xl dark:hidden"></i>
+                <i class="ph ph-sun text-xl hidden dark:block"></i>
+            </button>
+            <button id="menu-toggle" class="text-slate-900 dark:text-white p-1">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="max-w-screen-2xl mx-auto flex flex-col lg:flex-row relative pt-14 lg:pt-0">
+        
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed lg:sticky top-0 left-0 h-screen w-full lg:w-72 bg-slate-100 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 overflow-y-auto z-30 transition-transform duration-300 transform -translate-x-full lg:translate-x-0">
+            <div class="p-6">
+                <div class="hidden lg:flex justify-between items-center mb-8">
+                    <h1 class="font-sans font-bold text-xl text-slate-900 dark:text-white leading-tight">Evolutionary<br>Biology</h1>
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400">
+                        <i class="ph ph-moon text-xl dark:hidden"></i>
+                        <i class="ph ph-sun text-xl hidden dark:block"></i>
+                    </button>
+                </div>
+                <button id="close-menu" class="lg:hidden absolute top-4 right-4 p-2 text-slate-500">
+                    <i class="ph ph-x text-2xl"></i>
+                </button>
+                
+                <nav class="font-sans text-sm space-y-1" id="nav-menu">
+                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-2 mt-4 lg:mt-0">Contents</p>
+                    <a href="#introduction" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Introduction</a>
+                    <a href="#foundations" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Historical Foundations</a>
+                    <a href="#pre-darwinian" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Pre-Darwinian Theories</a>
+                    <a href="#darwinian" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Darwinian Evolution</a>
+                    <a href="#post-darwinian" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Post-Darwinian Theories</a>
+                    <a href="#misconceptions" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Misconceptions</a>
+                    <a href="#evidence" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Empirical Evidence</a>
+                    
+                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-2 mt-6">Mechanisms & Genetics</p>
+                    <a href="#genetics" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Genetic Transmission</a>
+                    <a href="#hardy-weinberg" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Hardy-Weinberg Baseline</a>
+                    <a href="#mechanisms" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Drift & Gene Flow</a>
+                    <a href="#adaptive-change" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Adaptive Change</a>
+                    <a href="#sexual-selection" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Sexual Selection</a>
+                    
+                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-2 mt-6">Development & Deep Time</p>
+                    <a href="#conflict-life-history" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Conflict & Life History</a>
+                    <a href="#development" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Developmental Evolution</a>
+                    <a href="#macroevolution" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Macroevolution</a>
+                    <a href="#fossil-record" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Deep Time</a>
+                    
+                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-2 mt-6">Ecology & Applications</p>
+                    <a href="#ecology" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Ecological Dynamics</a>
+                    <a href="#behavior" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Behavioral Ecology</a>
+                    <a href="#altruism" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Evolution of Altruism</a>
+                    <a href="#medicine" class="nav-link block py-2 px-3 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 hover:text-brand-700 dark:hover:text-brand-400 transition-colors">Applied Evolution</a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Overlay for mobile menu -->
+        <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-20 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 w-full max-w-4xl mx-auto px-6 py-12 lg:px-16 lg:py-20 prose-container">
+            
+            <article class="prose prose-lg dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
+                
+                <!-- Hero Section -->
+                <section id="introduction" class="mb-16 scroll-mt-24">
+                    <p class="text-brand-600 dark:text-brand-400 font-sans font-semibold tracking-wide uppercase text-sm mb-3">Comprehensive Framework</p>
+                    <h1 class="text-4xl lg:text-5xl font-bold font-sans text-slate-900 dark:text-white leading-tight mb-6">Core Principles of Evolutionary Biology</h1>
+                    <p class="text-xl leading-relaxed text-slate-600 dark:text-slate-400">
+                        The study of evolutionary biology provides the unifying theoretical framework for all biological sciences, linking molecular genetics and developmental biology to macroecological dynamics, paleontology, and behavioral ecology. 
+                    </p>
+                    <p class="mt-4 text-lg">
+                        The field defines the mechanisms by which living systems diversify, adapt, and interact across deep geological time. Understanding evolution requires synthesizing the microscopic processes of mutation, genetic drift, and inheritance with the macroscopic patterns of speciation, biogeography, and ecosystem assembly. This comprehensive analysis evaluates the core principles of evolutionary biology, exploring its genetic foundations, mechanisms of change, developmental consequences, ecological integrations, and pedagogical frameworks required for advanced academic study.
+                    </p>
+                </section>
+
+                <hr class="border-slate-200 dark:border-slate-800 my-12">
+
+                <!-- Epistemological and Historical Foundations -->
+                <section id="foundations" class="scroll-mt-24">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">The Epistemological and Historical Foundations</h2>
+                    <p>
+                        Science is uniquely positioned as a self-correcting epistemological endeavor, relying on material reality as the ultimate arbiter of truth. Evolutionary biology operates under Karl Popper’s criterion of <strong>falsifiability</strong>, dictating that scientific hypotheses must be structured so they can be empirically proven false. Because biological systems are historically contingent and multifactorial, researchers frequently employ the method of multiple working hypotheses to evaluate competing mechanisms simultaneously.
+                    </p>
+                    <p>
+                        The paradigm of evolutionary thought underwent profound shifts prior to the modern synthesis. During the Enlightenment, Western consensus held that the Earth was merely a few thousand years old, species were immutable, and extinction was an impossibility. The intellectual transition toward Charles Darwin’s theory was facilitated by geologists like <strong>Charles Lyell</strong>, who established the concept of <em>"deep time"</em> through erosion and salinity metrics, estimating planetary age in the hundreds of millions of years. Additionally, debates on anatomical homology—such as those between Georges Cuvier and Étienne Geoffroy Saint-Hilaire regarding the shared pentadactyl limb structure across disparate taxa—laid the groundwork for common descent.
+                    </p>
+                </section>
+
+                <!-- Pre-Darwinian Theories -->
+                <section id="pre-darwinian" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white mb-6">Pre-Darwinian Theories of Organism Formation</h2>
+                    <p class="mb-8">Before the acceptance of natural selection, several philosophical and scientific theories attempted to explain the diversity, origin, and potential transmutation of organisms:</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-sans">
+                        <!-- Card 1 -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white m-0 mb-2 flex items-center gap-2">
+                                <i class="ph-fill ph-link text-brand-500"></i> Fixity of Species
+                            </h3>
+                            <p class="text-sm m-0">Popularized by Plato and Aristotle. Held that species are unalterable, perfectly created entities arranged in a strict hierarchy ("Great Chain of Being" or Scale of Nature).</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white m-0 mb-2 flex items-center gap-2">
+                                <i class="ph-fill ph-sparkle text-brand-500"></i> Special Creation
+                            </h3>
+                            <p class="text-sm m-0">The religious and philosophical view that all species were created simultaneously by a divine creator and remained unchanged.</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white m-0 mb-2 flex items-center gap-2">
+                                <i class="ph-fill ph-wind text-brand-500"></i> Vitalism
+                            </h3>
+                            <p class="text-sm m-0">The belief that living organisms are animated by a non-physical "vital force" or spirit that drives their development and complexity.</p>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white m-0 mb-2 flex items-center gap-2">
+                                <i class="ph-fill ph-tree-structure text-brand-500"></i> Epigenesis (Buffon)
+                            </h3>
+                            <p class="text-sm m-0">Comte de Buffon posited that "internal moulds" dictate how organic particles arrange themselves, allowing species to "degenerate" or change via environmental influence.</p>
+                        </div>
+                        <!-- Card 5 -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white m-0 mb-2 flex items-center gap-2">
+                                <i class="ph-fill ph-meteor text-brand-500"></i> Catastrophism
+                            </h3>
+                            <p class="text-sm m-0">Georges Cuvier suggested Earth experienced violent mass extinctions, with new species appearing via migration rather than gradual evolution.</p>
+                        </div>
+                        <!-- Card 6 -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white m-0 mb-2 flex items-center gap-2">
+                                <i class="ph-fill ph-trend-up text-brand-500"></i> Lamarckism
+                            </h3>
+                            <p class="text-sm m-0">Jean-Baptiste Lamarck argued species change through "use and disuse" and the inheritance of acquired characteristics (e.g., stretching a giraffe's neck).</p>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-8">
+                        These early ideas were synthesized with key emerging concepts. <strong>Uniformitarianism</strong>, championed by Charles Lyell, suggested the Earth was shaped by slow, continuous forces, providing the vast timescales necessary for evolution. Meanwhile, early naturalists (dating back to Al-Jahiz in the 9th century) and economists like Malthus documented the <em>"Struggle for Existence,"</em> observing that species consistently produce more offspring than limited environmental resources can support.
+                    </p>
+                </section>
+
+                <!-- Darwinian Evolution -->
+                <section id="darwinian" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Darwinian Evolution and Natural Selection</h2>
+                    <p>
+                        In 1858, Charles Darwin and Alfred Russel Wallace utilized these concepts to independently propose natural selection as the main mechanism of evolutionary change. Unlike Lamarck's linear progression, Darwin proposed common descent and a branching "tree of life," recognizing that vastly different species share common ancestors. This primary process relies on four critical conditions:
+                    </p>
+                    
+                    <ol class="space-y-4 font-sans list-none pl-0 my-8">
+                        <li class="bg-slate-100 dark:bg-slate-800/50 p-5 rounded-lg border-l-4 border-brand-500">
+                            <strong class="text-slate-900 dark:text-white block mb-1">1. Variation</strong>
+                            Individuals within a population inherently possess different traits (e.g., variations in color, size, behavior, or physiology).
+                        </li>
+                        <li class="bg-slate-100 dark:bg-slate-800/50 p-5 rounded-lg border-l-4 border-brand-500">
+                            <strong class="text-slate-900 dark:text-white block mb-1">2. Inheritance</strong>
+                            These variations must be heritable, meaning they are transmissible to offspring via genetic pathways.
+                        </li>
+                        <li class="bg-slate-100 dark:bg-slate-800/50 p-5 rounded-lg border-l-4 border-brand-500">
+                            <strong class="text-slate-900 dark:text-white block mb-1">3. Differential Reproduction</strong>
+                            Because environments possess limited resources, organisms with advantageous traits are better able to survive and produce more offspring than those without them.
+                        </li>
+                        <li class="bg-slate-100 dark:bg-slate-800/50 p-5 rounded-lg border-l-4 border-brand-500">
+                            <strong class="text-slate-900 dark:text-white block mb-1">4. Adaptation</strong>
+                            Over successive generations, these advantageous traits accumulate and become more common, making the population as a whole better suited to its specific environment.
+                        </li>
+                    </ol>
+                </section>
+
+                <!-- Post-Darwinian Theories -->
+                <section id="post-darwinian" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Post-Darwinian and Connected Evolutionary Theories</h2>
+                    <p>As biological sciences advanced through genetics, paleontology, and molecular biology, several major theories emerged to refine and expand upon Darwin's foundational mechanism:</p>
+                    
+                    <div class="space-y-4 mt-6 font-sans">
+                        <details class="group bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 [&_summary::-webkit-details-marker]:hidden">
+                            <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-slate-900 dark:text-white">
+                                <span>Mutation Theory</span>
+                                <span class="transition group-open:rotate-180"><i class="ph ph-caret-down"></i></span>
+                            </summary>
+                            <div class="border-t border-slate-200 dark:border-slate-700 p-4 text-slate-600 dark:text-slate-400 text-sm">
+                                Proposed by Hugo de Vries, this theory challenged Darwin's strict gradualism by arguing that new species arise suddenly through large, discontinuous genetic variations, which he termed "mutations." While de Vries was largely observing chromosomal duplications in plants, his work correctly identified mutations as the ultimate source of all genetic variation.
+                            </div>
+                        </details>
+                        
+                        <details class="group bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 [&_summary::-webkit-details-marker]:hidden">
+                            <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-slate-900 dark:text-white">
+                                <span>The Modern Synthesis</span>
+                                <span class="transition group-open:rotate-180"><i class="ph ph-caret-down"></i></span>
+                            </summary>
+                            <div class="border-t border-slate-200 dark:border-slate-700 p-4 text-slate-600 dark:text-slate-400 text-sm">
+                                In the early to mid-20th century, scientists like Theodosius Dobzhansky, Ernst Mayr, and Ronald Fisher merged Darwin's theory of natural selection with Gregor Mendel's laws of genetic inheritance into a unified mathematical framework. This synthesis established that macroevolutionary changes are driven by microevolutionary processes—specifically mutation, genetic drift, gene flow, and natural selection acting on population gene pools.
+                            </div>
+                        </details>
+
+                        <details class="group bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 [&_summary::-webkit-details-marker]:hidden">
+                            <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-slate-900 dark:text-white">
+                                <span>Neutral Theory of Molecular Evolution</span>
+                                <span class="transition group-open:rotate-180"><i class="ph ph-caret-down"></i></span>
+                            </summary>
+                            <div class="border-t border-slate-200 dark:border-slate-700 p-4 text-slate-600 dark:text-slate-400 text-sm">
+                                Formulated by Motoo Kimura in 1968, this theory addresses evolution at the DNA level. It posits that the vast majority of evolutionary changes at the molecular level are not driven by natural selection, but rather by the random genetic drift of mutant alleles that are selectively neutral (meaning they do not significantly affect the organism's fitness).
+                            </div>
+                        </details>
+
+                        <details class="group bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 [&_summary::-webkit-details-marker]:hidden">
+                            <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-slate-900 dark:text-white">
+                                <span>Punctuated Equilibrium</span>
+                                <span class="transition group-open:rotate-180"><i class="ph ph-caret-down"></i></span>
+                            </summary>
+                            <div class="border-t border-slate-200 dark:border-slate-700 p-4 text-slate-600 dark:text-slate-400 text-sm">
+                                Developed by paleontologists Stephen Jay Gould and Niles Eldredge, this theory addresses patterns in the fossil record. It contrasts with phyletic gradualism by suggesting that species experience long periods of morphological stasis (no change) that are periodically interrupted by short, rapid bursts of major evolutionary change and speciation events.
+                            </div>
+                        </details>
+
+                        <details class="group bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 [&_summary::-webkit-details-marker]:hidden">
+                            <summary class="flex cursor-pointer items-center justify-between p-4 font-bold text-slate-900 dark:text-white">
+                                <span>Endosymbiotic Theory</span>
+                                <span class="transition group-open:rotate-180"><i class="ph ph-caret-down"></i></span>
+                            </summary>
+                            <div class="border-t border-slate-200 dark:border-slate-700 p-4 text-slate-600 dark:text-slate-400 text-sm">
+                                Promulgated by Lynn Margulis, this theory explains the evolutionary origin of complex eukaryotic cells. It demonstrates that essential cellular organelles, specifically mitochondria and chloroplasts, originally evolved from independent, free-living prokaryotic bacteria that were engulfed by and merged with early host cells in a symbiotic relationship.
+                            </div>
+                        </details>
+                    </div>
+                </section>
+
+                <!-- Misconceptions -->
+                <section id="misconceptions" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Core Facts, Theories, and Common Misconceptions</h2>
+                    <p>The study of evolution is occasionally subject to public misunderstanding. Clarifying these concepts is essential for academic rigor:</p>
+                    
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-6 mt-6 font-sans">
+                        <ul class="space-y-4 m-0 text-amber-900 dark:text-amber-100">
+                            <li class="flex gap-3 m-0">
+                                <i class="ph-fill ph-warning-circle text-xl text-amber-500 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <strong class="block mb-1">It is Both Fact and Theory</strong>
+                                    In science, evolution is a fact because it is an observable reality that organisms change over time (documented in the fossil record). It is also a theory—a robust, heavily supported framework explaining the specific mechanisms causing this change.
+                                </div>
+                            </li>
+                            <li class="flex gap-3 m-0">
+                                <i class="ph-fill ph-users text-xl text-amber-500 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <strong class="block mb-1">Populations Evolve, Not Individuals</strong>
+                                    An individual organism cannot evolve during its lifetime. Evolutionary processes operate strictly across generations; it is the genetic makeup (allele frequencies) of the entire population that changes.
+                                </div>
+                            </li>
+                            <li class="flex gap-3 m-0">
+                                <i class="ph-fill ph-target text-xl text-amber-500 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <strong class="block mb-1">Evolution is Not Goal-Directed</strong>
+                                    Evolution does not aim to create "better," "higher," or more complex organisms, nor does it move toward a perfect endpoint. It simply favors random adaptations that are suitable for survival in an immediate environment.
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Empirical Evidence -->
+                <section id="evidence" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Empirical Evidence for Evolution</h2>
+                    <p>The modern synthesis relies on converging lines of evidence from disparate fields to construct the evolutionary history of life:</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-8 mt-6">
+                        <div>
+                            <h3 class="font-sans font-bold text-xl mt-0 text-slate-900 dark:text-white">Fossil Record and Molecular Biology</h3>
+                            <p class="text-base text-slate-600 dark:text-slate-400">
+                                The fossil record meticulously documents the morphological transitions between species over deep time, showing the abrupt appearances and gradual shifts of organisms. Concurrently, molecular biology provides independent verification by demonstrating universal DNA structures and profound genetic sequence similarities between closely related species.
+                            </p>
+                        </div>
+                        <div>
+                            <h3 class="font-sans font-bold text-xl mt-0 text-slate-900 dark:text-white">Comparative Anatomy and Biogeography</h3>
+                            <p class="text-base text-slate-600 dark:text-slate-400">
+                                Identifying shared, homologous structures (such as identical arrangements of limb bones in disparate species) provides structural proof of common ancestry. These anatomical links strongly correlate with biogeographic distributions, explaining how geographical isolation shapes evolutionary descent.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="border-slate-200 dark:border-slate-800 my-12">
+
+                <!-- Genetic Transmission -->
+                <section id="genetics" class="scroll-mt-24">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Genetic Transmission and the Origin of Variation</h2>
+                    <p>
+                        Evolutionary biology is predicated on the transmission of genetic information across generations. The distinction between microevolution—defined as changes in allele frequencies within a population's gene pool—and macroevolution—the emergence of new species and higher taxonomic clades—is bridged by the continuity of inheritance mechanisms.
+                    </p>
+                    <p>Evolution fundamentally requires existing genetic variation, introduced through two mechanisms:</p>
+                    
+                    <ul class="list-disc pl-6 space-y-2 marker:text-brand-500 font-sans text-slate-700 dark:text-slate-300">
+                        <li><strong>Random Mutation:</strong> While natural selection is non-random, the mutations generating new alleles occur entirely at random. These DNA sequence changes are the ultimate source of novelty.</li>
+                        <li><strong>Recombination:</strong> During sexual reproduction, mechanisms like chromosomal crossing-over and independent assortment reshuffle existing genes, creating unique genetic combinations.</li>
+                    </ul>
+
+                    <p>
+                        Genetic transmission operates via DNA, utilizing a highly stable double-helix structure with a remarkably low per-nucleotide mutation rate of approximately $10^{-9}$. In prokaryotic systems, organisms have converged on an optimal per-genome mutation rate of roughly $10^{-3}$, balancing adaptive variation against degradation. In humans, mutations occur roughly fifty times more frequently in the male germline due to continuous spermatogenesis cell divisions.
+                    </p>
+                </section>
+
+                <!-- Hardy-Weinberg -->
+                <section id="hardy-weinberg" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Population Genetics and the Hardy-Weinberg Baseline</h2>
+                    <p>
+                        Population genetics tracks the distribution of alleles within a gene pool. The foundational mathematical baseline is the Hardy-Weinberg equilibrium, demonstrating that allele frequencies will remain constant in the absence of evolutionary forces. 
+                    </p>
+                    
+                    <div class="bg-slate-900 text-white p-6 rounded-xl my-8 text-center shadow-lg font-sans">
+                        <p class="text-sm text-slate-400 mb-2 uppercase tracking-wide font-bold">The Equilibrium Equation</p>
+                        <div class="text-3xl md:text-4xl my-4">
+                            $$p^2 + 2pq + q^2 = 1$$
+                        </div>
+                        <p class="text-sm text-slate-300 mt-4 max-w-xl mx-auto">
+                            Assumes an infinitely large, randomly mating population free of mutation, migration, and selective pressures.
+                        </p>
+                    </div>
+
+                    <p>
+                        This quantitative framework is essential. For instance, determining the probability of a lethal recessive disease appearing in offspring requires applying Hardy-Weinberg principles to calculate heterozygote carrier frequencies. When empirical data deviate from Hardy-Weinberg predictions, it indicates evolutionary forces are actively altering the population.
+                    </p>
+                </section>
+
+                <!-- Drift and Gene Flow -->
+                <section id="mechanisms" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Other Evolutionary Mechanisms: Genetic Drift and Gene Flow</h2>
+                    <p>Not all evolutionary change is driven by natural selection. Other powerful mechanisms can dramatically alter population dynamics:</p>
+                    
+                    <div class="grid gap-4 font-sans my-6">
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <strong class="text-slate-900 dark:text-white block text-lg mb-2">Genetic Drift</strong>
+                            <p class="text-sm m-0 text-slate-600 dark:text-slate-400">Random fluctuations in gene frequency can dramatically alter a population's genetic makeup by pure chance, particularly in small populations. Occurs frequently through bottleneck effects (drastic reductions) or founder effects (small isolated colonies).</p>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <strong class="text-slate-900 dark:text-white block text-lg mb-2">Gene Flow</strong>
+                            <p class="text-sm m-0 text-slate-600 dark:text-slate-400">The physical transfer of genetic material between separate populations through migration. It constantly introduces new variation and can prevent diverging groups from speciating by keeping their gene pools mixed.</p>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <strong class="text-slate-900 dark:text-white block text-lg mb-2">Neutral Evolution</strong>
+                            <p class="text-sm m-0 text-slate-600 dark:text-slate-400">Occurs when mutations do not alter phenotype or reproductive success. Driven largely by genetic drift, generating a reliable "molecular clock" that allows researchers to estimate divergence times based on DNA sequence comparisons.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Adaptive Change & Natural Selection Table -->
+                <section id="adaptive-change" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Mechanisms of Adaptive Change and Natural Selection</h2>
+                    <p>
+                        While mutation and drift generate variation, natural selection is the singular mechanism that consistently yields adaptation. Selection operates on phenotypes, indirectly altering the underlying genotypes. The speed of adaptive evolution is often measured in <em>"haldanes,"</em> defined as a change in the population mean by one standard deviation per generation.
+                    </p>
+                    <p>The primary modalities of natural selection dictate the directional shift of population variance:</p>
+                    
+                    <div class="overflow-x-auto my-8 font-sans rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white">
+                                <tr>
+                                    <th class="p-4 font-bold border-b border-slate-200 dark:border-slate-700 w-1/4">Selection Modality</th>
+                                    <th class="p-4 font-bold border-b border-slate-200 dark:border-slate-700 w-1/2">Underlying Mechanism</th>
+                                    <th class="p-4 font-bold border-b border-slate-200 dark:border-slate-700 w-1/4">Classical Ecological Example</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-slate-700 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900">
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td class="p-4 font-semibold text-brand-600 dark:text-brand-400">Directional Selection</td>
+                                    <td class="p-4">Favors a single phenotypic extreme, shifting the overall population mean linearly over time.</td>
+                                    <td class="p-4 italic">Rapid evolution of multidrug resistance in human pathogens (e.g., S. aureus).</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td class="p-4 font-semibold text-brand-600 dark:text-brand-400">Stabilizing Selection</td>
+                                    <td class="p-4">Favors intermediate phenotypes, actively selecting against both extreme variants to maintain a constant mean.</td>
+                                    <td class="p-4 italic">Human birth weights, where mortality risks increase for very small/large infants.</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td class="p-4 font-semibold text-brand-600 dark:text-brand-400">Disruptive Selection</td>
+                                    <td class="p-4">Favors both extremes simultaneously, increasing phenotypic variance and potentially driving sympatric speciation.</td>
+                                    <td class="p-4 italic">Divergence of gamete sizes resulting in distinct eggs and sperm (anisogamy).</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td class="p-4 font-semibold text-brand-600 dark:text-brand-400">Frequency-Dependent</td>
+                                    <td class="p-4">The relative fitness of a phenotype is entirely dependent upon its rarity or abundance within the population.</td>
+                                    <td class="p-4 italic">Rare alleles in the MHC conferring critical resistance to novel pathogens.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Sexual Selection -->
+                <section id="sexual-selection" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Sexual Selection and Mate Choice</h2>
+                    <p>
+                        Sexual selection focuses on mating success, often resulting in traits that trade basic survival for reproductive advantage. The strength of sexual selection is heavily influenced by the <em>operational sex ratio</em>.
+                    </p>
+                    <p>
+                        Selection operates via intrasexual competition (e.g., male elephant seals fighting) and intersexual selection (mate choice). Female choice is governed by several evolutionary hypotheses:
+                    </p>
+                    <ul class="list-disc pl-6 space-y-2 marker:text-brand-500 font-sans text-slate-700 dark:text-slate-300">
+                        <li><strong>Direct Benefits:</strong> Selection based on immediate resources (territory, parental care).</li>
+                        <li><strong>Honest Signaling (Good Genes):</strong> Selection of elaborate ornaments that act as unfakeable indicators of health (e.g., guppy coloration).</li>
+                        <li><strong>Sexy Son Hypothesis:</strong> Selecting extravagant traits to ensure male offspring inherit those attractive features.</li>
+                        <li><strong>Sensory Bias:</strong> Exploiting pre-existing neurological sensitivities (e.g., Tungara frogs).</li>
+                    </ul>
+                </section>
+
+                <hr class="border-slate-200 dark:border-slate-800 my-12">
+
+                <!-- Conflict and Life History -->
+                <section id="conflict-life-history" class="scroll-mt-24">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Genomic Conflict, Sex Allocation, and Life History</h2>
+                    <p>Organisms are complex communities of interacting genetic elements. Genomic conflict arises when the reproductive agendas of these elements diverge.</p>
+                    
+                    <h3 class="text-2xl font-sans font-bold mt-8 mb-4">Inter-genomic & Parent-Offspring Conflict</h3>
+                    <p>
+                        Mitochondria are typically inherited maternally. In plants like <em>Plantago</em>, mitochondrial genes abort male pollen to force resource allocation to female seed production, while nuclear genes fight to restore male function. Similar parasitism occurs with bacteria like <em>Wolbachia</em>. Parent-offspring conflict is prevalent in mammals, fought at the placental interface as fetal tissues invade maternal linings to extract maximal metabolic resources.
+                    </p>
+
+                    <h3 class="text-2xl font-sans font-bold mt-8 mb-4">The Evolution of Sex & Mating Systems</h3>
+                    <p>
+                        Asexual reproduction carries a two-fold demographic advantage. However, sex persists due to the benefits of genetic recombination, which repairs DNA and halts "Muller's Ratchet" (accumulation of deleterious mutations). The <strong>Red Queen hypothesis</strong> posits that recombination is necessary in the arms race against evolving pathogens.
+                    </p>
+                    <p>
+                        Ronald Fisher established the 50:50 sex ratio equilibrium. However, sequential hermaphrodites transition sex based on the Size Advantage Model (e.g., protandrous sea basses or protogynous wrasses).
+                    </p>
+
+                    <h3 class="text-2xl font-sans font-bold mt-8 mb-4">Life History Evolution</h3>
+                    <p>
+                        David Lack’s hypothesis highlights the trade-off between offspring quantity and quality. Organisms range from highly fecund species with minimal investment (orchids) to species producing few, massive offspring (humans). Human life history is characterized by exceptionally long lifespans, delayed maturity, and a unique post-reproductive lifespan (menopause), hypothesized to be supported by intense social cooperation.
+                    </p>
+                </section>
+
+                <!-- Developmental Evolution -->
+                <section id="development" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Developmental Evolution and Phenotypic Plasticity</h2>
+                    <p>
+                        Evolutionary developmental biology (evo-devo) bridges molecular genetics and morphology. Morphological evolution frequently involves altering the timing and spatial expression of highly conserved regulatory networks (like Hox or MADS-box genes).
+                    </p>
+                    
+                    <blockquote class="border-l-4 border-brand-500 pl-6 my-6 italic text-slate-700 dark:text-slate-300 font-serif">
+                        Genomes encode a range of potential realizations, known as phenotypic plasticity, which is graphically represented by <strong>reaction norms</strong>.
+                    </blockquote>
+
+                    <p>
+                        Reaction norms map the exact phenotypic output a single genotype produces across environmental variables. For instance, <em>Daphnia</em> (water fleas) exposed to predatory cues grow defensive helmets—a morphological shift that increases survival but reduces fecundity, revealing nature and nurture as interacting forces.
+                    </p>
+                </section>
+
+                <!-- Macroevolution & Speciation -->
+                <section id="macroevolution" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Macroevolution, Speciation, and Phylogenetics</h2>
+                    <p>
+                        Speciation connects microevolutionary population genetics to macroevolutionary divergence. It occurs when groups become physically or genetically isolated. Ernst Mayr’s Biological Species Concept defines species by reproductive isolation, while the Phylogenetic Species Concept focuses on ancestry clusters.
+                    </p>
+                    
+                    <p class="font-bold font-sans text-lg mt-6">Isolating Mechanisms:</p>
+                    <ul class="list-none pl-0 space-y-4 font-sans text-slate-700 dark:text-slate-300 mt-4">
+                        <li class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <span class="text-brand-600 dark:text-brand-400 font-bold block mb-1">Pre-zygotic Isolation</span>
+                            Mechanisms preventing successful fertilization. Includes geographical, temporal, behavioral, and mechanical isolation.
+                        </li>
+                        <li class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <span class="text-brand-600 dark:text-brand-400 font-bold block mb-1">Post-zygotic Isolation</span>
+                            Mechanisms occurring after fertilization, resulting in hybrid inviability or sterility (e.g., the sterile mule).
+                        </li>
+                    </ul>
+
+                    <p class="mt-6">
+                        Systematics relies on identifying homologies to build the "tree of life", utilizing parsimony algorithms to overcome homoplasy (convergent evolution).
+                    </p>
+                </section>
+
+                <!-- Deep Time & Fossil Record -->
+                <section id="fossil-record" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white mb-8">Deep Time and the Fossil Record</h2>
+                    
+                    <div class="relative border-l border-slate-300 dark:border-slate-700 ml-3 md:ml-6 space-y-12 font-sans">
+                        
+                        <!-- Timeline Item 1 -->
+                        <div class="relative pl-8 md:pl-10">
+                            <div class="absolute w-4 h-4 bg-brand-500 rounded-full -left-2 top-1.5 border-4 border-slate-50 dark:border-slate-900"></div>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white m-0">Early Evolution (~3.5 BYA)</h3>
+                            <p class="text-slate-600 dark:text-slate-400 mt-2 text-sm">Life originating at deep-sea hydrothermal vents, transitioning into cooperative "hypercycles" encapsulated in lipid bilayers.</p>
+                        </div>
+
+                        <!-- Timeline Item 2 -->
+                        <div class="relative pl-8 md:pl-10">
+                            <div class="absolute w-4 h-4 bg-brand-500 rounded-full -left-2 top-1.5 border-4 border-slate-50 dark:border-slate-900"></div>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white m-0">The Great Oxygenation (~2.3 BYA)</h3>
+                            <p class="text-slate-600 dark:text-slate-400 mt-2 text-sm">Photosynthetic bacteria saturated oceans with oxygen, creating the ozone layer and permitting large multicellular evolution.</p>
+                        </div>
+
+                        <!-- Timeline Item 3 -->
+                        <div class="relative pl-8 md:pl-10">
+                            <div class="absolute w-4 h-4 bg-brand-500 rounded-full -left-2 top-1.5 border-4 border-slate-50 dark:border-slate-900"></div>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white m-0">Cambrian Explosion (~550 MYA)</h3>
+                            <p class="text-slate-600 dark:text-slate-400 mt-2 text-sm">Rapid diversification establishing modern animal body plans and hard skeletons, possibly driven by predator-prey arms races.</p>
+                        </div>
+
+                        <!-- Timeline Item 4 -->
+                        <div class="relative pl-8 md:pl-10">
+                            <div class="absolute w-4 h-4 bg-brand-500 rounded-full -left-2 top-1.5 border-4 border-slate-50 dark:border-slate-900"></div>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white m-0">Vertebrate Terrestrialization</h3>
+                            <p class="text-slate-600 dark:text-slate-400 mt-2 text-sm">Transitional fossils (Tiktaalik, Acanthostega) show the exaptation of lobe-finned structures into weight-bearing tetrapod limbs.</p>
+                        </div>
+
+                        <!-- Timeline Item 5 -->
+                        <div class="relative pl-8 md:pl-10">
+                            <div class="absolute w-4 h-4 bg-brand-500 rounded-full -left-2 top-1.5 border-4 border-slate-50 dark:border-slate-900"></div>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white m-0">Mass Extinctions & Radiations</h3>
+                            <p class="text-slate-600 dark:text-slate-400 mt-2 text-sm">Events like the end-Permian (97% marine loss) and end-Cretaceous (bolide impact) reset the stage, precipitating rapid adaptive radiations of surviving lineages (e.g., Cenozoic mammals).</p>
+                        </div>
+
+                    </div>
+                </section>
+
+                <hr class="border-slate-200 dark:border-slate-800 my-12">
+
+                <!-- Ecological Dynamics -->
+                <section id="ecology" class="scroll-mt-24">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Ecological Dynamics and Spatial Biogeography</h2>
+                    <p>
+                        Population dynamics are mathematically foundational. Multiplicative growth is described by the differential equation:
+                    </p>
+                    <div class="text-center text-2xl my-4 font-sans bg-slate-50 dark:bg-slate-800 py-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                        $$\frac{dN}{dt} = RN \quad \Rightarrow \quad N_t = N_0e^{RT}$$
+                    </div>
+                    <p>
+                        While populations possess the capacity for exponential growth, they are checked by density-dependent limiting factors. Interspecific competition structures communities. To minimize direct competition and avoid the Competitive Exclusion Principle, species undergo niche partitioning and character displacement. Top-down control is mediated by keystone predators (e.g., Pisaster starfish) maintaining biodiversity.
+                    </p>
+                    <p>
+                        Spatial ecology evaluates isolation. The <em>Theory of Island Biogeography</em> and <em>Metapopulation Theory</em> model fragmented landscapes, crucial for conservation and epidemiological modeling.
+                    </p>
+                </section>
+
+                <!-- Behavioral Ecology -->
+                <section id="behavior" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Behavioral Ecology and Game Theory</h2>
+                    <p>
+                        Behavioral ecology interprets actions as evolutionary adaptations to maximize reproductive success. Foraging is modeled using the Marginal Value Theorem (MVT).
+                    </p>
+                    <p>
+                        When success is frequency-dependent, biologists use Evolutionary Game Theory, seeking an Evolutionarily Stable Strategy (ESS). The classic <strong>Hawk-Dove game</strong> models conflict over a resource ($V$) at a cost ($C$), demonstrating that evolution often drives populations toward a mixed equilibrium of aggressive and submissive strategies.
+                    </p>
+                </section>
+
+                <!-- Evolution of Altruism -->
+                <section id="altruism" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">The Evolution of Altruism</h2>
+                    <p>Classical theory struggled to explain altruism. Modern biology resolves this via robust mechanisms:</p>
+                    
+                    <div class="grid md:grid-cols-3 gap-6 font-sans mt-6">
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border-t-4 border-brand-500 shadow-sm">
+                            <h4 class="font-bold text-lg text-slate-900 dark:text-white mb-2">Kin Selection</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 m-0">Hamilton's Rule ($B \times R > C$). Individuals maximize inclusive fitness by aiding relatives. Explains alarm calls in ground squirrels.</p>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border-t-4 border-brand-500 shadow-sm">
+                            <h4 class="font-bold text-lg text-slate-900 dark:text-white mb-2">Reciprocal Altruism</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 m-0">Stable cooperation via "tit-for-tat" strategies in cognitive social groups, like vampire bats sharing blood meals.</p>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border-t-4 border-brand-500 shadow-sm">
+                            <h4 class="font-bold text-lg text-slate-900 dark:text-white mb-2">Ecological Constraints</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 m-0">Subordinates aid dominants because dispersing carries near-certain mortality (e.g., meerkats). A "best of a bad job" strategy.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Applied Evolutionary Bio -->
+                <section id="medicine" class="scroll-mt-24 mt-16">
+                    <h2 class="text-3xl font-sans font-bold text-slate-900 dark:text-white">Applied Evolutionary Biology: Medicine and Social Sciences</h2>
+                    <p>
+                        Evolutionary medicine elucidates human vulnerabilities to disease, noting that biology is frequently mismatched to modern environments. The rapid evolution of antibiotic resistance, driven by intense selection and horizontal gene transfer via plasmids, is a primary global concern.
+                    </p>
+                    <p>
+                        Evolutionary theory models pathogen virulence as a trade-off between replication and transmission. Chronic ailments are also viewed historically: the <em>"hygiene hypothesis"</em> links the eradication of macro-parasites to the rise in autoimmune disorders, while the <em>"thrifty phenotype"</em> hypothesis explains modern susceptibilities to obesity and diabetes due to Pleistocene adaptations for fetal conservation.
+                    </p>
+                    <p>
+                        In the social sciences, human behavior represents a tension between individual-level selection and group-level performance. Innate moral emotions likely evolved to stabilize complex cultural transmission and cooperation during deep historical inter-group warfare.
+                    </p>
+
+                    <h3 class="text-2xl font-sans font-bold mt-12 mb-4">Pedagogical Frameworks</h3>
+                    <p>
+                        The mastery of evolutionary biology requires structured pedagogical engagement, integrating theoretical texts, mathematical modeling, empirical primary literature, and interactive laboratory simulations.
+                    </p>
+                </section>
+
+            </article>
+
+            <footer class="mt-20 border-t border-slate-200 dark:border-slate-800 pt-8 pb-12 font-sans text-center text-slate-500 text-sm">
+                <p>@MightyChondria 2026 &copy; Evolutionary Biology Framework</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Interactivity Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Dark Mode Toggle ---
+            const html = document.documentElement;
+            const themeToggles = [document.getElementById('theme-toggle'), document.getElementById('mobile-theme-toggle')];
+            
+            // Check initial preference
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                html.classList.add('dark');
+            }
+
+            themeToggles.forEach(btn => {
+                if(!btn) return;
+                btn.addEventListener('click', () => {
+                    html.classList.toggle('dark');
+                    if (html.classList.contains('dark')) {
+                        localStorage.theme = 'dark';
+                    } else {
+                        localStorage.theme = 'light';
+                    }
+                });
+            });
+
+            // --- Scroll Spy & Progress Bar ---
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const progressBar = document.getElementById('progress-bar');
+
+            // Scroll spy observer
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -60% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Remove active class from all
+                        navLinks.forEach(link => {
+                            link.classList.remove('bg-brand-100', 'text-brand-700', 'dark:bg-brand-900/40', 'dark:text-brand-400', 'font-semibold');
+                        });
+                        // Add to current
+                        const activeLink = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+                        if(activeLink) {
+                            activeLink.classList.add('bg-brand-100', 'text-brand-700', 'dark:bg-brand-900/40', 'dark:text-brand-400', 'font-semibold');
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+
+            // Progress bar
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height);
+                progressBar.style.transform = `scaleX(${scrolled})`;
+            });
+
+            // --- Mobile Menu Toggle ---
+            const menuToggle = document.getElementById('menu-toggle');
+            const closeMenu = document.getElementById('close-menu');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            const menuLinks = document.querySelectorAll('#nav-menu a');
+
+            function toggleMenu() {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            }
+
+            if(menuToggle && closeMenu && overlay) {
+                menuToggle.addEventListener('click', toggleMenu);
+                closeMenu.addEventListener('click', toggleMenu);
+                overlay.addEventListener('click', toggleMenu);
+                
+                // Close menu when clicking a link
+                menuLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        if(window.innerWidth < 1024) { // lg breakpoint
+                            toggleMenu();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
