@@ -1,632 +1,776 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phytohormones: Synthesis & Regulation Study Guide</title>
+    <title>Higher Biology: Plant Physiology Interactive Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Embedded CSS for strict Chart Container sizing and basic animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+        }
         .chart-container {
             position: relative;
             width: 100%;
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-            height: 50vh;
-            min-height: 300px;
-            max-height: 500px;
+            height: 350px;
+            max-height: 400px;
         }
-        
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             .chart-container {
-                height: 40vh;
+                height: 250px;
+                max-height: 300px;
             }
         }
-
+        .nav-item.active {
+            background-color: #dcfce7;
+            color: #166534;
+            border-right: 4px solid #16a34a;
+        }
+        .nav-item:hover:not(.active) {
+            background-color: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
         .fade-in {
-            animation: fadeIn 0.5s ease-in-out forwards;
+            animation: fadeIn 0.4s ease-in-out;
         }
-
-        .slide-up {
-            animation: slideUp 0.4s ease-out forwards;
-        }
-
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .pathway-step {
-            transition: all 0.3s ease;
+        .concept-card {
+            transition: all 0.2s ease;
         }
-        
-        .tab-btn.active {
-            border-bottom: 2px solid #047857; /* emerald-700 */
-            color: #047857;
-            font-weight: 600;
+        .concept-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #16a34a;
         }
     </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row">
 
-    <!-- Chosen Palette: Warm Botanical Neutrals -->
-    <!-- Application Structure Plan: 
-         The SPA is structured as an interactive digital textbook, utilizing a sticky sidebar navigation (on desktop) to allow students to easily jump between complex physiological concepts. 
-         1. "Fundamentals": Establishes baseline knowledge of the 'Big Five' hormones.
-         2. "Deep Dive: Auxins (IAA)": The core request. Uses an interactive, step-by-step HTML-based flow diagram to break down the complex Tryptophan-dependent synthesis pathway, making it digestible rather than overwhelming.
-         3. "Other Hormones": Uses a tabbed interface to organize the synthesis and regulation of GA, CK, ABA, and Ethylene, preventing the page from becoming an endlessly long scroll of text.
-         4. "Hormonal Interplay": Features a dynamic line chart showing how hormone levels shift across plant life stages, reinforcing the concept that development is regulated by balances, not isolated hormones.
-    -->
+    <!-- Chosen Palette: Slate Neutrals with Green (Nature) and Amber (Energy) accents -->
+    <!-- Application Structure Plan: A module-based dashboard layout. The sidebar provides constant access to the 5 main topics of the syllabus. The main content area dynamically updates to show subtopics, interactive diagrams (using HTML/CSS), and data visualizations (Chart.js) relevant to the selected module. This chunking of information prevents cognitive overload and allows students to focus on one physiological system at a time. -->
     <!-- Visualization & Content Choices: 
-         - Goal: Explain IAA Synthesis Pathway. -> Method: Interactive Step-by-Step HTML Diagram. -> Interaction: 'Next Step' button reveals enzymes and metabolites sequentially. -> Justification: Complex biochemical pathways are easier to learn when built piece-by-piece. NO SVG/Mermaid used; built entirely with DOM elements and Unicode arrows.
-         - Goal: Compare Secondary Hormone Pathways. -> Method: Tabbed Interface. -> Interaction: Click tabs to swap content. -> Justification: Groups related content logically without cluttering the viewport.
-         - Goal: Show Hormonal Balance over Time. -> Method: Line Chart (Chart.js). -> Interaction: Hover tooltips, legend toggling. -> Justification: Line charts are optimal for showing continuous biological trends over developmental time.
+         1. Intro: Text - Sets context.
+         2. Water Relations: Interactive HTML/CSS flow diagram -> Goal: Organize/Inform -> Shows pathways (apoplastic/symplastic) without SVG.
+         3. Mineral Nutrition: Chart.js Bar Chart -> Goal: Compare -> Visually distinguishes macronutrient vs micronutrient relative demand conceptually.
+         4. Photosynthesis: Interactive Toggles -> Goal: Compare -> Switches text/stats between C3/C4/CAM easily.
+         5. Growth/Regulation: Interactive List/Detail view -> Goal: Organize -> Select a hormone to see its specific effects.
+         6. Environment/Defense: Action buttons -> Goal: Change/Inform -> Click a stressor to reveal the plant's defense mechanism.
+         Libraries: Vanilla JS for state/DOM manipulation, Chart.js for nutrition chart.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-</head>
-<body class="bg-stone-50 text-stone-800 font-sans leading-relaxed selection:bg-emerald-200 selection:text-emerald-900">
 
-    <!-- Header -->
-    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <span class="text-2xl text-emerald-700">&#127807;</span>
-                <h1 class="text-xl font-bold text-stone-900 tracking-tight">Plant Growth & Dev <span class="text-emerald-700 font-medium">| Phytohormones</span></h1>
-            </div>
-            <nav class="hidden md:flex gap-6 text-sm font-medium text-stone-600">
-                <a href="#basics" class="hover:text-emerald-700 transition-colors">Fundamentals</a>
-                <a href="#iaa-pathway" class="hover:text-emerald-700 transition-colors">IAA Deep Dive</a>
-                <a href="#other-hormones" class="hover:text-emerald-700 transition-colors">Other Hormones</a>
-                <a href="#interplay" class="hover:text-emerald-700 transition-colors">Hormone Interplay</a>
-            </nav>
-            <!-- Mobile Menu Button -->
-            <button id="mobile-menu-btn" class="md:hidden text-stone-500 hover:text-stone-900 text-2xl">
-                &#9776;
-            </button>
+    <nav class="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col h-auto md:h-full z-10 shadow-sm flex-shrink-0">
+        <div class="p-6 border-b border-slate-100">
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight flex items-center">
+                <span class="text-green-600 mr-2">&#127807;</span> Bio <i>Interactive</i>
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">Higher Plant Physiology</p>
         </div>
-        <!-- Mobile Nav -->
-        <div id="mobile-nav" class="hidden md:hidden bg-stone-100 border-b border-stone-200 px-4 py-2 space-y-2 text-sm font-medium">
-            <a href="#basics" class="block py-2 text-stone-700">Fundamentals</a>
-            <a href="#iaa-pathway" class="block py-2 text-stone-700">IAA Deep Dive</a>
-            <a href="#other-hormones" class="block py-2 text-stone-700">Other Hormones</a>
-            <a href="#interplay" class="block py-2 text-stone-700">Hormone Interplay</a>
-        </div>
-    </header>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
         
-        <!-- Sidebar Table of Contents -->
-        <aside class="hidden md:block w-64 shrink-0">
-            <div class="sticky top-24 bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4">Study Navigation</h3>
-                <ul class="space-y-3 text-sm border-l border-stone-200 pl-4">
-                    <li><a href="#basics" class="text-stone-600 hover:text-emerald-700 block -ml-[17px] pl-4 border-l-2 border-transparent hover:border-emerald-500 transition-all">1. Fundamentals</a></li>
-                    <li>
-                        <a href="#iaa-pathway" class="text-stone-600 hover:text-emerald-700 block -ml-[17px] pl-4 border-l-2 border-transparent hover:border-emerald-500 transition-all">2. Auxin (IAA) Synthesis</a>
-                        <ul class="pl-4 mt-2 space-y-2 text-xs text-stone-500">
-                            <li><a href="#iaa-interactive" class="hover:text-emerald-600">Interactive Pathway</a></li>
-                            <li><a href="#iaa-regulation" class="hover:text-emerald-600">Regulation Mechanisms</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#other-hormones" class="text-stone-600 hover:text-emerald-700 block -ml-[17px] pl-4 border-l-2 border-transparent hover:border-emerald-500 transition-all">3. Secondary Hormones</a></li>
-                    <li><a href="#interplay" class="text-stone-600 hover:text-emerald-700 block -ml-[17px] pl-4 border-l-2 border-transparent hover:border-emerald-500 transition-all">4. Developmental Interplay</a></li>
-                </ul>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main class="flex-1 space-y-16">
-
-            <!-- Section 1: Basics -->
-            <section id="basics" class="scroll-mt-24">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-stone-900 mb-2">1. Phytohormone Fundamentals</h2>
-                    <p class="text-stone-600 text-lg">
-                        This section outlines the basic definition and primary classes of phytohormones. Understanding these broad categories is required before analyzing their specific biochemical synthesis pathways. Hormones act as chemical messengers coordinating plant growth, development, and responses to stimuli at very low concentrations.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Hormone Cards -->
-                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-2xl mb-2">&#127793;</div>
-                        <h4 class="font-bold text-lg mb-1">Auxins (IAA)</h4>
-                        <p class="text-sm text-stone-600">Cell elongation, apical dominance, root initiation. Synthesized primarily in shoot apical meristems.</p>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-2xl mb-2">&#127808;</div>
-                        <h4 class="font-bold text-lg mb-1">Gibberellins (GA)</h4>
-                        <p class="text-sm text-stone-600">Stem elongation, seed germination, flowering. Synthesized in young tissues and developing seeds.</p>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-2xl mb-2">&#127811;</div>
-                        <h4 class="font-bold text-lg mb-1">Cytokinins (CK)</h4>
-                        <p class="text-sm text-stone-600">Cell division, delay of senescence. Synthesized primarily in root tips and transported upwards.</p>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-2xl mb-2">&#127810;</div>
-                        <h4 class="font-bold text-lg mb-1">Abscisic Acid (ABA)</h4>
-                        <p class="text-sm text-stone-600">Stress response (drought), stomatal closure, seed dormancy. Synthesized in mature leaves and roots.</p>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-2xl mb-2">&#127818;</div>
-                        <h4 class="font-bold text-lg mb-1">Ethylene</h4>
-                        <p class="text-sm text-stone-600">Fruit ripening, senescence, leaf abscission. A gaseous hormone synthesized in aging tissues.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Section 2: IAA Deep Dive -->
-            <section id="iaa-pathway" class="scroll-mt-24 bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
-                <div class="mb-6">
-                    <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">Primary Competency</span>
-                    <h2 class="text-3xl font-bold text-stone-900 mb-4">2. Detailed Synthesis & Regulation: Indole-3-Acetic Acid (IAA)</h2>
-                    <p class="text-stone-600">
-                        Indole-3-acetic acid (IAA) is the most abundant naturally occurring auxin. Its synthesis is highly regulated. Plants utilize multiple pathways to synthesize IAA, mostly originating from the amino acid <strong>Tryptophan (Trp)</strong>. This section allows you to interactively step through the dominant Tryptophan-dependent pathway (the IPA pathway) and explore how IAA pools are regulated within the cell.
-                    </p>
-                </div>
-
-                <!-- Interactive Pathway Builder -->
-                <div id="iaa-interactive" class="bg-stone-50 rounded-xl p-6 border border-stone-200 mb-8">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-stone-800">The IPA Pathway (Tryptophan-Dependent)</h3>
-                        <div class="space-x-2">
-                            <button id="btn-reset-pathway" class="px-3 py-1.5 text-sm font-medium text-stone-500 bg-stone-200 rounded hover:bg-stone-300 transition-colors">Reset</button>
-                            <button id="btn-next-step" class="px-4 py-1.5 text-sm font-bold text-white bg-emerald-600 rounded hover:bg-emerald-700 transition-colors shadow-sm">Next Step &#8594;</button>
-                        </div>
-                    </div>
-
-                    <!-- Pathway Container (Pure HTML/CSS structure, NO SVG) -->
-                    <div class="flex flex-col items-center justify-center py-4 min-h-[400px]">
-                        
-                        <!-- Step 1 -->
-                        <div id="step-1" class="pathway-step w-64 bg-white p-4 rounded-lg border-2 border-stone-300 text-center shadow-sm">
-                            <span class="text-xs text-stone-500 uppercase font-bold">Precursor</span>
-                            <div class="font-bold text-lg text-emerald-800">L-Tryptophan (Trp)</div>
-                            <div class="text-xs mt-1 text-stone-500">(Amino Acid Pool)</div>
-                        </div>
-
-                        <!-- Arrow 1 -->
-                        <div id="arrow-1" class="pathway-step hidden flex-col items-center my-2 opacity-0">
-                            <div class="h-8 border-l-2 border-dashed border-stone-400"></div>
-                            <div class="text-stone-400 -mt-2">&#9660;</div>
-                            <div class="bg-blue-50 text-blue-800 border border-blue-200 text-xs px-2 py-1 rounded absolute ml-40 shadow-sm">
-                                <strong>Enzyme:</strong> TAA1<br>
-                                (Tryptophan aminotransferase)
-                            </div>
-                        </div>
-
-                        <!-- Step 2 -->
-                        <div id="step-2" class="pathway-step hidden w-64 bg-white p-4 rounded-lg border-2 border-stone-300 text-center shadow-sm opacity-0">
-                            <span class="text-xs text-stone-500 uppercase font-bold">Intermediate</span>
-                            <div class="font-bold text-lg text-emerald-800">Indole-3-Pyruvic Acid (IPA)</div>
-                        </div>
-
-                        <!-- Arrow 2 -->
-                        <div id="arrow-2" class="pathway-step hidden flex-col items-center my-2 opacity-0">
-                            <div class="h-8 border-l-2 border-dashed border-stone-400"></div>
-                            <div class="text-stone-400 -mt-2">&#9660;</div>
-                            <div class="bg-blue-50 text-blue-800 border border-blue-200 text-xs px-2 py-1 rounded absolute ml-40 shadow-sm">
-                                <strong>Enzyme:</strong> YUCCA (YUC)<br>
-                                (Flavin monooxygenase)
-                            </div>
-                        </div>
-
-                        <!-- Step 3 -->
-                        <div id="step-3" class="pathway-step hidden w-64 bg-emerald-100 p-4 rounded-lg border-2 border-emerald-500 text-center shadow-md opacity-0">
-                            <span class="text-xs text-emerald-700 uppercase font-bold">Active Hormone</span>
-                            <div class="font-bold text-xl text-emerald-900">Indole-3-Acetic Acid (IAA)</div>
-                        </div>
-                    </div>
-                    
-                    <div id="pathway-explanation" class="mt-6 text-sm text-stone-600 bg-white p-4 rounded border border-stone-100 hidden slide-up">
-                        <strong>Summary:</strong> The most critical auxin biosynthesis pathway involves the conversion of L-Tryptophan to IPA by the TAA family of aminotransferases, followed by the rate-limiting conversion of IPA to IAA by YUCCA family flavin monooxygenases.
-                    </div>
-                </div>
-
-                <!-- Regulation Section -->
-                <div id="iaa-regulation" class="mt-12">
-                    <h3 class="text-xl font-bold text-stone-800 mb-4 border-b border-stone-200 pb-2">Regulation of IAA Homeostasis</h3>
-                    <p class="mb-4 text-stone-600">Cells must tightly control the amount of active IAA. This is achieved through a combination of synthesis, conjugation, degradation, and transport.</p>
-                    
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <div class="bg-stone-50 p-4 rounded-lg border-l-4 border-blue-500">
-                            <div class="font-bold text-stone-800 mb-2 flex justify-between items-center">
-                                Conjugation
-                                <span class="text-lg">&#128274;</span>
-                            </div>
-                            <p class="text-sm text-stone-600">IAA is reversibly bound to amino acids (e.g., via <strong>GH3</strong> enzymes) or sugars. Conjugates are inactive storage forms that can be hydrolyzed back to free IAA when needed.</p>
-                        </div>
-                        <div class="bg-stone-50 p-4 rounded-lg border-l-4 border-red-500">
-                            <div class="font-bold text-stone-800 mb-2 flex justify-between items-center">
-                                Degradation
-                                <span class="text-lg">&#128465;</span>
-                            </div>
-                            <p class="text-sm text-stone-600">Irreversible breakdown of active IAA. The main pathway involves oxidation to oxIAA by <strong>DAO</strong> (Dioxygenase for auxin oxidation) enzymes, preventing toxic auxin accumulation.</p>
-                        </div>
-                        <div class="bg-stone-50 p-4 rounded-lg border-l-4 border-purple-500">
-                            <div class="font-bold text-stone-800 mb-2 flex justify-between items-center">
-                                Transport (PAT)
-                                <span class="text-lg">&#8645;</span>
-                            </div>
-                            <p class="text-sm text-stone-600">Polar Auxin Transport utilizes influx carriers (<strong>AUX1/LAX</strong>) and efflux carriers (<strong>PIN</strong> proteins). Asymmetric PIN localization directs auxin flow, establishing gradients crucial for organogenesis.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Section 3: Other Hormones -->
-            <section id="other-hormones" class="scroll-mt-24">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-stone-900 mb-2">3. Synthesis & Regulation of Other Major Hormones</h2>
-                    <p class="text-stone-600">
-                        While Auxin is foundational, plant development requires the coordinated action of multiple hormones. This section summarizes the basic synthesis and regulatory logic for Gibberellins, Cytokinins, ABA, and Ethylene. Click the tabs to switch between hormone profiles.
-                    </p>
-                </div>
-
-                <!-- Tabs UI -->
-                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                    <div class="flex border-b border-stone-200 overflow-x-auto">
-                        <button class="tab-btn active px-6 py-4 text-sm font-medium text-stone-600 hover:text-emerald-700 hover:bg-stone-50 transition-colors whitespace-nowrap" data-target="tab-ga">Gibberellins (GA)</button>
-                        <button class="tab-btn px-6 py-4 text-sm font-medium text-stone-600 hover:text-emerald-700 hover:bg-stone-50 transition-colors whitespace-nowrap" data-target="tab-ck">Cytokinins (CK)</button>
-                        <button class="tab-btn px-6 py-4 text-sm font-medium text-stone-600 hover:text-emerald-700 hover:bg-stone-50 transition-colors whitespace-nowrap" data-target="tab-aba">Abscisic Acid (ABA)</button>
-                        <button class="tab-btn px-6 py-4 text-sm font-medium text-stone-600 hover:text-emerald-700 hover:bg-stone-50 transition-colors whitespace-nowrap" data-target="tab-eth">Ethylene</button>
-                    </div>
-
-                    <div class="p-6 md:p-8">
-                        <!-- GA Tab -->
-                        <div id="tab-ga" class="tab-content fade-in">
-                            <h3 class="text-xl font-bold text-stone-800 mb-4">Gibberellin (GA) Pathway</h3>
-                            <div class="grid md:grid-cols-2 gap-8">
-                                <div>
-                                    <h4 class="font-bold text-stone-700 mb-2 border-b border-stone-100 pb-1">Synthesis</h4>
-                                    <p class="text-sm text-stone-600 mb-3">Terpenoid pathway originating in plastids.</p>
-                                    <div class="bg-stone-50 p-3 rounded font-mono text-sm border border-stone-200">
-                                        GGPP &#8594; <span class="text-stone-500 text-xs">(CPS/KS)</span> &#8594; ent-Kaurene &#8594; <span class="text-stone-500 text-xs">(KO/KAO)</span> &#8594; GA12 &#8594; <span class="text-emerald-600 font-bold">Bioactive GA (GA1, GA4)</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-stone-700 mb-2 border-b border-stone-100 pb-1">Regulation</h4>
-                                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-2">
-                                        <li><strong>Activation:</strong> GA20ox and GA3ox enzymes catalyze final steps to active forms.</li>
-                                        <li><strong>Deactivation:</strong> GA2ox enzymes hydroxylate active GAs to inactive forms (e.g., GA29, GA34).</li>
-                                        <li>Feedback loop: High GA levels inhibit GA20ox/GA3ox and promote GA2ox.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- CK Tab -->
-                        <div id="tab-ck" class="tab-content hidden">
-                            <h3 class="text-xl font-bold text-stone-800 mb-4">Cytokinin (CK) Pathway</h3>
-                            <div class="grid md:grid-cols-2 gap-8">
-                                <div>
-                                    <h4 class="font-bold text-stone-700 mb-2 border-b border-stone-100 pb-1">Synthesis</h4>
-                                    <p class="text-sm text-stone-600 mb-3">Derived from adenine and an isoprenoid side chain.</p>
-                                    <div class="bg-stone-50 p-3 rounded font-mono text-sm border border-stone-200">
-                                        ATP/ADP/AMP + DMAPP &#8594; <span class="text-stone-500 text-xs">(IPT enzyme)</span> &#8594; iPRTP/iPDP/iPMP &#8594; <span class="text-emerald-600 font-bold">Active CKs (Zeatin, iP)</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-stone-700 mb-2 border-b border-stone-100 pb-1">Regulation</h4>
-                                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-2">
-                                        <li><strong>Degradation:</strong> Cytokinin oxidase/dehydrogenase (CKX) irreversibly cleaves the side chain, destroying activity.</li>
-                                        <li><strong>Conjugation:</strong> Reversible conjugation to glucose (O-glucosylation) or irreversible conjugation (N-glucosylation).</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ABA Tab -->
-                        <div id="tab-aba" class="tab-content hidden">
-                            <h3 class="text-xl font-bold text-stone-800 mb-4">Abscisic Acid (ABA) Pathway</h3>
-                            <div class="grid md:grid-cols-2 gap-8">
-                                <div>
-                                    <h4 class="font-bold text-stone-700 mb-2 border-b border-stone-100 pb-1">Synthesis</h4>
-                                    <p class="text-sm text-stone-600 mb-3">Synthesized from carotenoids (C40) in plastids, finished in cytosol.</p>
-                                    <div class="bg-stone-50 p-3 rounded font-mono text-sm border border-stone-200">
-                                        Zeaxanthin &#8594; Violaxanthin &#8594; <span class="text-stone-500 text-xs">(NCED)</span> &#8594; Xanthoxin &#8594; <span class="text-emerald-600 font-bold">ABA</span>
-                                    </div>
-                                    <p class="text-xs text-stone-500 mt-2">*NCED (9-cis-epoxycarotenoid dioxygenase) is the key rate-limiting step, highly upregulated by drought stress.</p>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-stone-700 mb-2 border-b border-stone-100 pb-1">Regulation</h4>
-                                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-2">
-                                        <li><strong>Catabolism:</strong> Hydroxylation via CYP707A enzymes (cytochrome P450s) to phaseic acid (PA), which is inactive.</li>
-                                        <li><strong>Conjugation:</strong> Stored as ABA-glucose ester (ABA-GE) in vacuoles; rapidly hydrolyzed by BG1 (β-glucosidase) under stress.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Ethylene Tab -->
-                        <div id="tab-eth" class="tab-content hidden">
-                            <h3 class="text-xl font-bold text-stone-800 mb-4">Ethylene Pathway</h3>
-                            <div class="grid md:grid-cols-2 gap-8">
-                                <div>
-                                    <h4 class="font-bold text-stone-700 mb-2 border-b border-stone-100 pb-1">Synthesis</h4>
-                                    <p class="text-sm text-stone-600 mb-3">Derived from the amino acid Methionine (Yang Cycle).</p>
-                                    <div class="bg-stone-50 p-3 rounded font-mono text-sm border border-stone-200">
-                                        Methionine &#8594; SAM &#8594; <span class="text-stone-500 text-xs">(ACS)</span> &#8594; ACC &#8594; <span class="text-stone-500 text-xs">(ACO)</span> &#8594; <span class="text-emerald-600 font-bold">Ethylene (Gas)</span>
-                                    </div>
-                                    <p class="text-xs text-stone-500 mt-2">*ACS (ACC synthase) is the main regulatory node. ACO (ACC oxidase) requires oxygen.</p>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-stone-700 mb-2 border-b border-stone-100 pb-1">Regulation</h4>
-                                    <ul class="list-disc pl-5 text-sm text-stone-600 space-y-2">
-                                        <li><strong>Transcriptional/Post-Translational:</strong> ACS enzymes are highly regulated at the protein stability level (phosphorylated/degraded via proteasome).</li>
-                                        <li><strong>Feedback:</strong> Can exhibit autoinhibition (vegetative tissues) or autocatalysis (ripening climacteric fruits).</li>
-                                        <li>Since it's a gas, it diffuses away easily; synthesis rates dictate internal concentration.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Section 4: Chart -->
-            <section id="interplay" class="scroll-mt-24 mb-16">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-stone-900 mb-2">4. Hormonal Interplay & Development</h2>
-                    <p class="text-stone-600">
-                        Hormones rarely act alone. Plant development is driven by changing ratios and cross-talk between these pathways over time. The interactive chart below visualizes a generalized model of relative hormone concentrations across major plant developmental stages. Use the legend to toggle specific hormones.
-                    </p>
-                </div>
-                
-                <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
-                    <h3 class="text-lg font-bold text-center text-stone-800 mb-4">Relative Phytohormone Levels During Plant Life Cycle</h3>
-                    <!-- Chart Container per constraints -->
-                    <div class="chart-container">
-                        <canvas id="hormoneChart"></canvas>
-                    </div>
-                    <p class="text-xs text-center text-stone-500 mt-4 italic">
-                        Note: This is a conceptual pedagogical model illustrating trends. Actual concentrations vary heavily by species, specific tissue type, and environmental conditions.
-                    </p>
-                </div>
-            </section>
-
-        </main>
-    </div>
-
-    <footer class="bg-stone-900 text-stone-400 py-8 border-t border-stone-800 text-center text-sm">
-        <div class="max-w-7xl mx-auto px-4">
-            <p>&copy; MightyChondria 2026. Created for Educational Purposes.</p>
+        <div class="md:hidden p-4 border-b border-slate-100">
+            <select id="mobile-nav" class="w-full p-2 border border-slate-300 rounded-md bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="intro">Welcome & Overview</option>
+                <option value="water">1. Plant Water Relations</option>
+                <option value="nutrition">2. Mineral Nutrition</option>
+                <option value="photosynthesis">3. Photosynthesis & Respiration</option>
+                <option value="growth">4. Growth & Regulation</option>
+                <option value="defense">5. Environment & Defense</option>
+            </select>
         </div>
-    </footer>
+
+        <ul class="flex-1 overflow-y-auto custom-scrollbar hidden md:block py-4" id="desktop-nav">
+            <li class="px-2 mb-1">
+                <button data-target="intro" class="nav-item active w-full text-left px-4 py-3 rounded-md font-medium transition-colors duration-150 flex items-center">
+                    <span class="w-6 text-center mr-2">&#128214;</span> Overview
+                </button>
+            </li>
+            <li class="px-2 mb-1">
+                <button data-target="water" class="nav-item w-full text-left px-4 py-3 rounded-md font-medium transition-colors duration-150 flex items-center">
+                    <span class="w-6 text-center mr-2 text-blue-500">&#128167;</span> 1. Water Relations
+                </button>
+            </li>
+            <li class="px-2 mb-1">
+                <button data-target="nutrition" class="nav-item w-full text-left px-4 py-3 rounded-md font-medium transition-colors duration-150 flex items-center">
+                    <span class="w-6 text-center mr-2 text-amber-500">&#129466;</span> 2. Mineral Nutrition
+                </button>
+            </li>
+            <li class="px-2 mb-1">
+                <button data-target="photosynthesis" class="nav-item w-full text-left px-4 py-3 rounded-md font-medium transition-colors duration-150 flex items-center">
+                    <span class="w-6 text-center mr-2 text-yellow-500">&#9728;&#65039;</span> 3. Photosynthesis
+                </button>
+            </li>
+            <li class="px-2 mb-1">
+                <button data-target="growth" class="nav-item w-full text-left px-4 py-3 rounded-md font-medium transition-colors duration-150 flex items-center">
+                    <span class="w-6 text-center mr-2 text-green-500">&#127793;</span> 4. Growth & Reg.
+                </button>
+            </li>
+            <li class="px-2 mb-1">
+                <button data-target="defense" class="nav-item w-full text-left px-4 py-3 rounded-md font-medium transition-colors duration-150 flex items-center">
+                    <span class="w-6 text-center mr-2 text-red-400">&#128737;&#65039;</span> 5. Environment
+                </button>
+            </li>
+        </ul>
+        <div class="p-4 border-t border-slate-100 text-xs text-slate-400 text-center">
+            Interactive Study Guide Workspace
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 p-4 md:p-10" id="main-content">
+        <!-- Content injected here via JS -->
+    </main>
 
     <script>
-        // DOM Elements
-        const mobileBtn = document.getElementById('mobile-menu-btn');
-        const mobileNav = document.getElementById('mobile-nav');
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        // Navigation Logic
-        mobileBtn.addEventListener('click', () => {
-            mobileNav.classList.toggle('hidden');
-        });
+        const studyData = {
+            intro: {
+                title: "Higher Biology: Plant Physiology",
+                subtitle: "Interactive Study Material",
+                description: "This application provides an interactive exploration of core plant physiology concepts required for Higher Biology. Use the navigation menu to delve into specific physiological processes, structures, and regulatory mechanisms.",
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="text-lg font-semibold text-slate-800 mb-2 border-b border-slate-100 pb-2">Course Objectives</h3>
+                            <ul class="list-disc pl-5 text-slate-600 space-y-2 mt-4 text-sm">
+                                <li>Understand physical mechanisms of water and nutrient transport.</li>
+                                <li>Analyze bioenergetic pathways: Photosynthesis and Respiration.</li>
+                                <li>Evaluate the role of phytohormones in development.</li>
+                                <li>Examine plant responses to environmental stressors and pathogens.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-green-50 p-6 rounded-xl border border-green-100 shadow-sm flex flex-col justify-center items-center text-center">
+                            <div class="text-4xl mb-4">&#128269;</div>
+                            <h3 class="text-lg font-semibold text-green-800 mb-2">How to use this guide</h3>
+                            <p class="text-green-700 text-sm">Select a topic from the sidebar. Interact with diagrams, review comparative charts, and click through sub-topics to reveal detailed physiological mechanisms.</p>
+                        </div>
+                    </div>
+                `
+            },
+            water: {
+                title: "1. Plant Water Relations",
+                subtitle: "Movement and retention of water in plant systems.",
+                description: "This module covers the physical principles governing water movement, from root absorption to foliar transpiration, and how plants manage water stress.",
+                content: `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                        <div class="space-y-4">
+                            <div class="concept-card bg-white p-5 rounded-lg border border-slate-200 border-l-4 border-l-blue-500 cursor-pointer" onclick="updateWaterDetail('potential')">
+                                <h4 class="font-bold text-slate-800 flex items-center"><span class="text-xl mr-2">&#8706;</span> Water Potential (Ψ)</h4>
+                                <p class="text-sm text-slate-600 mt-1">The potential energy of water per unit volume relative to pure water. Dictates the direction of water movement.</p>
+                            </div>
+                            <div class="concept-card bg-white p-5 rounded-lg border border-slate-200 border-l-4 border-l-blue-400 cursor-pointer" onclick="updateWaterDetail('absorption')">
+                                <h4 class="font-bold text-slate-800 flex items-center"><span class="text-xl mr-2">&#127793;</span> Absorption Pathways</h4>
+                                <p class="text-sm text-slate-600 mt-1">Mechanisms of water/nutrient uptake at the root level via Apoplastic and Symplastic routes.</p>
+                            </div>
+                            <div class="concept-card bg-white p-5 rounded-lg border border-slate-200 border-l-4 border-l-blue-300 cursor-pointer" onclick="updateWaterDetail('transpiration')">
+                                <h4 class="font-bold text-slate-800 flex items-center"><span class="text-xl mr-2">&#128328;</span> Transpiration</h4>
+                                <p class="text-sm text-slate-600 mt-1">Loss of water vapor from leaves. Driven by Cohesion-Tension theory and regulated by stomata.</p>
+                            </div>
+                            <div class="concept-card bg-white p-5 rounded-lg border border-slate-200 border-l-4 border-l-amber-500 cursor-pointer" onclick="updateWaterDetail('stress')">
+                                <h4 class="font-bold text-slate-800 flex items-center"><span class="text-xl mr-2">&#9888;&#65039;</span> Water Stress</h4>
+                                <p class="text-sm text-slate-600 mt-1">Plant responses to drought, salinity, and deficits.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full" id="water-detail-pane">
+                            <div class="text-center text-slate-400 mt-20">
+                                <div class="text-5xl mb-4">&#128072;</div>
+                                <p>Select a concept card to view details</p>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            nutrition: {
+                title: "2. Mineral Nutrition & Transport",
+                subtitle: "Acquisition and distribution of essential elements.",
+                description: "Explore how plants obtain necessary macronutrients and micronutrients from the soil, assimilate them into biological molecules, and translocate sugars via the phloem.",
+                content: `
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-6">
+                        <h3 class="text-lg font-semibold mb-4 text-slate-800">Relative Nutrient Requirements</h3>
+                        <p class="text-sm text-slate-500 mb-4">A conceptual comparison showing the massive difference in plant demand between Macronutrients (needed for structure/energy) and Micronutrients (needed for enzymatic functions).</p>
+                        <div class="chart-container">
+                            <canvas id="nutritionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-800 mb-2 border-b pb-1 text-sm uppercase tracking-wide text-amber-600">Uptake & Assimilation</h4>
+                            <p class="text-sm text-slate-600 mb-2"><strong>Ion Transport:</strong> Requires proton pumps to move ions across cell membranes against concentration gradients.</p>
+                            <p class="text-sm text-slate-600"><strong>Assimilation:</strong> Conversion of inorganic nutrients (Nitrate/Ammonium, SO4, PO4) into organic compounds (amino acids, ATP).</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm col-span-1 md:col-span-2">
+                            <h4 class="font-bold text-slate-800 mb-2 border-b pb-1 text-sm uppercase tracking-wide text-green-600">Phloem Translocation (Pressure-Flow)</h4>
+                            <div class="flex flex-col sm:flex-row items-center gap-4 mt-4">
+                                <div class="flex-1 text-center p-3 bg-green-50 rounded border border-green-100">
+                                    <span class="block font-bold text-green-700">SOURCE (Leaf)</span>
+                                    <span class="text-xs text-slate-600">Active loading of sucrose lowers water potential, drawing in water from xylem. High pressure.</span>
+                                </div>
+                                <div class="text-2xl text-slate-400">&#8594;</div>
+                                <div class="flex-1 text-center p-3 bg-slate-50 rounded border border-slate-200">
+                                    <span class="block font-bold text-slate-700">PHLOEM</span>
+                                    <span class="text-xs text-slate-600">Bulk flow of sap driven by positive pressure gradient.</span>
+                                </div>
+                                <div class="text-2xl text-slate-400">&#8594;</div>
+                                <div class="flex-1 text-center p-3 bg-amber-50 rounded border border-amber-100">
+                                    <span class="block font-bold text-amber-700">SINK (Root/Fruit)</span>
+                                    <span class="text-xs text-slate-600">Unloading of sucrose increases water potential. Water exits back to xylem. Low pressure.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            photosynthesis: {
+                title: "3. Photosynthesis & Respiration",
+                subtitle: "Bioenergetics and carbon fixation strategies.",
+                description: "This section compares the different mechanisms plants use to fix carbon based on their environmental adaptations, and details cellular respiration.",
+                content: `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex space-x-2 overflow-x-auto custom-scrollbar">
+                        <button onclick="updateCarbonFixation('C3')" id="btn-C3" class="px-4 py-2 rounded-md bg-green-600 text-white font-medium text-sm whitespace-nowrap transition-colors">C3 Plants (Standard)</button>
+                        <button onclick="updateCarbonFixation('C4')" id="btn-C4" class="px-4 py-2 rounded-md bg-slate-100 text-slate-600 font-medium text-sm whitespace-nowrap transition-colors hover:bg-slate-200">C4 Plants (Spatial)</button>
+                        <button onclick="updateCarbonFixation('CAM')" id="btn-CAM" class="px-4 py-2 rounded-md bg-slate-100 text-slate-600 font-medium text-sm whitespace-nowrap transition-colors hover:bg-slate-200">CAM Plants (Temporal)</button>
+                        <div class="w-px bg-slate-300 mx-2"></div>
+                        <button onclick="updateCarbonFixation('Resp')" id="btn-Resp" class="px-4 py-2 rounded-md bg-slate-800 text-white font-medium text-sm whitespace-nowrap transition-colors">Respiration</button>
+                    </div>
 
-        mobileNav.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileNav.classList.add('hidden');
-            });
-        });
+                    <div id="bioenergetics-display" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm min-h-[300px]">
+                        <!-- Populated by JS -->
+                    </div>
+                `
+            },
+            growth: {
+                title: "4. Growth, Development & Regulation",
+                subtitle: "Hormonal control and environmental responses.",
+                description: "Understand how internal chemical signals (phytohormones) and external stimuli (light, gravity) regulate plant developmental stages.",
+                content: `
+                    <div class="space-y-8 mt-6">
+                        <!-- Hormones -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="col-span-1 border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
+                                <div class="bg-slate-100 px-4 py-3 border-b border-slate-200"><h4 class="font-bold text-slate-700">Phytohormones</h4></div>
+                                <ul class="divide-y divide-slate-100">
+                                    <li><button onclick="showHormone('Auxins')" class="w-full text-left px-4 py-3 hover:bg-green-50 hover:text-green-700 transition-colors">Auxins</button></li>
+                                    <li><button onclick="showHormone('Gibberellins')" class="w-full text-left px-4 py-3 hover:bg-green-50 hover:text-green-700 transition-colors">Gibberellins</button></li>
+                                    <li><button onclick="showHormone('Cytokinins')" class="w-full text-left px-4 py-3 hover:bg-green-50 hover:text-green-700 transition-colors">Cytokinins</button></li>
+                                    <li><button onclick="showHormone('Ethylene')" class="w-full text-left px-4 py-3 hover:bg-amber-50 hover:text-amber-700 transition-colors">Ethylene</button></li>
+                                    <li><button onclick="showHormone('ABA')" class="w-full text-left px-4 py-3 hover:bg-red-50 hover:text-red-700 transition-colors">Abscisic Acid (ABA)</button></li>
+                                </ul>
+                            </div>
+                            <div class="col-span-1 lg:col-span-2">
+                                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-full flex flex-col justify-center" id="hormone-display">
+                                    <h4 class="text-xl font-bold text-slate-800 mb-2">Select a Hormone</h4>
+                                    <p class="text-slate-500">Click a phytohormone on the left to reveal its specific mechanisms in growth regulation.</p>
+                                </div>
+                            </div>
+                        </div>
 
-        // Tab Logic for Other Hormones
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remove active class from all
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => {
-                    c.classList.add('hidden');
-                    c.classList.remove('fade-in');
-                });
-                
-                // Add active to clicked
-                btn.classList.add('active');
-                const targetId = btn.getAttribute('data-target');
-                const targetContent = document.getElementById(targetId);
-                targetContent.classList.remove('hidden');
-                
-                // Force reflow for animation
-                void targetContent.offsetWidth;
-                targetContent.classList.add('fade-in');
-            });
-        });
+                        <!-- Tropisms & Photoperiodism -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Tropisms -->
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <h4 class="font-bold text-slate-800 mb-4 border-b pb-2 text-sm uppercase">Tropisms (Directional Growth)</h4>
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <button onclick="showTropism('photo')" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-sm hover:bg-yellow-200 transition-colors">Phototropism</button>
+                                    <button onclick="showTropism('gravi')" class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded text-sm hover:bg-emerald-200 transition-colors">Gravitropism</button>
+                                    <button onclick="showTropism('thigmo')" class="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200 transition-colors">Thigmotropism</button>
+                                </div>
+                                <div id="tropism-display" class="text-sm text-slate-600 bg-slate-50 p-4 rounded border border-slate-100 min-h-[140px] flex items-center">
+                                    Select a tropism type above to view its physiological mechanism.
+                                </div>
+                            </div>
+                            <!-- Photoperiodism -->
+                            <div class="bg-slate-800 text-white p-6 rounded-xl shadow-sm">
+                                <h4 class="font-bold text-yellow-400 mb-4 border-b border-slate-600 pb-2 text-sm uppercase">Photoperiodism & Phytochrome</h4>
+                                <p class="text-sm text-slate-300 mb-3">Plants measure day/night length to coordinate seasonal responses like flowering.</p>
+                                <div class="space-y-3 text-sm text-slate-300">
+                                    <p><strong>The Phytochrome Switch:</strong> A photoreceptor pigment existing in two reversible states:</p>
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        <li><strong>Pr (Red light absorbing):</strong> Inactive form. Synthesized in dark.</li>
+                                        <li><strong>Pfr (Far-red light absorbing):</strong> Active form. Pr converts to Pfr quickly in daylight. Pfr reverts to Pr slowly during the long night.</li>
+                                    </ul>
+                                    <div class="mt-2 text-xs bg-slate-700 p-3 rounded border border-slate-600">
+                                        <em>The remaining ratio of Pfr tells the plant the length of the night. This critical night length regulates flowering in Short-Day and Long-Day plants.</em>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-        // IAA Interactive Pathway Logic
-        let currentStep = 1;
-        const maxSteps = 3;
-        const btnNext = document.getElementById('btn-next-step');
-        const btnReset = document.getElementById('btn-reset-pathway');
-        const explanation = document.getElementById('pathway-explanation');
+                        <!-- Developmental Stages -->
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-800 mb-4 border-b pb-2 text-sm uppercase">Developmental Stages</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                                    <strong class="text-slate-800 block mb-2 text-sm">1. Seed Dormancy</strong>
+                                    <p class="text-xs text-slate-600">Maintained by high ABA levels. Prevents premature sprouting during adverse conditions. Broken by specific environmental cues like sustained cold or light.</p>
+                                </div>
+                                <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                                    <strong class="text-green-800 block mb-2 text-sm">2. Germination</strong>
+                                    <p class="text-xs text-slate-600">Initiated by imbibition (water uptake). GA is released, stimulating alpha-amylase production to mobilize endosperm starches, feeding the emerging embryo.</p>
+                                </div>
+                                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <strong class="text-blue-800 block mb-2 text-sm">3. Vegetative Growth</strong>
+                                    <p class="text-xs text-slate-600">Root and shoot apical meristems drive primary growth. Leaves develop for maximum photosynthetic resource accumulation.</p>
+                                </div>
+                                <div class="p-4 bg-pink-50 border border-pink-200 rounded-lg">
+                                    <strong class="text-pink-800 block mb-2 text-sm">4. Reproductive</strong>
+                                    <p class="text-xs text-slate-600">Transition of shoot meristem to floral meristem. Triggered by photoperiod (florigen signal) or temperature (vernalization) to produce flowers/fruit.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            defense: {
+                title: "5. Environmental Physiology & Defense",
+                subtitle: "Adaptation to stress and biological interactions.",
+                description: "Investigate how plants react to abiotic environmental stressors and their biotic defense mechanisms against pathogens, as well as beneficial symbiotic relationships.",
+                content: `
+                    <div class="space-y-8 mt-6">
+                        <!-- Environmental Stressors -->
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-800 mb-4 border-b pb-2 text-sm uppercase">Environmental Stress Simulator</h3>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <button onclick="triggerStress('heat')" class="px-3 py-2 bg-red-100 text-red-700 rounded text-sm font-medium hover:bg-red-200 transition-colors">Heat / Drought</button>
+                                <button onclick="triggerStress('cold')" class="px-3 py-2 bg-cyan-100 text-cyan-700 rounded text-sm font-medium hover:bg-cyan-200 transition-colors">Cold Extremes</button>
+                                <button onclick="triggerStress('wind')" class="px-3 py-2 bg-slate-200 text-slate-700 rounded text-sm font-medium hover:bg-slate-300 transition-colors">Wind / Air</button>
+                                <button onclick="triggerStress('light')" class="px-3 py-2 bg-yellow-100 text-yellow-700 rounded text-sm font-medium hover:bg-yellow-200 transition-colors">Light Quality</button>
+                                <button onclick="triggerStress('pathogen')" class="px-3 py-2 bg-purple-100 text-purple-700 rounded text-sm font-medium hover:bg-purple-200 transition-colors">Pathogen Attack</button>
+                                <button onclick="triggerStress('herbivore')" class="px-3 py-2 bg-amber-100 text-amber-700 rounded text-sm font-medium hover:bg-amber-200 transition-colors">Herbivory</button>
+                            </div>
+                            <div id="stress-response-display" class="p-5 bg-slate-50 rounded border border-slate-200 min-h-[140px] transition-all flex items-center">
+                                <p class="text-slate-500 text-sm w-full text-center">Click a stress factor above to analyze the plant's specific physiological response.</p>
+                            </div>
+                        </div>
 
-        btnNext.addEventListener('click', () => {
-            if (currentStep < maxSteps) {
-                // Show arrow leading to next step
-                const arrow = document.getElementById(`arrow-${currentStep}`);
-                arrow.classList.remove('hidden');
-                setTimeout(() => arrow.classList.add('fade-in'), 10);
-                
-                currentStep++;
-                
-                // Show next step
-                setTimeout(() => {
-                    const stepEl = document.getElementById(`step-${currentStep}`);
-                    stepEl.classList.remove('hidden');
-                    setTimeout(() => stepEl.classList.add('slide-up', 'opacity-100'), 10);
-                }, 300); // slight delay for arrow rendering
-                
-                if (currentStep === maxSteps) {
-                    btnNext.disabled = true;
-                    btnNext.classList.add('opacity-50', 'cursor-not-allowed');
-                    setTimeout(() => {
-                        explanation.classList.remove('hidden');
-                    }, 600);
-                }
+                        <!-- Chemical Defense & Microbes -->
+                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            <!-- Secondary Metabolites -->
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-red-400 h-full">
+                                <h4 class="font-bold text-slate-800 mb-4 border-b pb-2 text-sm uppercase">Defense Mechanisms (Secondary Metabolites)</h4>
+                                <div class="space-y-4 text-sm text-slate-600">
+                                    <div class="bg-slate-50 p-3 rounded border border-slate-100">
+                                        <strong class="text-slate-800 block mb-1 flex items-center"><span class="mr-2">🌿</span> Terpenes / Terpenoids</strong>
+                                        <p class="text-xs">Largest class of secondary metabolites (e.g., essential oils). Act as direct toxins to feeding insects or as volatile signals (VOCs) to attract predators of the herbivores.</p>
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded border border-slate-100">
+                                        <strong class="text-slate-800 block mb-1 flex items-center"><span class="mr-2">🍂</span> Phenolics</strong>
+                                        <p class="text-xs">Includes <strong>tannins</strong> (bind to salivary proteins, making leaves indigestible), <strong>lignin</strong> (tough physical barrier in cell walls to block pathogens), and <strong>flavonoids</strong> (UV protection and antimicrobial).</p>
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded border border-slate-100">
+                                        <strong class="text-slate-800 block mb-1 flex items-center"><span class="mr-2">☕</span> Nitrogen-Containing Compounds</strong>
+                                        <p class="text-xs">Includes <strong>alkaloids</strong> (like caffeine, nicotine, morphine) which heavily affect herbivore nervous systems, and cyanogenic glycosides which release cyanide when the plant tissue is chewed.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Plant-Microbe Interactions -->
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-blue-500 h-full">
+                                <h4 class="font-bold text-slate-800 mb-4 border-b pb-2 text-sm uppercase">Plant-Microbe Interactions</h4>
+                                <div class="space-y-4 text-sm text-slate-600">
+                                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                        <strong class="text-blue-800 block mb-2 text-base">Biological Nitrogen Fixation</strong>
+                                        <p class="mb-2">Symbiosis between legume roots and <em>Rhizobia</em> bacteria inside specialized root <strong>nodules</strong>.</p>
+                                        <ul class="list-disc pl-4 text-xs space-y-1 text-blue-900">
+                                            <li>Bacteria convert atmospheric N2 into usable ammonia (NH3) via nitrogenase.</li>
+                                            <li>Plant provides sugars and a low-oxygen environment (using leghemoglobin) necessary to protect the oxygen-sensitive nitrogenase enzyme.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                                        <strong class="text-emerald-800 block mb-2 text-base">Mycorrhizal Associations</strong>
+                                        <p class="mb-2">Mutualistic relationship with soil fungi acting as an extension of the root system.</p>
+                                        <ul class="list-disc pl-4 text-xs space-y-1 text-emerald-900">
+                                            <li><strong>Benefit to Plant:</strong> Fungal hyphae dramatically increase surface area, drastically improving absorption of water and <em>Phosphorus</em>.</li>
+                                            <li><strong>Benefit to Fungus:</strong> Receives a steady supply of carbohydrates from plant photosynthesis.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
             }
-        });
+        };
 
-        btnReset.addEventListener('click', () => {
-            currentStep = 1;
-            btnNext.disabled = false;
-            btnNext.classList.remove('opacity-50', 'cursor-not-allowed');
+        const waterDetails = {
+            potential: `
+                <h4 class="text-xl font-bold text-slate-800 mb-3 border-b pb-2">Water Potential (Ψ)</h4>
+                <div class="space-y-3 text-slate-600 text-sm">
+                    <p>Water moves from regions of <strong>higher</strong> water potential to regions of <strong>lower</strong> (more negative) water potential.</p>
+                    <div class="bg-slate-50 p-3 rounded border border-slate-200 font-mono text-xs text-center">
+                        Ψ = Ψs + Ψp
+                    </div>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong>Solute Potential (Ψs):</strong> Also called osmotic potential. Adding solutes always lowers Ψs (makes it negative).</li>
+                        <li><strong>Pressure Potential (Ψp):</strong> The physical pressure on a solution. Turgor pressure in living plant cells is typically positive.</li>
+                    </ul>
+                </div>
+            `,
+            absorption: `
+                <h4 class="text-xl font-bold text-slate-800 mb-3 border-b pb-2">Root Absorption Pathways</h4>
+                <div class="space-y-3 text-slate-600 text-sm">
+                    <p>Water travels through the root cortex towards the vascular cylinder via two main routes:</p>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div class="bg-blue-50 p-2 rounded border border-blue-100">
+                            <strong class="text-blue-800 block mb-1">Apoplastic Route</strong>
+                            Water moves through continuous cell walls and extracellular spaces. Blocked by the Casparian strip at the endodermis.
+                        </div>
+                        <div class="bg-green-50 p-2 rounded border border-green-100">
+                            <strong class="text-green-800 block mb-1">Symplastic Route</strong>
+                            Water moves through the cytosol, crossing from cell to cell via plasmodesmata.
+                        </div>
+                    </div>
+                </div>
+            `,
+            transpiration: `
+                <h4 class="text-xl font-bold text-slate-800 mb-3 border-b pb-2">Transpiration Mechanism</h4>
+                <div class="space-y-3 text-slate-600 text-sm">
+                    <p><strong>Cohesion-Tension Theory:</strong></p>
+                    <ol class="list-decimal pl-5 space-y-1">
+                        <li>Water evaporates from mesophyll cell walls in leaves.</li>
+                        <li>This creates a negative pressure (tension) in the leaf xylem.</li>
+                        <li>Due to hydrogen bonding (cohesion between water molecules), this tension pulls a continuous column of water up from the roots.</li>
+                    </ol>
+                    <p class="mt-3"><strong>Guard Cell Function:</strong> Potassium (K+) uptake causes water to enter guard cells via osmosis, making them turgid and opening the stomatal pore.</p>
+                </div>
+            `,
+            stress: `
+                <h4 class="text-xl font-bold text-amber-700 mb-3 border-b pb-2">Water Stress Responses</h4>
+                <div class="space-y-3 text-slate-600 text-sm">
+                    <p>Plants deploy strategies to survive water deficits and salinity:</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Stomatal Closure:</strong> Triggered by ABA to prevent immediate water loss.</li>
+                        <li><strong>Osmotic Adjustment:</strong> Synthesizing compatible solutes (e.g., proline) to lower internal solute potential, allowing water uptake from dry/salty soil.</li>
+                        <li><strong>Morphological Changes:</strong> Increased root-to-shoot ratio, leaf rolling, or leaf shedding (abscission) in severe drought.</li>
+                    </ul>
+                </div>
+            `
+        };
+
+        const bioenergeticsDetails = {
+            'C3': {
+                title: "C3 Photosynthesis",
+                subtitle: "The standard mechanism used by most plants (e.g., wheat, rice).",
+                content: `
+                    <div class="flex flex-col md:flex-row gap-6 mt-4">
+                        <div class="flex-1 space-y-2">
+                            <p class="text-sm text-slate-600"><strong>Process:</strong> CO2 is directly incorporated into a 3-carbon compound (3-PGA) via the enzyme Rubisco during the Calvin Cycle.</p>
+                            <p class="text-sm text-slate-600"><strong>Light Reactions:</strong> Occur in thylakoids (Photophosphorylation). Produces ATP and NADPH.</p>
+                            <p class="text-sm text-slate-600"><strong>Calvin Cycle:</strong> Occurs in the stroma. Uses ATP/NADPH to fix CO2 into sugars.</p>
+                        </div>
+                        <div class="flex-1 bg-red-50 p-4 rounded border border-red-100">
+                            <strong class="text-red-700 block text-sm mb-1">&#9888;&#65039; The Problem: Photorespiration</strong>
+                            <p class="text-xs text-slate-700">In hot/dry conditions, stomata close. O2 builds up. Rubisco binds O2 instead of CO2, wasting energy and carbon. C3 plants are inefficient in hot climates.</p>
+                        </div>
+                    </div>
+                `
+            },
+            'C4': {
+                title: "C4 Photosynthesis",
+                subtitle: "Spatial separation of carbon fixation (e.g., corn, sugarcane).",
+                content: `
+                    <div class="flex flex-col md:flex-row gap-6 mt-4">
+                        <div class="flex-1 space-y-2">
+                            <p class="text-sm text-slate-600"><strong>Adaptation:</strong> Overcomes photorespiration by physically separating initial CO2 fixation from the Calvin cycle.</p>
+                            <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                                <li><strong>Mesophyll Cells:</strong> PEP carboxylase (ignores O2) fixes CO2 into a 4-carbon acid.</li>
+                                <li><strong>Bundle-Sheath Cells:</strong> 4-C acid is transported here and decarboxylated, creating a high CO2 concentration around Rubisco for the Calvin cycle.</li>
+                            </ul>
+                        </div>
+                        <div class="flex-1 bg-green-50 p-4 rounded border border-green-100 flex items-center justify-center text-center">
+                            <p class="text-sm font-medium text-green-800">Highly efficient in hot, sunny environments. Prevents photorespiration at the cost of extra ATP to transport acids.</p>
+                        </div>
+                    </div>
+                `
+            },
+            'CAM': {
+                title: "CAM Photosynthesis",
+                subtitle: "Crassulacean Acid Metabolism - Temporal separation (e.g., cacti, succulents).",
+                content: `
+                    <div class="flex flex-col md:flex-row gap-6 mt-4">
+                        <div class="flex-1 space-y-2">
+                            <p class="text-sm text-slate-600"><strong>Adaptation:</strong> Extreme water conservation by opening stomata only at night.</p>
+                            <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                                <li><strong>Night:</strong> Stomata open. CO2 fixed into organic acids and stored in vacuoles.</li>
+                                <li><strong>Day:</strong> Stomata close (saves water). Light reactions provide ATP/NADPH. Stored acids release CO2 to Rubisco for the Calvin cycle.</li>
+                            </ul>
+                        </div>
+                        <div class="flex-1 bg-amber-50 p-4 rounded border border-amber-100 flex items-center justify-center text-center">
+                            <p class="text-sm font-medium text-amber-800">Maximizes water use efficiency. Slow growth rate but allows survival in extreme arid environments.</p>
+                        </div>
+                    </div>
+                `
+            },
+            'Resp': {
+                title: "Cellular Respiration",
+                subtitle: "Breaking down sugars to release energy (ATP) for cellular work.",
+                content: `
+                    <div class="space-y-4 mt-4">
+                        <p class="text-sm text-slate-600">While photosynthesis builds sugars, respiration breaks them down. Plants do both.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                                <strong class="text-slate-800 block text-sm mb-1">1. Glycolysis</strong>
+                                <p class="text-xs text-slate-500">Occurs in Cytosol. Splits glucose into pyruvate. Yields small amount of ATP and NADH.</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                                <strong class="text-slate-800 block text-sm mb-1">2. Krebs Cycle</strong>
+                                <p class="text-xs text-slate-500">Occurs in Mitochondrial Matrix. Fully oxidizes carbon. Releases CO2, generates NADH and FADH2.</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                                <strong class="text-slate-800 block text-sm mb-1">3. Electron Transport</strong>
+                                <p class="text-xs text-slate-500">Occurs on Inner Mitochondrial Membrane. Uses electrons from NADH/FADH2 to pump protons, driving massive ATP synthesis. O2 is final acceptor.</p>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        const hormoneData = {
+            'Auxins': `
+                <h5 class="text-lg font-bold text-green-700 border-b pb-1 mb-2">Auxins (e.g., IAA)</h5>
+                <p class="text-sm text-slate-600 mb-2"><strong>Primary Role:</strong> Cell elongation, apical dominance, and tissue differentiation.</p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+                    <li>Produced primarily in shoot apical meristems and young leaves, transported downward (polar transport).</li>
+                    <li><strong>Acid Growth Hypothesis:</strong> Auxin stimulates proton pumps in the plasma membrane, lowering cell wall pH. This activates expansin enzymes that loosen the wall matrix, allowing turgor pressure to elongate the cell.</li>
+                    <li>Inhibits lateral bud growth (apical dominance) ensuring upward growth towards light.</li>
+                </ul>
+            `,
+            'Gibberellins': `
+                <h5 class="text-lg font-bold text-green-700 border-b pb-1 mb-2">Gibberellins (GAs)</h5>
+                <p class="text-sm text-slate-600 mb-2"><strong>Primary Role:</strong> Stem elongation, fruit growth, and seed germination.</p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+                    <li>Work in concert with auxins to promote dramatic internode elongation by stimulating both cell division and elongation.</li>
+                    <li><strong>Seed Germination:</strong> Water imbibition triggers GA release from the embryo. GA signals the aleurone layer to secrete digestive enzymes (like alpha-amylase) which hydrolyze endosperm starches into sugars for the growing seedling.</li>
+                </ul>
+            `,
+            'Cytokinins': `
+                <h5 class="text-lg font-bold text-green-700 border-b pb-1 mb-2">Cytokinins</h5>
+                <p class="text-sm text-slate-600 mb-2"><strong>Primary Role:</strong> Control of cell division (cytokinesis) and differentiation.</p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+                    <li>Produced mainly in actively growing tissues, particularly roots, embryos, and fruits. Transported upward via xylem.</li>
+                    <li><strong>Ratio with Auxin:</strong> The balance determines differentiation. High Auxin/Low Cytokinin = root formation. Low Auxin/High Cytokinin = shoot/bud formation. Equal ratio = undifferentiated callus.</li>
+                    <li>Delay leaf senescence (aging) by directing nutrient flow to tissues.</li>
+                </ul>
+            `,
+            'Ethylene': `
+                <h5 class="text-lg font-bold text-amber-600 border-b pb-1 mb-2">Ethylene (Gas)</h5>
+                <p class="text-sm text-slate-600 mb-2"><strong>Primary Role:</strong> Response to stress, senescence, leaf abscission, and fruit ripening.</p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+                    <li><strong>Fruit Ripening:</strong> Triggers enzymatic breakdown of cell walls and conversion of starches to sugars. Operates on a positive feedback loop (ripening produces more ethylene).</li>
+                    <li><strong>Triple Response:</strong> When a seedling hits an obstacle (mechanical stress), ethylene induces slowing of stem elongation, stem thickening, and horizontal growth to bypass the obstacle.</li>
+                </ul>
+            `,
+            'ABA': `
+                <h5 class="text-lg font-bold text-red-600 border-b pb-1 mb-2">Abscisic Acid (ABA)</h5>
+                <p class="text-sm text-slate-600 mb-2"><strong>Primary Role:</strong> Slowing growth, stress tolerance, and seed dormancy.</p>
+                <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+                    <li><strong>Seed Dormancy:</strong> High levels of ABA during seed maturation inhibit premature germination. The ratio of ABA to GA determines if a seed will germinate.</li>
+                    <li><strong>Drought Tolerance:</strong> When roots detect low soil moisture, ABA is rapidly transported to leaves where it binds to guard cell receptors, causing massive efflux of K+ ions and immediate stomatal closure.</li>
+                </ul>
+            `
+        };
+
+        const tropismData = {
+            'photo': `<div class="fade-in"><strong class="text-yellow-700 block mb-2 text-lg">Phototropism</strong><p class="text-sm text-slate-700">Growth towards light. Photoreceptors (phototropins) detect directional blue light. This triggers lateral transport of <strong>Auxin</strong> to the shaded side of the stem. Higher auxin concentration on the shaded side causes those cells to elongate faster (via the Acid Growth Hypothesis), bending the stem towards the light.</p></div>`,
+            'gravi': `<div class="fade-in"><strong class="text-emerald-700 block mb-2 text-lg">Gravitropism (Geotropism)</strong><p class="text-sm text-slate-700">Growth in response to gravity. Roots show positive gravitropism (grow down), shoots show negative (grow up). In roots, specialized plastids called <strong>statoliths</strong> settle at the bottom of root cap cells. This triggers calcium signaling and redistribution of auxin to the lower side of the root, where it <em>inhibits</em> cell elongation, causing the root to bend downward.</p></div>`,
+            'thigmo': `<div class="fade-in"><strong class="text-blue-700 block mb-2 text-lg">Thigmotropism</strong><p class="text-sm text-slate-700">Directional growth in response to touch. Common in climbing plants and vines. Contact with a solid object stimulates unequal growth rates on opposite sides of the stem or tendril, mediated by auxin and ethylene, causing it to coil around the support structure.</p></div>`
+        };
+
+        const stressData = {
+            'heat': `<div class="fade-in"><strong class="text-red-700 block mb-2 text-lg">Response to Heat & Drought</strong><p class="text-sm text-slate-700"><strong>Drought:</strong> Roots synthesize ABA, causing rapid stomatal closure in leaves. Osmotic adjustment (accumulating compatible solutes) helps retain water.<br><strong>Heat:</strong> Synthesis of Heat-Shock Proteins (HSPs) which act as molecular chaperones to prevent other vital enzymes from denaturing under high temperatures.</p></div>`,
+            'cold': `<div class="fade-in"><strong class="text-cyan-700 block mb-2 text-lg">Response to Cold & Freezing</strong><p class="text-sm text-slate-700"><strong>Cold:</strong> Alteration of cell membrane lipid composition (increasing unsaturated fatty acids) to maintain membrane fluidity.<br><strong>Freezing:</strong> Accumulation of antifreeze proteins and specific solutes (sugars) to lower the freezing point of the cytosol, preventing destructive intracellular ice crystal formation.</p></div>`,
+            'wind': `<div class="fade-in"><strong class="text-slate-700 block mb-2 text-lg">Response to Wind & Air Quality</strong><p class="text-sm text-slate-700"><strong>Thigmomorphogenesis:</strong> Mechanical perturbation (wind) causes plants to develop shorter, thicker stems to prevent snapping. Mediated by increased ethylene and lignin deposition.<br><strong>Air Quality:</strong> Pollutants like ozone create Reactive Oxygen Species (ROS). Plants respond by closing stomata and producing antioxidants.</p></div>`,
+            'light': `<div class="fade-in"><strong class="text-yellow-700 block mb-2 text-lg">Response to Light Quality (Shade)</strong><p class="text-sm text-slate-700"><strong>Shade Avoidance Syndrome:</strong> Canopy shade is rich in far-red light. The Phytochrome system detects this low Red to Far-Red ratio. The plant responds by rapid stem elongation (to reach sunlight), reduced leaf area, and inhibition of branching.</p></div>`,
+            'pathogen': `<div class="fade-in"><strong class="text-purple-700 block mb-2 text-lg">Response to Pathogen Attack</strong><p class="text-sm text-slate-700"><strong>Hypersensitive Response (HR):</strong> Localized, rapid cell death around the infection site to starve biotrophic pathogens. Fortification of cell walls (lignin, callose) and release of toxic phytoalexins.<br><strong>Systemic Acquired Resistance (SAR):</strong> Salicylic acid acts as a mobile signal, priming defense genes in uninfected tissues for future attacks.</p></div>`,
+            'herbivore': `<div class="fade-in"><strong class="text-amber-700 block mb-2 text-lg">Response to Herbivory</strong><p class="text-sm text-slate-700">Physical damage triggers systemic electrical signals and the hormone systemin, leading to Jasmonic Acid (JA) production. JA triggers expression of defense genes (e.g., protease inhibitors). Release of Volatile Organic Compounds (VOCs) to warn neighboring plants or attract parasitoid wasps.</p></div>`
+        };
+
+        let currentChart = null;
+
+        function renderModule(id) {
+            const mainContent = document.getElementById('main-content');
+            const data = studyData[id];
             
-            // Hide all except step 1
-            [2, 3].forEach(step => {
-                const el = document.getElementById(`step-${step}`);
-                el.classList.add('hidden');
-                el.classList.remove('slide-up', 'opacity-100');
+            if (!data) return;
+
+            // Update Nav styling
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active', 'text-green-800', 'bg-green-100');
+                if(btn.dataset.target === id) {
+                    btn.classList.add('active');
+                }
             });
-            [1, 2].forEach(step => {
-                const arr = document.getElementById(`arrow-${step}`);
-                arr.classList.add('hidden');
-                arr.classList.remove('fade-in');
-            });
-            
-            explanation.classList.add('hidden');
-        });
+            document.getElementById('mobile-nav').value = id;
 
-        // Chart.js Initialization
-        document.addEventListener('DOMContentLoaded', () => {
-            const ctx = document.getElementById('hormoneChart').getContext('2d');
-            
-            // Standardizing Chart colors with Tailwind palette
-            const colors = {
-                auxin: '#047857', // emerald-700
-                ga: '#3b82f6', // blue-500
-                aba: '#f59e0b', // amber-500
-                ethylene: '#ef4444', // red-500
-                ck: '#8b5cf6' // violet-500
-            };
+            // Render Content
+            mainContent.innerHTML = `
+                <div class="fade-in max-w-5xl mx-auto">
+                    <header class="mb-6">
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2">${data.title}</h2>
+                        <p class="text-lg text-slate-600">${data.subtitle}</p>
+                    </header>
+                    <div class="bg-white p-5 rounded-lg border border-slate-200 mb-6 shadow-sm border-l-4 border-l-green-500">
+                        <p class="text-slate-700">${data.description}</p>
+                    </div>
+                    ${data.content}
+                </div>
+            `;
 
-            new Chart(ctx, {
-                type: 'line',
+            // Specific module initialization
+            if (id === 'nutrition') {
+                initNutritionChart();
+            } else if (id === 'photosynthesis') {
+                updateCarbonFixation('C3'); // Default view
+            } else if (id === 'growth') {
+                showHormone('Auxins'); // Default view
+            }
+        }
+
+        function initNutritionChart() {
+            const ctx = document.getElementById('nutritionChart').getContext('2d');
+            
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            // Conceptual data for visual comparison based on typical plant tissue concentration
+            currentChart = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: ['Dormant Seed', 'Germination', 'Vegetative Growth', 'Flowering/Anthesis', 'Fruit Ripening', 'Senescence'],
-                    datasets: [
-                        {
-                            label: 'Abscisic Acid (ABA)',
-                            data: [90, 10, 20, 30, 40, 60],
-                            borderColor: colors.aba,
-                            backgroundColor: colors.aba + '20',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'Gibberellins (GA)',
-                            data: [10, 80, 60, 70, 20, 5],
-                            borderColor: colors.ga,
-                            backgroundColor: 'transparent',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            borderDash: [5, 5]
-                        },
-                        {
-                            label: 'Auxins (IAA)',
-                            data: [5, 30, 85, 60, 70, 10],
-                            borderColor: colors.auxin,
-                            backgroundColor: 'transparent',
-                            borderWidth: 3,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Cytokinins (CK)',
-                            data: [5, 40, 70, 50, 20, 5],
-                            borderColor: colors.ck,
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Ethylene',
-                            data: [5, 5, 10, 30, 95, 80],
-                            borderColor: colors.ethylene,
-                            backgroundColor: colors.ethylene + '15',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true
-                        }
-                    ]
+                    labels: ['Macronutrients (N, K, Ca, Mg, P, S)', 'Micronutrients (Cl, Fe, B, Mn, Zn, Cu, Mo)'],
+                    datasets: [{
+                        label: 'Relative Requirement (Conceptual Concentration)',
+                        data: [1000, 1], // Logarithmic conceptual difference
+                        backgroundColor: [
+                            'rgba(22, 163, 74, 0.7)', // Green for Macro
+                            'rgba(245, 158, 11, 0.7)'  // Amber for Micro
+                        ],
+                        borderColor: [
+                            'rgba(22, 163, 74, 1)',
+                            'rgba(245, 158, 11, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Required to respect .chart-container dimensions
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
+                    maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 13
-                                }
-                            }
-                        },
+                        legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(28, 25, 23, 0.9)', // stone-900
-                            titleFont: { size: 14, family: "'Inter', sans-serif" },
-                            bodyFont: { size: 13, family: "'Inter', sans-serif" },
-                            padding: 12,
-                            cornerRadius: 8,
                             callbacks: {
-                                // Add wrap logic if labels were long (16 char requirement)
                                 label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += 'Relative Lvl ' + context.parsed.y;
-                                    }
-                                    return label;
+                                    return context.dataIndex === 0 ? 'High requirement (Structure/Energy)' : 'Trace requirement (Enzyme Co-factors)';
                                 }
                             }
                         }
                     },
                     scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 12
-                                }
-                            }
-                        },
                         y: {
+                            type: 'logarithmic',
                             title: {
                                 display: true,
-                                text: 'Relative Concentration Level',
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    weight: 'bold'
-                                }
+                                text: 'Relative Concentration (Log Scale)'
                             },
-                            beginAtZero: true,
-                            max: 100,
-                            grid: {
-                                color: '#e7e5e4', // stone-200
-                                borderDash: [5, 5]
-                            }
+                            ticks: { display: false }
                         }
                     }
                 }
             });
+        }
+
+        // Global functions for interactions within HTML strings
+        window.updateWaterDetail = function(concept) {
+            const pane = document.getElementById('water-detail-pane');
+            pane.innerHTML = `<div class="fade-in">${waterDetails[concept]}</div>`;
+        };
+
+        window.updateCarbonFixation = function(type) {
+            const pane = document.getElementById('bioenergetics-display');
+            const data = bioenergeticsDetails[type];
+            
+            // Update button styles
+            ['C3', 'C4', 'CAM', 'Resp'].forEach(btnType => {
+                const btn = document.getElementById(`btn-${btnType}`);
+                if(btnType === type) {
+                    btn.className = type === 'Resp' 
+                        ? "px-4 py-2 rounded-md bg-slate-800 text-white font-medium text-sm whitespace-nowrap transition-colors"
+                        : "px-4 py-2 rounded-md bg-green-600 text-white font-medium text-sm whitespace-nowrap transition-colors";
+                } else {
+                    btn.className = "px-4 py-2 rounded-md bg-slate-100 text-slate-600 font-medium text-sm whitespace-nowrap transition-colors hover:bg-slate-200";
+                }
+            });
+
+            pane.innerHTML = `
+                <div class="fade-in">
+                    <h3 class="text-xl font-bold text-slate-800 border-b pb-2">${data.title}</h3>
+                    <p class="text-slate-500 text-sm mt-1 mb-4">${data.subtitle}</p>
+                    ${data.content}
+                </div>
+            `;
+        };
+
+        window.showHormone = function(hormone) {
+            const pane = document.getElementById('hormone-display');
+            pane.innerHTML = `<div class="fade-in bg-slate-50 p-4 rounded border border-slate-200 h-full">${hormoneData[hormone]}</div>`;
+        };
+
+        window.showTropism = function(type) {
+            const pane = document.getElementById('tropism-display');
+            pane.innerHTML = tropismData[type];
+        };
+
+        window.triggerStress = function(type) {
+            const pane = document.getElementById('stress-response-display');
+            let bgClass = 'bg-slate-50 border-slate-200';
+            if (type === 'heat') bgClass = 'bg-red-50 border-red-200';
+            if (type === 'cold') bgClass = 'bg-cyan-50 border-cyan-200';
+            if (type === 'wind') bgClass = 'bg-slate-100 border-slate-300';
+            if (type === 'light') bgClass = 'bg-yellow-50 border-yellow-200';
+            if (type === 'pathogen') bgClass = 'bg-purple-50 border-purple-200';
+            if (type === 'herbivore') bgClass = 'bg-amber-50 border-amber-200';
+            
+            pane.className = `p-5 rounded border min-h-[140px] transition-all flex items-center ${bgClass}`;
+            pane.innerHTML = stressData[type];
+        };
+
+        // Event Listeners
+        document.getElementById('desktop-nav').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (btn) renderModule(btn.dataset.target);
         });
+
+        document.getElementById('mobile-nav').addEventListener('change', (e) => {
+            renderModule(e.target.value);
+        });
+
+        // Initialize App
+        renderModule('intro');
+
     </script>
 </body>
 </html>
